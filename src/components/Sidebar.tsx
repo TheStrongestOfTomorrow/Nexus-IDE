@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SidebarProps {
@@ -10,6 +10,7 @@ interface SidebarProps {
   onAddFile: (name: string) => void;
   onDeleteFile: (id: string) => void;
   onRenameFile: (id: string, newName: string) => void;
+  onExport: () => void;
 }
 
 export default function Sidebar({
@@ -18,7 +19,8 @@ export default function Sidebar({
   onSelectFile,
   onAddFile,
   onDeleteFile,
-  onRenameFile
+  onRenameFile,
+  onExport
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -42,17 +44,56 @@ export default function Sidebar({
     }
   };
 
+  const getFileIcon = (fileName: string, isActive: boolean) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    const iconSize = 16;
+    const iconClass = isActive ? "text-blue-500" : "text-gray-400";
+
+    switch (ext) {
+      case 'html':
+      case 'htm':
+        return <FileType size={iconSize} className={cn(iconClass, "text-orange-500")} />;
+      case 'css':
+        return <Hash size={iconSize} className={cn(iconClass, "text-blue-400")} />;
+      case 'js':
+      case 'jsx':
+        return <FileCode size={iconSize} className={cn(iconClass, "text-yellow-400")} />;
+      case 'ts':
+      case 'tsx':
+        return <FileCode size={iconSize} className={cn(iconClass, "text-blue-500")} />;
+      case 'py':
+        return <FileCode size={iconSize} className={cn(iconClass, "text-blue-300")} />;
+      case 'json':
+        return <FileJson size={iconSize} className={cn(iconClass, "text-yellow-600")} />;
+      case 'md':
+        return <FileText size={iconSize} className={cn(iconClass, "text-gray-400")} />;
+      case 'sql':
+        return <Database size={iconSize} className={cn(iconClass, "text-pink-500")} />;
+      default:
+        return <File size={iconSize} className={iconClass} />;
+    }
+  };
+
   return (
     <div className="w-64 flex-shrink-0 bg-[#f3f3f3] dark:bg-[#252526] border-r border-gray-200 dark:border-[#333] flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">
         <span>Explorer</span>
-        <button 
-          onClick={() => setIsAdding(true)}
-          className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
-          title="New File"
-        >
-          <FilePlus size={16} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={() => setIsAdding(true)}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+            title="New File"
+          >
+            <FilePlus size={16} />
+          </button>
+          <button 
+            onClick={onExport}
+            className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+            title="Export as ZIP"
+          >
+            <Download size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
@@ -97,9 +138,7 @@ export default function Sidebar({
                 )}
               >
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <File size={16} className={cn(
-                    activeFileId === file.id ? "text-blue-500" : "text-gray-400"
-                  )} />
+                  {getFileIcon(file.name, activeFileId === file.id)}
                   <span className="truncate">{file.name}</span>
                 </div>
                 <div className="hidden group-hover:flex items-center gap-1">

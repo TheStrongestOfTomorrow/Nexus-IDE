@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { Send, Bot, MessageSquare, Sparkles, Settings } from 'lucide-react';
+import { Send, Bot, MessageSquare, Sparkles, Settings, Trash2, Terminal, Wand2, Zap } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
 
@@ -158,8 +158,9 @@ export default function AIAssistant({
     <div className="w-80 flex-shrink-0 bg-white dark:bg-[#252526] border-l border-gray-200 dark:border-[#333] flex flex-col h-full">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252526]">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">AI Assistant</span>
-          <div className="flex items-center gap-1">
+          <MessageSquare size={14} className="text-blue-500" />
+          <span className="text-xs font-bold text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">Nexus AI</span>
+          <div className="flex items-center gap-1 ml-2">
             <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-1.5 py-0.5 rounded uppercase font-bold">
               {selectedProvider}
             </span>
@@ -168,36 +169,35 @@ export default function AIAssistant({
             </span>
           </div>
         </div>
+        <button 
+          onClick={() => setMessages([])}
+          className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded text-gray-500 transition-colors"
+          title="Clear Chat"
+        >
+          <Trash2 size={14} />
+        </button>
       </div>
 
-      <div className="flex p-2 gap-1 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#2d2d2d]">
-        <button
-          onClick={() => setMode('chat')}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium transition-colors",
-            mode === 'chat' ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3c3c3c]"
-          )}
-        >
-          <MessageSquare size={14} /> Chat
-        </button>
-        <button
-          onClick={() => setMode('agent')}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium transition-colors",
-            mode === 'agent' ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3c3c3c]"
-          )}
-        >
-          <Bot size={14} /> Agent
-        </button>
-        <button
-          onClick={() => setMode('vibe')}
-          className={cn(
-            "flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded text-xs font-medium transition-colors",
-            mode === 'vibe' ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#3c3c3c]"
-          )}
-        >
-          <Sparkles size={14} /> Vibe
-        </button>
+      <div className="flex items-center px-2 py-1 bg-[#252526] border-b border-[#333] gap-1">
+        {[
+          { id: 'chat', icon: MessageSquare, label: 'Chat' },
+          { id: 'agent', icon: Zap, label: 'Composer' },
+          { id: 'vibe', icon: Wand2, label: 'Vibe' },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setMode(t.id as AIMode)}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 py-1 rounded text-[11px] font-medium transition-all",
+              mode === t.id 
+                ? "bg-[#37373d] text-white shadow-sm" 
+                : "text-gray-500 hover:text-gray-300 hover:bg-[#2a2d2e]"
+            )}
+          >
+            <t.icon size={12} />
+            {t.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-[#1e1e1e]">
@@ -212,24 +212,29 @@ export default function AIAssistant({
             </p>
           </div>
         )}
-        {messages.map((msg, i) => (
-          <div key={i} className={cn("flex flex-col", msg.role === 'user' ? "items-end" : "items-start")}>
-            <div className={cn(
-              "max-w-[90%] rounded-lg p-3 text-sm",
-              msg.role === 'user' 
-                ? "bg-blue-600 text-white rounded-br-none" 
-                : "bg-gray-100 dark:bg-[#2d2d2d] text-gray-800 dark:text-[#cccccc] rounded-bl-none font-mono whitespace-pre-wrap"
-            )}>
-              {msg.content}
+        <div className="flex flex-col gap-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={cn("flex w-full", msg.role === 'user' ? "justify-end" : "justify-start")}>
+              <div className={cn(
+                "max-w-[90%] p-2.5 rounded-lg text-sm shadow-sm border",
+                msg.role === 'user' 
+                  ? "bg-blue-600 text-white border-blue-500 rounded-tr-none" 
+                  : "bg-[#2d2d2d] text-[#cccccc] border-[#3c3c3c] rounded-tl-none font-mono"
+              )}>
+                <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] uppercase font-bold tracking-wider">
+                  {msg.role === 'user' ? 'You' : 'Nexus AI'}
+                </div>
+                <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         {isLoading && (
-          <div className="flex items-start">
-            <div className="bg-gray-100 dark:bg-[#2d2d2d] text-gray-800 dark:text-[#cccccc] rounded-lg rounded-bl-none p-3 text-sm flex items-center gap-2">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+          <div className="flex justify-start">
+            <div className="bg-gray-100 dark:bg-[#2d2d2d] text-gray-800 dark:text-[#cccccc] rounded-2xl rounded-tl-none px-4 py-2.5 text-sm flex items-center gap-1.5 border border-gray-200 dark:border-[#3c3c3c]">
+              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
+              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
             </div>
           </div>
         )}

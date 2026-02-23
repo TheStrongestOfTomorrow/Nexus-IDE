@@ -3,8 +3,11 @@ import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
 import AIAssistant from './components/AIAssistant';
+import ActivityBar, { ActivityType } from './components/ActivityBar';
+import StatusBar from './components/StatusBar';
+import GithubView from './components/GithubView';
 import { useFileSystem } from './hooks/useFileSystem';
-import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight } from 'lucide-react';
+import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X } from 'lucide-react';
 import { cn } from './lib/utils';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -13,10 +16,13 @@ import { AI_PROVIDERS } from './constants/models';
 export default function App() {
   const { files, addFile, updateFile, deleteFile, renameFile } = useFileSystem();
   const [activeFileId, setActiveFileId] = useState<string | null>(files[0]?.id || null);
+  const [openFileIds, setOpenFileIds] = useState<string[]>(files[0] ? [files[0].id] : []);
   
+  const [activeActivity, setActiveActivity] = useState<ActivityType>('explorer');
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showAI, setShowAI] = useState(true);
+  const [showAI, setShowAI] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [githubUser, setGithubUser] = useState<any | null>(null);
   
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -72,6 +78,39 @@ export default function App() {
 
   const activeFile = files.find(f => f.id === activeFileId) || null;
 
+  const handleSelectFile = (id: string) => {
+    setActiveFileId(id);
+    if (!openFileIds.includes(id)) {
+      setOpenFileIds(prev => [...prev, id]);
+    }
+  };
+
+  const closeFile = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const newOpenFiles = openFileIds.filter(fid => fid !== id);
+    setOpenFileIds(newOpenFiles);
+    if (activeFileId === id) {
+      setActiveFileId(newOpenFiles[newOpenFiles.length - 1] || null);
+    }
+  };
+
+  const handleActivityChange = (activity: ActivityType) => {
+    if (activity === 'settings') {
+      setShowSettings(true);
+      return;
+    }
+    if (activity === 'ai') {
+      setShowAI(!showAI);
+      return;
+    }
+    if (activeActivity === activity && showSidebar) {
+      setShowSidebar(false);
+    } else {
+      setActiveActivity(activity);
+      setShowSidebar(true);
+    }
+  };
+
   const exportAsZip = async () => {
     const zip = new JSZip();
     files.forEach(file => {
@@ -81,82 +120,100 @@ export default function App() {
     saveAs(content, 'nexus-project.zip');
   };
 
-  return (
-    <div className="flex flex-col h-screen bg-[#1e1e1e] text-[#cccccc] font-sans overflow-hidden">
-      {/* Top Bar */}
-      <div className="h-10 bg-[#333333] border-b border-[#252526] flex items-center justify-between px-4 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <Code2 className="text-blue-500" size={20} />
-          <span className="font-semibold tracking-wide text-sm text-gray-200">Nexus IDE</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={exportAsZip}
-            className="p-1.5 rounded hover:bg-[#444] transition-colors flex items-center gap-1 text-xs"
-            title="Export as ZIP"
-          >
-            <Download size={16} />
-            <span className="hidden sm:inline">Export</span>
-          </button>
-          <div className="w-px h-4 bg-gray-600 mx-1" />
-          <button 
-            onClick={() => setShowSidebar(!showSidebar)}
-            className={cn("p-1.5 rounded hover:bg-[#444] transition-colors", showSidebar && "bg-[#444]")}
-            title="Toggle Explorer"
-          >
-            <LayoutPanelLeft size={16} />
-          </button>
-          <button 
-            onClick={() => setShowPreview(!showPreview)}
-            className={cn("p-1.5 rounded hover:bg-[#444] transition-colors", showPreview && "bg-[#444]")}
-            title="Toggle Preview"
-          >
-            <Code2 size={16} />
-          </button>
-          <button 
-            onClick={() => setShowAI(!showAI)}
-            className={cn("p-1.5 rounded hover:bg-[#444] transition-colors", showAI && "bg-[#444]")}
-            title="Toggle AI Assistant"
-          >
-            <MessageSquare size={16} />
-          </button>
-          <div className="w-px h-4 bg-gray-600 mx-2" />
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="p-1.5 rounded hover:bg-[#444] transition-colors"
-            title="Settings"
-          >
-            <Settings size={16} />
-          </button>
-        </div>
-      </div>
+  const handleImportGithubFiles = (githubFiles: { name: string, content: string }[]) => {
+    githubFiles.forEach(gf => {
+      const existing = files.find(f => f.name === gf.name);
+      if (existing) {
+        updateFile(existing.id, gf.content);
+      } else {
+        addFile(gf.name, gf.content);
+      }
+    });
+  };
 
-      {/* Main Content */}
+  return (
+    <div className="flex flex-col h-screen bg-[#1e1e1e] text-[#cccccc] font-sans overflow-hidden select-none">
+      {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
+        <ActivityBar 
+          activeActivity={activeActivity} 
+          onActivityChange={handleActivityChange} 
+        />
+
         {showSidebar && (
-          <Sidebar
-            files={files}
-            activeFileId={activeFileId}
-            onSelectFile={setActiveFileId}
-            onAddFile={addFile}
-            onDeleteFile={deleteFile}
-            onRenameFile={renameFile}
-          />
+          <div className="w-64 flex-shrink-0 flex flex-col border-r border-[#252526] bg-[#252526]">
+            {activeActivity === 'explorer' && (
+              <Sidebar
+                files={files}
+                activeFileId={activeFileId}
+                onSelectFile={handleSelectFile}
+                onAddFile={addFile}
+                onDeleteFile={deleteFile}
+                onRenameFile={renameFile}
+                onExport={exportAsZip}
+              />
+            )}
+            {activeActivity === 'search' && (
+              <div className="p-4">
+                <h2 className="text-xs font-bold uppercase mb-4 opacity-50">Search</h2>
+                <input 
+                  type="text" 
+                  placeholder="Search" 
+                  className="w-full bg-[#3c3c3c] border border-[#3c3c3c] rounded px-2 py-1 text-sm outline-none focus:border-[#007acc]"
+                />
+              </div>
+            )}
+            {activeActivity === 'git' && (
+              <GithubView 
+                files={files} 
+                onImportFiles={handleImportGithubFiles} 
+                onUserUpdate={setGithubUser}
+              />
+            )}
+          </div>
         )}
 
-        <div className="flex-1 flex overflow-hidden">
-          <div className={cn("flex flex-col h-full transition-all duration-300", showPreview ? "w-1/2 border-r border-[#333]" : "w-full")}>
-            <Editor
-              activeFile={activeFile}
-              onChange={updateFile}
-            />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Tabs Bar */}
+          <div className="h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]">
+            {openFileIds.map(id => {
+              const file = files.find(f => f.id === id);
+              if (!file) return null;
+              return (
+                <div
+                  key={id}
+                  onClick={() => setActiveFileId(id)}
+                  className={cn(
+                    "h-full flex items-center px-3 gap-2 border-r border-[#1e1e1e] cursor-pointer text-xs min-w-[120px] max-w-[200px] transition-colors group",
+                    activeFileId === id ? "bg-[#1e1e1e] text-white" : "bg-[#2d2d2d] text-gray-500 hover:bg-[#2a2d2e]"
+                  )}
+                >
+                  <span className="truncate flex-1">{file.name}</span>
+                  <button 
+                    onClick={(e) => closeFile(e, id)}
+                    className="p-0.5 rounded hover:bg-[#454545] opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
-          
-          {showPreview && (
-            <div className="w-1/2 h-full">
-              <Preview files={files} activeFileId={activeFileId} />
+
+          <div className="flex-1 flex overflow-hidden">
+            <div className={cn("flex flex-col h-full transition-all duration-300", showPreview ? "w-1/2 border-r border-[#333]" : "w-full")}>
+              <Editor
+                activeFile={activeFile}
+                onChange={updateFile}
+              />
             </div>
-          )}
+            
+            {showPreview && (
+              <div className="w-1/2 h-full">
+                <Preview files={files} activeFileId={activeFileId} />
+              </div>
+            )}
+          </div>
         </div>
 
         {showAI && (
@@ -172,6 +229,8 @@ export default function App() {
           />
         )}
       </div>
+
+      <StatusBar activeFile={activeFile} githubUser={githubUser} />
 
       {/* Settings Modal */}
       {showSettings && (

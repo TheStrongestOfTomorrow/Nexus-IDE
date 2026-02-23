@@ -114,16 +114,53 @@ ${activeFile.content.replace(/</g, '\\u003c')}
         <head>
           <style>
             body { background: #1e1e1e; color: #d4d4d4; font-family: monospace; padding: 1rem; margin: 0; }
-            pre { margin: 0; white-space: pre-wrap; }
-            .key { color: #9cdcfe; }
-            .string { color: #ce9178; }
-            .number { color: #b5cea8; }
-            .boolean { color: #569cd6; }
-            .keyword { color: #c586c0; }
+            pre { margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.5; }
+            .json-key { color: #9cdcfe; }
+            .json-string { color: #ce9178; }
+            .json-number { color: #b5cea8; }
+            .json-boolean { color: #569cd6; }
+            .sql-keyword { color: #c586c0; font-weight: bold; }
+            .sql-string { color: #ce9178; }
+            .sql-comment { color: #6a9955; }
           </style>
         </head>
         <body>
-          <pre id="output">${activeFile.content.replace(/</g, '&lt;')}</pre>
+          <pre id="output"></pre>
+          <script>
+            const content = \`${activeFile.content.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+            const output = document.getElementById('output');
+            
+            if (${isJson}) {
+              try {
+                const obj = JSON.parse(content);
+                const json = JSON.stringify(obj, null, 2);
+                output.innerHTML = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                  let cls = 'json-number';
+                  if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                      cls = 'json-key';
+                    } else {
+                      cls = 'json-string';
+                    }
+                  } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                  } else if (/null/.test(match)) {
+                    cls = 'json-boolean';
+                  }
+                  return '<span class="' + cls + '">' + match + '</span>';
+                });
+              } catch (e) {
+                output.textContent = content;
+              }
+            } else {
+              // Simple SQL highlighting
+              output.innerHTML = content
+                .replace(/</g, '&lt;')
+                .replace(/\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE|JOIN|LEFT|RIGHT|INNER|OUTER|ON|GROUP|BY|ORDER|HAVING|LIMIT|CREATE|TABLE|DROP|ALTER|INDEX|PRIMARY|KEY|FOREIGN|REFERENCES|VALUES|INTO|SET|AND|OR|NOT|NULL|IS|AS|DISTINCT|UNION|ALL|CASE|WHEN|THEN|ELSE|END)\b/gi, '<span class="sql-keyword">$1</span>')
+                .replace(/'([^']*)'/g, '<span class="sql-string">\'$1\'</span>')
+                .replace(/--.*$/gm, '<span class="sql-comment">$&</span>');
+            }
+          </script>
         </body>
         </html>
       `;
@@ -173,13 +210,24 @@ ${activeFile.content.replace(/</g, '\\u003c')}
     <div className="flex flex-col h-full bg-white dark:bg-[#1e1e1e] border-l border-gray-200 dark:border-[#333]">
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252526]">
         <span className="text-sm font-medium text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">Preview</span>
-        <button 
-          onClick={runPreview}
-          className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-[#333] text-gray-600 dark:text-[#cccccc] transition-colors flex items-center gap-1 text-xs"
-        >
-          <Play size={14} />
-          Run
-        </button>
+        <div className="flex items-center gap-2">
+          {activeFile?.name.endsWith('.py') && (
+            <button 
+              onClick={runPreview}
+              className="p-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 text-xs font-bold shadow-sm"
+            >
+              <Play size={14} fill="currentColor" />
+              Run Python
+            </button>
+          )}
+          <button 
+            onClick={runPreview}
+            className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-[#333] text-gray-600 dark:text-[#cccccc] transition-colors flex items-center gap-1 text-xs"
+          >
+            <RefreshCw size={14} />
+            {activeFile?.name.endsWith('.py') ? 'Reset' : 'Run'}
+          </button>
+        </div>
       </div>
       <div className="flex-1 bg-white relative">
         <iframe
