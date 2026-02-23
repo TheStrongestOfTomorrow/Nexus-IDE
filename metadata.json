@@ -1,0 +1,5 @@
+{
+  "name": "Nexus IDE",
+  "description": "A web-based IDE with VS Code UI, local storage, Python/JS/HTML support, and an AI assistant with Chat, Agent, and Vibe Coder modes.",
+  "requestFramePermissions": []
+}
