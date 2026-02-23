@@ -17,7 +17,15 @@ Nexus isn't just another code editor; it's a complete development environment th
   - **Agent**: Let the AI autonomously create and edit files.
   - **Vibe Coder**: Describe a project vibe and watch it come to life.
 - **Multiple AI Providers**: Support for Gemini, OpenAI, and Anthropic (bring your own API key).
+- **Real-time Collaboration**: Code together with your team in real-time via WebSockets.
+- **Terminal Integration**: A real terminal for running Node.js and other server-side tasks.
+- **Extension Marketplace**: Support for custom themes and plugins via external script loading.
+- **Mobile Optimization**: A better experience for coding on the go with responsive layouts.
+- **Ollama Support**: Integration with local models for private, offline intelligence (Self-Hosting only).
 - **GitHub Integration**: Connect your GitHub account to clone, commit, and push changes directly.
+  - **Single Repo Import**: To maintain performance, you can import one repository at a time.
+  - **Bulk Deletion**: Easily clear your workspace by deleting all imported repository files at once.
+  - **Auto-Preview**: The system automatically attempts to render a preview of your project, handling complex file structures from GitHub.
 - **Local Storage**: Your work is automatically saved to your browser's local storage.
 - **Export as ZIP**: Download your entire project as a ZIP file for offline use.
 
@@ -43,13 +51,19 @@ A high-level generation mode. Describe the "vibe" or the goal of your project, a
 
 We're constantly working to make Nexus better. Here's what's on the horizon:
 
-- [ ] **Real-time Collaboration**: Code together with your team in real-time.
-- [ ] **Terminal Integration**: A real terminal for running Node.js and other server-side tasks.
-- [ ] **Extension Marketplace**: Support for custom themes and plugins.
-- [ ] **Mobile Optimization**: A better experience for coding on the go.
-- [ ] **More AI Providers**: Integration with local models via Ollama.
+- [ ] **Docker Support**: One-click deployment with pre-configured environments.
+- [ ] **Advanced Debugging**: Visual debugger for JavaScript and Python.
+- [ ] **Plugin API**: More robust API for extension developers.
+- [ ] **Cloud Sync**: Sync your projects across devices without GitHub.
 
 ## 📜 Update Log
+
+### V2 Alpha Release (Feb 2026)
+- **Real-time Collaboration**: Implemented WebSocket-based code synchronization for team editing.
+- **Terminal Integration**: Added a functional terminal (xterm.js) with server-side shell access.
+- **Extensions**: Introduced a system to load custom JavaScript extensions from URLs.
+- **Ollama Support**: Added support for self-hosted local AI models via Ollama.
+- **Mobile Optimization**: Improved UI responsiveness for smaller screens and touch devices.
 
 ### Alpha V1.5 (Feb 2026)
 - **GitHub Integration**: Full support for connecting GitHub, importing repos, and pushing changes.

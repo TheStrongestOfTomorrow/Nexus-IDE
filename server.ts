@@ -4,6 +4,10 @@ import axios from "axios";
 import cookieParser from "cookie-parser";
 import path from "path";
 import { fileURLToPath } from "url";
+import { WebSocketServer, WebSocket } from "ws";
+import { createServer } from "http";
+import { spawn } from "child_process";
+import os from "os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -205,8 +209,67 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  const httpServer = createServer(app);
+  const wss = new WebSocketServer({ server: httpServer });
+
+  const clients = new Set<WebSocket>();
+
+  wss.on("connection", (ws) => {
+    clients.add(ws);
+    console.log("Client connected. Total clients:", clients.size);
+
+    let shell: any = null;
+
+    ws.on("message", (message: string) => {
+      try {
+        const data = JSON.parse(message.toString());
+
+        if (data.type === "collab") {
+          // Broadcast collaboration data to all other clients
+          clients.forEach((client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify(data));
+            }
+          });
+        } else if (data.type === "terminal-init") {
+          if (shell) shell.kill();
+          
+          const shellCmd = os.platform() === "win32" ? "powershell.exe" : "bash";
+          shell = spawn(shellCmd, [], {
+            env: process.env,
+            cwd: process.cwd(),
+          });
+
+          shell.stdout.on("data", (data: any) => {
+            ws.send(JSON.stringify({ type: "terminal-output", data: data.toString() }));
+          });
+
+          shell.stderr.on("data", (data: any) => {
+            ws.send(JSON.stringify({ type: "terminal-output", data: data.toString() }));
+          });
+
+          shell.on("close", () => {
+            ws.send(JSON.stringify({ type: "terminal-output", data: "\r\nProcess exited\r\n" }));
+          });
+        } else if (data.type === "terminal-input") {
+          if (shell) {
+            shell.stdin.write(data.data);
+          }
+        }
+      } catch (err) {
+        console.error("WS Message Error:", err);
+      }
+    });
+
+    ws.on("close", () => {
+      clients.delete(ws);
+      if (shell) shell.kill();
+      console.log("Client disconnected. Total clients:", clients.size);
+    });
+  });
+
+  httpServer.listen(PORT, "0.0.0.0", () => {
+    console.log(`Full-stack server running on http://localhost:${PORT}`);
   });
 }
 

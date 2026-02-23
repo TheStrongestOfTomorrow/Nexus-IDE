@@ -52,5 +52,15 @@ export const AI_PROVIDERS: ProviderInfo[] = [
       { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', description: 'Classic balanced model.' },
       { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', description: 'Classic fast model.' },
     ]
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama (Self-Hosted)',
+    models: [
+      { id: 'llama3', name: 'Llama 3', description: 'Meta\'s latest open model.' },
+      { id: 'mistral', name: 'Mistral', description: 'High-performance open model.' },
+      { id: 'codellama', name: 'Code Llama', description: 'Specialized for coding tasks.' },
+      { id: 'phi3', name: 'Phi-3', description: 'Microsoft\'s lightweight powerful model.' },
+    ]
   }
 ];

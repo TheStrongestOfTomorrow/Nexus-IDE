@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Plus, Download, GitCommit, ExternalLink, Loader2, RefreshCw, Send } from 'lucide-react';
+import { Github, Plus, Download, GitCommit, ExternalLink, Loader2, RefreshCw, Send, Trash2 } from 'lucide-react';
 import { githubService } from '../services/githubService';
 import { cn } from '../lib/utils';
 
 interface GithubViewProps {
   files: any[];
   onImportFiles: (files: { name: string, content: string }[]) => void;
+  onClearWorkspace: () => void;
   onUserUpdate: (user: any | null) => void;
 }
 
-export default function GithubView({ files, onImportFiles, onUserUpdate }: GithubViewProps) {
+export default function GithubView({ files, onImportFiles, onClearWorkspace, onUserUpdate }: GithubViewProps) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('nexus_github_token'));
   const [user, setUser] = useState<any>(null);
   const [repos, setRepos] = useState<any[]>([]);
@@ -155,13 +156,22 @@ export default function GithubView({ files, onImportFiles, onUserUpdate }: Githu
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Actions */}
         <div className="space-y-2">
-          <button
-            onClick={() => setIsCreating(!isCreating)}
-            className="w-full flex items-center gap-2 px-3 py-2 bg-[#3c3c3c] hover:bg-[#444] rounded text-sm text-white transition-colors"
-          >
-            <Plus size={16} />
-            New Repository
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsCreating(!isCreating)}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#3c3c3c] hover:bg-[#444] rounded text-sm text-white transition-colors"
+            >
+              <Plus size={16} />
+              New Repo
+            </button>
+            <button
+              onClick={onClearWorkspace}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 rounded text-sm text-red-400 border border-red-500/30 transition-colors"
+            >
+              <Trash2 size={16} />
+              Clear
+            </button>
+          </div>
           
           {isCreating && (
             <form onSubmit={handleCreateRepo} className="p-3 bg-[#1e1e1e] rounded border border-[#333] space-y-3">

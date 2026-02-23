@@ -49,7 +49,7 @@ export default function AIAssistant({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !apiKey) return;
+    if (!input.trim() || (!apiKey && selectedProvider !== 'ollama')) return;
 
     const userMessage = input.trim();
     setInput('');
@@ -106,6 +106,18 @@ export default function AIAssistant({
         });
         // Anthropic returns an array of content blocks
         responseText = response.content.map(block => 'text' in block ? block.text : '').join('');
+      } else if (selectedProvider === 'ollama') {
+        const response = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: selectedModel,
+            prompt: `${systemInstruction}\n\n${prompt}`,
+            stream: false,
+          }),
+        });
+        const data = await response.json();
+        responseText = data.response || '';
       }
 
       if (mode === 'chat') {
@@ -242,9 +254,9 @@ export default function AIAssistant({
       </div>
 
       <div className="p-3 bg-white dark:bg-[#252526] border-t border-gray-200 dark:border-[#333]">
-        {!apiKey && (
+        {!apiKey && selectedProvider !== 'ollama' && (
           <div className="mb-2 text-xs text-red-500 flex items-center gap-1">
-            <Settings size={12} /> Please set your Gemini API Key in settings.
+            <Settings size={12} /> Please set your {selectedProvider} API Key in settings.
           </div>
         )}
         <form onSubmit={handleSubmit} className="flex gap-2">

@@ -1,20 +1,22 @@
 import React from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'ai' | 'settings';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'ai' | 'settings';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
   onActivityChange: (activity: ActivityType) => void;
+  onToggleTerminal: () => void;
 }
 
-export default function ActivityBar({ activeActivity, onActivityChange }: ActivityBarProps) {
+export default function ActivityBar({ activeActivity, onActivityChange, onToggleTerminal }: ActivityBarProps) {
   const activities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
     { id: 'explorer', icon: Files, label: 'Explorer' },
     { id: 'search', icon: Search, label: 'Search' },
     { id: 'git', icon: GitBranch, label: 'Source Control' },
     { id: 'debug', icon: Play, label: 'Run and Debug' },
+    { id: 'extensions', icon: Puzzle, label: 'Extensions' },
     { id: 'ai', icon: MessageSquare, label: 'AI Assistant' },
   ];
 
@@ -38,6 +40,17 @@ export default function ActivityBar({ activeActivity, onActivityChange }: Activi
           </div>
         </button>
       ))}
+
+      <button
+        onClick={onToggleTerminal}
+        className="p-2 text-gray-500 hover:text-gray-300 transition-colors relative group"
+        title="Terminal"
+      >
+        <TerminalIcon size={24} strokeWidth={1.5} />
+        <div className="absolute left-full ml-2 px-2 py-1 bg-[#252526] text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none z-50 whitespace-nowrap border border-[#454545] shadow-xl">
+          Terminal
+        </div>
+      </button>
       
       <div className="mt-auto flex flex-col gap-4">
         <button 

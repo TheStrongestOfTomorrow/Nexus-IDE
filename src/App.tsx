@@ -6,6 +6,9 @@ import AIAssistant from './components/AIAssistant';
 import ActivityBar, { ActivityType } from './components/ActivityBar';
 import StatusBar from './components/StatusBar';
 import GithubView from './components/GithubView';
+import ExtensionsView from './components/ExtensionsView';
+import Terminal from './components/Terminal';
+import { socketService } from './services/socketService';
 import { useFileSystem } from './hooks/useFileSystem';
 import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -22,7 +25,12 @@ export default function App() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showAI, setShowAI] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
+  const [showTerminal, setShowTerminal] = useState(false);
   const [githubUser, setGithubUser] = useState<any | null>(null);
+  const [extensions, setExtensions] = useState<any[]>(() => {
+    const saved = localStorage.getItem('nexus_extensions');
+    return saved ? JSON.parse(saved) : [];
+  });
   
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -73,8 +81,61 @@ export default function App() {
   }, [backendBase]);
 
   useEffect(() => {
-    localStorage.setItem('nexus_backend_key', backendApiKey);
-  }, [backendApiKey]);
+    localStorage.setItem('nexus_extensions', JSON.stringify(extensions));
+    
+    // Load enabled extensions
+    extensions.forEach(ext => {
+      if (ext.enabled) {
+        const scriptId = `ext-${ext.id}`;
+        if (!document.getElementById(scriptId)) {
+          const script = document.createElement('script');
+          script.id = scriptId;
+          script.src = ext.url;
+          script.async = true;
+          document.body.appendChild(script);
+        }
+      } else {
+        const script = document.getElementById(`ext-${ext.id}`);
+        if (script) script.remove();
+      }
+    });
+  }, [extensions]);
+
+  const handleAddExtension = (url: string) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    const name = url.split('/').pop() || 'New Extension';
+    setExtensions(prev => [...prev, { id, name, url, enabled: true, description: 'External script extension' }]);
+  };
+
+  const handleRemoveExtension = (id: string) => {
+    setExtensions(prev => prev.filter(ext => ext.id !== id));
+    const script = document.getElementById(`ext-${id}`);
+    if (script) script.remove();
+  };
+
+  const handleToggleExtension = (id: string) => {
+    setExtensions(prev => prev.map(ext => ext.id === id ? { ...ext, enabled: !ext.enabled } : ext));
+  };
+
+  useEffect(() => {
+    socketService.connect();
+    
+    const unsubscribe = socketService.subscribe((msg) => {
+      if (msg.type === 'collab') {
+        const { fileId, content } = msg;
+        updateFile(fileId, content);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleUpdateFile = (id: string, content: string, fromRemote = false) => {
+    updateFile(id, content);
+    if (!fromRemote) {
+      socketService.send({ type: 'collab', fileId: id, content });
+    }
+  };
 
   const activeFile = files.find(f => f.id === activeFileId) || null;
 
@@ -129,18 +190,27 @@ export default function App() {
         addFile(gf.name, gf.content);
       }
     });
+    setShowPreview(true);
+  };
+
+  const handleClearWorkspace = () => {
+    if (confirm('Are you sure you want to delete all files in the current workspace?')) {
+      files.forEach(f => deleteFile(f.id));
+    }
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#1e1e1e] text-[#cccccc] font-sans overflow-hidden select-none">
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        <ActivityBar 
-          activeActivity={activeActivity} 
-          onActivityChange={handleActivityChange} 
-        />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex overflow-hidden">
+          <ActivityBar 
+            activeActivity={activeActivity} 
+            onActivityChange={handleActivityChange} 
+            onToggleTerminal={() => setShowTerminal(!showTerminal)}
+          />
 
-        {showSidebar && (
+          {showSidebar && (
           <div className="w-64 flex-shrink-0 flex flex-col border-r border-[#252526] bg-[#252526]">
             {activeActivity === 'explorer' && (
               <Sidebar
@@ -167,7 +237,16 @@ export default function App() {
               <GithubView 
                 files={files} 
                 onImportFiles={handleImportGithubFiles} 
+                onClearWorkspace={handleClearWorkspace}
                 onUserUpdate={setGithubUser}
+              />
+            )}
+            {activeActivity === 'extensions' && (
+              <ExtensionsView
+                extensions={extensions}
+                onAddExtension={handleAddExtension}
+                onRemoveExtension={handleRemoveExtension}
+                onToggleExtension={handleToggleExtension}
               />
             )}
           </div>
@@ -204,7 +283,7 @@ export default function App() {
             <div className={cn("flex flex-col h-full transition-all duration-300", showPreview ? "w-1/2 border-r border-[#333]" : "w-full")}>
               <Editor
                 activeFile={activeFile}
-                onChange={updateFile}
+                onChange={(id, content) => handleUpdateFile(id, content)}
               />
             </div>
             
@@ -214,9 +293,14 @@ export default function App() {
               </div>
             )}
           </div>
-        </div>
 
-        {showAI && (
+          {showTerminal && (
+            <Terminal onClose={() => setShowTerminal(false)} />
+          )}
+        </div>
+      </div>
+
+      {showAI && (
           <AIAssistant
             files={files}
             activeFileId={activeFileId}
