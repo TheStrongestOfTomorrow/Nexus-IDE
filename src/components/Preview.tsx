@@ -20,12 +20,82 @@ export default function Preview({ files, activeFileId }: PreviewProps) {
   useEffect(() => {
     if (!iframeRef.current) return;
 
-    const htmlFile = files.find(f => f.name === 'index.html');
-    const cssFiles = files.filter(f => f.name.endsWith('.css'));
-    const jsFiles = files.filter(f => f.name.endsWith('.js'));
-    const pyFiles = files.filter(f => f.name.endsWith('.py'));
+    const getDir = (path: string) => {
+      const parts = path.split('/');
+      parts.pop();
+      return parts.join('/');
+    };
 
-    let htmlContent = htmlFile ? htmlFile.content : '<html><body><h1>No index.html found</h1></body></html>';
+    const resolvePath = (baseDir: string, relativePath: string) => {
+      if (relativePath.startsWith('/')) return relativePath.slice(1);
+      if (!baseDir) return relativePath;
+      
+      const baseParts = baseDir.split('/').filter(Boolean);
+      const relativeParts = relativePath.split('/').filter(Boolean);
+      
+      for (const part of relativeParts) {
+        if (part === '..') {
+          baseParts.pop();
+        } else if (part !== '.') {
+          baseParts.push(part);
+        }
+      }
+      
+      return baseParts.join('/');
+    };
+
+    let htmlFile: FileNode | undefined;
+    
+    if (activeFile?.language === 'html') {
+      htmlFile = activeFile;
+    } else {
+      // Try to find index.html in the same directory as active file
+      const activeDir = activeFile ? getDir(activeFile.name) : '';
+      htmlFile = files.find(f => f.name === (activeDir ? `${activeDir}/index.html` : 'index.html'));
+      
+      // Fallback to root index.html
+      if (!htmlFile) {
+        htmlFile = files.find(f => f.name === 'index.html');
+      }
+      
+      // Fallback to any index.html
+      if (!htmlFile) {
+        htmlFile = files.find(f => f.name.endsWith('index.html'));
+      }
+    }
+
+    const htmlDir = htmlFile ? getDir(htmlFile.name) : '';
+    let htmlContent = htmlFile ? htmlFile.content : '<html><body><h1>No HTML file found to preview</h1></body></html>';
+
+    const inlinedFiles = new Set<string>();
+
+    // Replace linked files with inline content if possible
+    // Resolve paths relative to the HTML file's directory
+    htmlContent = htmlContent.replace(/<link\s+[^>]*href="([^"]+)"[^>]*>/g, (match, href) => {
+      if (href.startsWith('http') || href.startsWith('//')) return match;
+      const resolvedPath = resolvePath(htmlDir, href);
+      const file = files.find(f => f.name === resolvedPath);
+      if (file) {
+        inlinedFiles.add(file.id);
+        return `<style data-filename="${file.name}">\n${file.content}\n</style>`;
+      }
+      return match;
+    });
+
+    htmlContent = htmlContent.replace(/<script\s+[^>]*src="([^"]+)"[^>]*><\/script>/g, (match, src) => {
+      if (src.startsWith('http') || src.startsWith('//')) return match;
+      const resolvedPath = resolvePath(htmlDir, src);
+      const file = files.find(f => f.name === resolvedPath);
+      if (file) {
+        inlinedFiles.add(file.id);
+        return `<script data-filename="${file.name}">\n${file.content}\n</script>`;
+      }
+      return match;
+    });
+
+    // Automatic injection for files in the SAME directory that weren't explicitly linked
+    const localCssFiles = files.filter(f => f.name.endsWith('.css') && getDir(f.name) === htmlDir && !inlinedFiles.has(f.id));
+    const localJsFiles = files.filter(f => f.name.endsWith('.js') && getDir(f.name) === htmlDir && !inlinedFiles.has(f.id));
 
     // If active file is python, we might want to just run python
     if (activeFile?.name.endsWith('.py')) {
@@ -165,22 +235,19 @@ ${activeFile.content.replace(/</g, '\\u003c')}
         </html>
       `;
     } else {
-      // Inject CSS
-      let styleTags = cssFiles.map(f => `<style>\n${f.content}\n</style>`).join('\n');
+      // Inject remaining local CSS
+      let styleTags = localCssFiles.map(f => `<style data-filename="${f.name}">\n${f.content}\n</style>`).join('\n');
       
-      // Inject JS
-      let scriptTags = jsFiles.map(f => `<script>\n${f.content}\n</script>`).join('\n');
+      // Inject remaining local JS
+      let scriptTags = localJsFiles.map(f => `<script data-filename="${f.name}">\n${f.content}\n</script>`).join('\n');
 
-      // Replace linked files with inline content if possible
-      // This is a simple approach. A real bundler would be better.
-      htmlContent = htmlContent.replace(/<link\s+rel="stylesheet"\s+href="([^"]+)">/g, (match, href) => {
-        const file = files.find(f => f.name === href);
-        return file ? `<style>\n${file.content}\n</style>` : match;
-      });
-
-      htmlContent = htmlContent.replace(/<script\s+src="([^"]+)"><\/script>/g, (match, src) => {
-        const file = files.find(f => f.name === src);
-        return file ? `<script>\n${file.content}\n</script>` : match;
+      htmlContent = htmlContent.replace(/<img\s+[^>]*src="([^"]+)"[^>]*>/g, (match, src) => {
+        if (src.startsWith('http') || src.startsWith('//') || src.startsWith('data:')) return match;
+        const resolvedPath = resolvePath(htmlDir, src);
+        const file = files.find(f => f.name === resolvedPath);
+        // For images, we'd ideally need base64, but we only have text content in this mock FS
+        // If it's an SVG we can maybe inline it, otherwise we just leave it
+        return match;
       });
 
       // If there's no head, just prepend styles

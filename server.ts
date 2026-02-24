@@ -214,7 +214,45 @@ async function startServer() {
 
   const clients = new Set<WebSocket>();
   const sessions = new Map<string, { clients: Set<WebSocket>, lastActivity: number }>();
+  const hostedWorkspaces = new Map<string, { files: { name: string, content: string }[], lastUpdate: number }>();
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+  // Self-hosting route
+  app.get("/hosted/:sessionId/*", (req, res) => {
+    const { sessionId } = req.params;
+    const filePath = req.params[0] || "index.html";
+    const workspace = hostedWorkspaces.get(sessionId);
+
+    if (!workspace) {
+      return res.status(404).send("Workspace not found or not hosted.");
+    }
+
+    const file = workspace.files.find(f => f.name === filePath);
+    if (!file) {
+      // Try index.html if it's a directory-like path
+      const indexFile = workspace.files.find(f => f.name === (filePath ? `${filePath}/index.html` : "index.html"));
+      if (indexFile) {
+        res.setHeader("Content-Type", "text/html");
+        return res.send(indexFile.content);
+      }
+      return res.status(404).send("File not found in hosted workspace.");
+    }
+
+    const ext = path.extname(file.name).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      ".html": "text/html",
+      ".js": "application/javascript",
+      ".css": "text/css",
+      ".json": "application/json",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+      ".svg": "image/svg+xml",
+      ".txt": "text/plain",
+    };
+
+    res.setHeader("Content-Type", mimeTypes[ext] || "text/plain");
+    res.send(file.content);
+  });
 
   // Cleanup inactive sessions
   setInterval(() => {
@@ -304,10 +342,40 @@ async function startServer() {
           shell.on("close", () => {
             ws.send(JSON.stringify({ type: "terminal-output", data: "\r\nProcess exited\r\n" }));
           });
+        } else if (data.type === "run-file") {
+          const { filename, content, language } = data;
+          let command = "";
+          let args: string[] = [];
+
+          if (language === "javascript") {
+            command = "node";
+            args = ["-e", content];
+          } else if (language === "python") {
+            command = "python3";
+            args = ["-c", content];
+          } else if (language === "html") {
+            // HTML files are usually previewed, but we can echo them
+            ws.send(JSON.stringify({ type: "terminal-output", data: "\r\nHTML file - please use the Preview pane.\r\n" }));
+            return;
+          }
+
+          if (command) {
+            const runner = spawn(command, args);
+            runner.stdout.on("data", (data) => ws.send(JSON.stringify({ type: "terminal-output", data: data.toString() })));
+            runner.stderr.on("data", (data) => ws.send(JSON.stringify({ type: "terminal-output", data: data.toString() })));
+            runner.on("close", (code) => ws.send(JSON.stringify({ type: "terminal-output", data: `\r\nProcess finished with exit code ${code}\r\n` })));
+          }
         } else if (data.type === "terminal-input") {
           if (shell) {
             shell.stdin.write(data.data);
           }
+        } else if (data.type === "workspace:host") {
+          const { sessionId, files } = data;
+          hostedWorkspaces.set(sessionId, { files, lastUpdate: Date.now() });
+          ws.send(JSON.stringify({ 
+            type: 'workspace:hosted', 
+            url: `${process.env.APP_URL || ''}/hosted/${sessionId}/index.html` 
+          }));
         }
       } catch (err) {
         console.error("WS Message Error:", err);

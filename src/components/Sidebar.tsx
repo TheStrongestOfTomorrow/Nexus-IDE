@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
@@ -14,6 +14,7 @@ interface SidebarProps {
   onExport: () => void;
   onApplyTemplate: (template: any) => void;
   onShowDiff?: (id: string) => void;
+  onOpenFolder?: () => void;
 }
 
 export default function Sidebar({
@@ -25,7 +26,8 @@ export default function Sidebar({
   onRenameFile,
   onExport,
   onApplyTemplate,
-  onShowDiff
+  onShowDiff,
+  onOpenFolder
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -69,6 +71,10 @@ export default function Sidebar({
         return <FileCode size={iconSize} className={cn(iconClass, "text-blue-500")} />;
       case 'py':
         return <FileCode size={iconSize} className={cn(iconClass, "text-blue-300")} />;
+      case 'node':
+      case 'cjs':
+      case 'mjs':
+        return <FileCode size={iconSize} className={cn(iconClass, "text-green-500")} />;
       case 'json':
         return <FileJson size={iconSize} className={cn(iconClass, "text-yellow-600")} />;
       case 'md':
@@ -99,6 +105,15 @@ export default function Sidebar({
           >
             <Download size={16} />
           </button>
+          {onOpenFolder && (
+            <button 
+              onClick={onOpenFolder}
+              className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+              title="Open Local Folder"
+            >
+              <FolderOpen size={16} />
+            </button>
+          )}
         </div>
       </div>
 

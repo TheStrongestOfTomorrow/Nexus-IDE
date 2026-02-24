@@ -380,5 +380,40 @@ const count = ref(0)
 </html>`
       }
     ]
+  },
+  python: {
+    name: 'Python Script',
+    files: [
+      {
+        name: 'main.py',
+        content: `def greet(name):
+    return f"Hello, {name} from Nexus IDE!"
+
+if __name__ == "__main__":
+    print(greet("Developer"))
+    
+    # Try some basic math
+    numbers = [1, 2, 3, 4, 5]
+    print(f"Sum of {numbers} is {sum(numbers)}")`
+      }
+    ]
+  },
+  nodejs: {
+    name: 'Node.js Script',
+    files: [
+      {
+        name: 'index.js',
+        content: `const os = require('os');
+
+console.log('Nexus Node.js Environment');
+console.log('-------------------------');
+console.log('Platform:', os.platform());
+console.log('Architecture:', os.arch());
+console.log('Uptime:', os.uptime(), 'seconds');
+
+const greet = (name) => \`Hello, \${name}!\`;
+console.log(greet('Nexus User'));`
+      }
+    ]
   }
 };

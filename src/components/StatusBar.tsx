@@ -1,13 +1,14 @@
 import React from 'react';
-import { GitBranch, Wifi, Bell, CheckCircle2 } from 'lucide-react';
+import { GitBranch, Wifi, Bell, CheckCircle2, Brain } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 
 interface StatusBarProps {
   activeFile: FileNode | null;
   githubUser: any | null;
+  onScanProject?: () => void;
 }
 
-export default function StatusBar({ activeFile, githubUser }: StatusBarProps) {
+export default function StatusBar({ activeFile, githubUser, onScanProject }: StatusBarProps) {
   return (
     <div className="h-6 bg-[#007acc] text-white flex items-center justify-between px-3 text-[11px] flex-shrink-0 select-none">
       <div className="flex items-center h-full">
@@ -19,6 +20,16 @@ export default function StatusBar({ activeFile, githubUser }: StatusBarProps) {
           <Wifi size={12} />
           <span>{githubUser ? `GitHub: ${githubUser.login}` : 'Connected'}</span>
         </div>
+        {onScanProject && (
+          <div 
+            onClick={onScanProject}
+            className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors text-yellow-200"
+            title="Scan Project for AI Memory"
+          >
+            <Brain size={12} />
+            <span>Scan Project</span>
+          </div>
+        )}
       </div>
       
       <div className="flex items-center h-full">

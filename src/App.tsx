@@ -9,14 +9,17 @@ import GithubView from './components/GithubView';
 import ExtensionsView from './components/ExtensionsView';
 import CollaborationView from './components/CollaborationView';
 import DiffEditor from './components/DiffEditor';
+import CommandPalette from './components/CommandPalette';
+import MermaidViewer from './components/MermaidViewer';
 import Terminal from './components/Terminal';
 import { socketService } from './services/socketService';
 import { workspaceService } from './services/workspaceService';
 import { useFileSystem } from './hooks/useFileSystem';
-import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X } from 'lucide-react';
+import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X, Command, Zap, FilePlus, FolderOpen, Play, Search, Trash2, Layout, Users, GitCompare, Brain } from 'lucide-react';
 import { cn } from './lib/utils';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { GoogleGenAI } from '@google/genai';
 import { AI_PROVIDERS } from './constants/models';
 
 export default function App() {
@@ -39,6 +42,9 @@ export default function App() {
   const [joinId, setJoinId] = useState('');
   const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(true);
   const [diffData, setDiffData] = useState<{ original: string, modified: string, fileId: string } | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [mermaidChart, setMermaidChart] = useState<string | null>(null);
+  const [hostedUrl, setHostedUrl] = useState<string | null>(null);
   
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -71,6 +77,122 @@ export default function App() {
   });
 
   const [showSettings, setShowSettings] = useState(false);
+
+  const handleClearWorkspace = () => {
+    if (confirm('Are you sure you want to clear the entire workspace? This cannot be undone.')) {
+      files.forEach(f => deleteFile(f.id));
+      setOpenFileIds([]);
+      setActiveFileId(null);
+      workspaceService.deleteWorkspace('default');
+    }
+  };
+
+  const exportAsZip = async () => {
+    const zip = new JSZip();
+    files.forEach(file => {
+      zip.file(file.name, file.content);
+    });
+    const content = await zip.generateAsync({ type: 'blob' });
+    // @ts-ignore
+    saveAs(content, 'nexus-project.zip');
+  };
+
+  const handleOpenFolder = async () => {
+    try {
+      // @ts-ignore
+      const dirHandle = await window.showDirectoryPicker();
+      const loadedFiles: { name: string, content: string }[] = [];
+      
+      async function readDir(handle: any, path = '') {
+        for await (const entry of handle.values()) {
+          if (entry.kind === 'file') {
+            const file = await entry.getFile();
+            const content = await file.text();
+            loadedFiles.push({ name: path + entry.name, content });
+          } else if (entry.kind === 'directory') {
+            await readDir(entry, path + entry.name + '/');
+          }
+        }
+      }
+      
+      await readDir(dirHandle);
+      if (loadedFiles.length > 0) {
+        handleClearWorkspace();
+        loadedFiles.forEach(f => addFile(f.name, f.content));
+        alert(`Loaded ${loadedFiles.length} files from local folder.`);
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error('File System Access Error:', err);
+        alert('Failed to access local file system.');
+      }
+    }
+  };
+
+  const handleAnalyzeArchitecture = async () => {
+    const apiKey = apiKeys['gemini'];
+    if (!apiKey) {
+      alert('Please set your Gemini API key for architecture analysis.');
+      return;
+    }
+
+    const genAI = new GoogleGenAI({ apiKey });
+    const model = genAI.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Analyze the following project files and generate a Mermaid.js flowchart (graph TD) representing the architecture and component relationships. Return ONLY the mermaid code block.\n\nFiles:\n${files.map(f => `File: ${f.name}\nContent:\n${f.content.substring(0, 1000)}`).join('\n\n')}`,
+    });
+
+    try {
+      const response = await model;
+      const text = response.text || '';
+      const match = text.match(/```mermaid\s*([\s\S]*?)\s*```/) || text.match(/graph TD[\s\S]*/);
+      if (match) {
+        setMermaidChart(match[1] || match[0]);
+      } else {
+        alert('Could not generate architecture diagram.');
+      }
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      alert('Failed to analyze architecture.');
+    }
+  };
+
+  const handleScanProject = async () => {
+    const apiKey = apiKeys['gemini'];
+    if (!apiKey) {
+      alert('Please set your Gemini API key to scan the project.');
+      return;
+    }
+
+    const genAI = new GoogleGenAI({ apiKey });
+    const model = genAI.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Summarize each of the following files in one short sentence each. Return a JSON object where keys are filenames and values are summaries.\n\nFiles:\n${files.map(f => `${f.name}: ${f.content.substring(0, 500)}`).join('\n\n')}`,
+      config: { responseMimeType: 'application/json' }
+    });
+
+    try {
+      const response = await model;
+      const summaries = JSON.parse(response.text || '{}');
+      await workspaceService.saveMemory('default', summaries);
+      alert('Project scanned and memory updated!');
+    } catch (err) {
+      console.error('Scan failed:', err);
+      alert('Failed to scan project.');
+    }
+  };
+
+  const commands = [
+    { id: 'new-file', label: 'New File', icon: FilePlus, category: 'File', action: () => setActiveActivity('explorer') },
+    { id: 'open-folder', label: 'Open Local Folder', icon: FolderOpen, category: 'File', action: handleOpenFolder },
+    { id: 'toggle-ai', label: 'Toggle AI Assistant', icon: MessageSquare, category: 'View', action: () => setShowAI(!showAI) },
+    { id: 'toggle-terminal', label: 'Toggle Terminal', icon: Play, category: 'View', action: () => setShowTerminal(!showTerminal) },
+    { id: 'settings', label: 'Open Settings', icon: Settings, category: 'App', action: () => setShowSettings(true) },
+    { id: 'clear-workspace', label: 'Clear Workspace', icon: Trash2, category: 'Workspace', action: handleClearWorkspace },
+    { id: 'export-zip', label: 'Export as ZIP', icon: Download, category: 'File', action: exportAsZip },
+    { id: 'analyze-arch', label: 'Analyze Architecture', icon: Layout, category: 'AI', action: handleAnalyzeArchitecture },
+    { id: 'scan-project', label: 'Scan Project (AI Memory)', icon: Brain, category: 'AI', action: () => handleScanProject() },
+  ];
 
   useEffect(() => {
     localStorage.setItem('nexus_api_keys', JSON.stringify(apiKeys));
@@ -180,11 +302,32 @@ export default function App() {
       } else if (msg.type === 'session:error') {
         alert(msg.message);
         setIsJoining(false);
+      } else if (msg.type === 'workspace:hosted') {
+        setHostedUrl(msg.url);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
+  const handleHostProject = () => {
+    if (!sessionId) {
+      alert('You must start a collaboration session first to host your project.');
+      return;
+    }
+    socketService.hostWorkspace(sessionId, files.map(f => ({ name: f.name, content: f.content })));
+  };
 
   const handleCreateSession = () => {
     const id = socketService.createSession();
@@ -241,15 +384,6 @@ export default function App() {
     }
   };
 
-  const exportAsZip = async () => {
-    const zip = new JSZip();
-    files.forEach(file => {
-      zip.file(file.name, file.content);
-    });
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project.zip');
-  };
-
   const handleImportGithubFiles = (githubFiles: { name: string, content: string }[]) => {
     githubFiles.forEach(gf => {
       const existing = files.find(f => f.name === gf.name);
@@ -260,12 +394,6 @@ export default function App() {
       }
     });
     setShowPreview(true);
-  };
-
-  const handleClearWorkspace = () => {
-    if (confirm('Are you sure you want to delete all files in the current workspace?')) {
-      files.forEach(f => deleteFile(f.id));
-    }
   };
 
   const handleApplyTemplate = (template: any) => {
@@ -302,6 +430,11 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-[#1e1e1e] text-[#cccccc] font-sans overflow-hidden select-none">
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen} 
+        onClose={() => setIsCommandPaletteOpen(false)} 
+        commands={commands} 
+      />
       {diffData && (
         <DiffEditor
           original={diffData.original}
@@ -333,6 +466,7 @@ export default function App() {
                 onExport={exportAsZip}
                 onApplyTemplate={handleApplyTemplate}
                 onShowDiff={handleShowDiff}
+                onOpenFolder={handleOpenFolder}
               />
             )}
             {activeActivity === 'search' && (
@@ -369,58 +503,68 @@ export default function App() {
                 setJoinId={setJoinId}
                 onCreateSession={handleCreateSession}
                 onJoinSession={handleJoinSession}
+                onHostProject={handleHostProject}
+                hostedUrl={hostedUrl}
               />
             )}
           </div>
         )}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Tabs Bar */}
-          <div className="h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]">
-            {openFileIds.map(id => {
-              const file = files.find(f => f.id === id);
-              if (!file) return null;
-              return (
-                <div
-                  key={id}
-                  onClick={() => setActiveFileId(id)}
-                  className={cn(
-                    "h-full flex items-center px-3 gap-2 border-r border-[#1e1e1e] cursor-pointer text-xs min-w-[120px] max-w-[200px] transition-colors group",
-                    activeFileId === id ? "bg-[#1e1e1e] text-white" : "bg-[#2d2d2d] text-gray-500 hover:bg-[#2a2d2e]"
-                  )}
-                >
-                  <span className="truncate flex-1">{file.name}</span>
-                  <button 
-                    onClick={(e) => closeFile(e, id)}
-                    className="p-0.5 rounded hover:bg-[#454545] opacity-0 group-hover:opacity-100 transition-opacity"
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Tabs Bar */}
+            <div className="h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]">
+              {openFileIds.map(id => {
+                const file = files.find(f => f.id === id);
+                if (!file) return null;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => setActiveFileId(id)}
+                    className={cn(
+                      "h-full flex items-center px-3 gap-2 border-r border-[#1e1e1e] cursor-pointer text-xs min-w-[120px] max-w-[200px] transition-colors group",
+                      activeFileId === id ? "bg-[#1e1e1e] text-white" : "bg-[#2d2d2d] text-gray-500 hover:bg-[#2a2d2e]"
+                    )}
                   >
-                    <X size={12} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex-1 flex overflow-hidden">
-            <div className={cn("flex flex-col h-full transition-all duration-300", showPreview ? "w-1/2 border-r border-[#333]" : "w-full")}>
-              <Editor
-                activeFile={activeFile}
-                onChange={(id, content) => handleUpdateFile(id, content)}
-                extensions={extensions}
-              />
+                    <span className="truncate flex-1">{file.name}</span>
+                    <button 
+                      onClick={(e) => closeFile(e, id)}
+                      className="p-0.5 rounded hover:bg-[#454545] opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
-            
-            {showPreview && (
-              <div className="w-1/2 h-full">
-                <Preview files={files} activeFileId={activeFileId} />
+
+            <div className="flex-1 flex overflow-hidden">
+              <div className={cn("flex flex-col h-full transition-all duration-300", showPreview ? "w-1/2 border-r border-[#333]" : "w-full")}>
+                {mermaidChart ? (
+                  <div className="flex-1 p-4 bg-[#1e1e1e]">
+                    <MermaidViewer chart={mermaidChart} onClose={() => setMermaidChart(null)} />
+                  </div>
+                ) : (
+                  <Editor
+                    activeFile={activeFile}
+                    onChange={(id, content) => handleUpdateFile(id, content)}
+                    extensions={extensions}
+                    apiKeys={apiKeys}
+                    onToggleTerminal={() => setShowTerminal(true)}
+                  />
+                )}
               </div>
+              
+              {showPreview && !mermaidChart && (
+                <div className="w-1/2 h-full">
+                  <Preview files={files} activeFileId={activeFileId} />
+                </div>
+              )}
+            </div>
+
+            {showTerminal && (
+              <Terminal onClose={() => setShowTerminal(false)} />
             )}
           </div>
-
-          {showTerminal && (
-            <Terminal onClose={() => setShowTerminal(false)} />
-          )}
-        </div>
       </div>
 
       {showAI && (
@@ -437,7 +581,11 @@ export default function App() {
         )}
       </div>
 
-      <StatusBar activeFile={activeFile} githubUser={githubUser} />
+      <StatusBar 
+        activeFile={activeFile} 
+        githubUser={githubUser} 
+        onScanProject={handleScanProject}
+      />
 
       {/* Settings Modal */}
       {showSettings && (

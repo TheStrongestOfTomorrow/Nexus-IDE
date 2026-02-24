@@ -40,6 +40,8 @@ export default function AIAssistant({
   const [isLoading, setIsLoading] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<any[] | null>(null);
   const [alwaysAllow, setAlwaysAllow] = useState(() => localStorage.getItem('nexus_ai_always_allow') === 'true');
+  const [battlegroundMode, setBattlegroundMode] = useState(false);
+  const [battleResponses, setBattleResponses] = useState<{ provider: string, text: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeFile = files.find(f => f.id === activeFileId);
@@ -78,10 +80,11 @@ export default function AIAssistant({
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+    setBattleResponses([]);
 
     try {
-      let responseText = '';
       const contextFiles = files.map(f => `File: ${f.name}\n\`\`\`${f.language}\n${f.content}\n\`\`\``).join('\n\n');
+      const prompt = `Current Files:\n${contextFiles}\n\nActive File: ${activeFile?.name || 'None'}\n\nUser Request: ${userMessage}`;
       
       let systemInstruction = '';
       if (mode === 'chat') {
@@ -92,86 +95,78 @@ export default function AIAssistant({
         systemInstruction = 'You are an autonomous coding agent. You can write code, fix bugs, and create files. Return ONLY a JSON array of files to create/update. Format: [{"name": "script.js", "content": "..."}]';
       }
 
-      const prompt = `Current Files:\n${contextFiles}\n\nActive File: ${activeFile?.name || 'None'}\n\nUser Request: ${userMessage}`;
-
-      if (selectedProvider === 'gemini') {
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: selectedModel,
-          contents: prompt,
-          config: {
-            systemInstruction,
+      const fetchAIResponse = async (provider: string, model: string, key: string) => {
+        if (provider === 'gemini') {
+          const ai = new GoogleGenAI({ apiKey: key });
+          const response = await ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: { systemInstruction, temperature: 0.2 }
+          });
+          return response.text || '';
+        } else if (provider === 'openai') {
+          const openai = new OpenAI({ apiKey: key, dangerouslyAllowBrowser: true });
+          const response = await openai.chat.completions.create({
+            model,
+            messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
             temperature: 0.2,
-          }
-        });
-        responseText = response.text || '';
-      } else if (selectedProvider === 'openai') {
-        const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-        const response = await openai.chat.completions.create({
-          model: selectedModel,
-          messages: [
-            { role: 'system', content: systemInstruction },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.2,
-        });
-        responseText = response.choices[0]?.message?.content || '';
-      } else if (selectedProvider === 'anthropic') {
-        const anthropic = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
-        const response = await anthropic.messages.create({
-          model: selectedModel,
-          max_tokens: 4096,
-          system: systemInstruction,
-          messages: [
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.2,
-        });
-        // Anthropic returns an array of content blocks
-        responseText = response.content.map(block => 'text' in block ? block.text : '').join('');
-      } else if (selectedProvider === 'ollama') {
-        const response = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: selectedModel,
-            prompt: `${systemInstruction}\n\n${prompt}`,
-            stream: false,
-          }),
-        });
-        const data = await response.json();
-        responseText = data.response || '';
-      }
+          });
+          return response.choices[0]?.message?.content || '';
+        } else if (provider === 'anthropic') {
+          const anthropic = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+          const response = await anthropic.messages.create({
+            model,
+            max_tokens: 4096,
+            system: systemInstruction,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.2,
+          });
+          return response.content.map(block => 'text' in block ? block.text : '').join('');
+        }
+        return '';
+      };
 
-      if (mode === 'chat') {
-        setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+      if (battlegroundMode) {
+        const providers = ['gemini', 'openai'].filter(p => apiKeys[p]);
+        const responses = await Promise.all(providers.map(async (p) => {
+          const text = await fetchAIResponse(p, p === 'gemini' ? 'gemini-3-flash-preview' : 'gpt-4o', apiKeys[p]);
+          return { provider: p, text };
+        }));
+        setBattleResponses(responses);
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Battleground results generated below.' }]);
       } else {
-        // Parse JSON for agent/vibe
-        try {
-          let jsonStr = responseText;
-          const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-          if (jsonMatch) {
-            jsonStr = jsonMatch[1];
-          } else {
-            const arrayMatch = responseText.match(/\[[\s\S]*\]/);
-            if (arrayMatch) {
-              jsonStr = arrayMatch[0];
-            }
-          }
-          
-          const parsedFiles = JSON.parse(jsonStr);
-          if (Array.isArray(parsedFiles)) {
-            if (alwaysAllow) {
-              applyChanges(parsedFiles);
+        const responseText = await fetchAIResponse(selectedProvider, selectedModel, apiKey);
+        
+        if (mode === 'chat') {
+          setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+        } else {
+          // Parse JSON for agent/vibe
+          try {
+            let jsonStr = responseText;
+            const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) {
+              jsonStr = jsonMatch[1];
             } else {
-              setPendingChanges(parsedFiles);
-              setMessages(prev => [...prev, { role: 'assistant', content: 'I have generated some changes. Please review and approve them.' }]);
+              const arrayMatch = responseText.match(/\[[\s\S]*\]/);
+              if (arrayMatch) {
+                jsonStr = arrayMatch[0];
+              }
             }
-          } else {
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Could not parse the generated files. Response was not an array:\n' + responseText }]);
+            
+            const parsedFiles = JSON.parse(jsonStr);
+            if (Array.isArray(parsedFiles)) {
+              if (alwaysAllow) {
+                applyChanges(parsedFiles);
+              } else {
+                setPendingChanges(parsedFiles);
+                setMessages(prev => [...prev, { role: 'assistant', content: 'I have generated some changes. Please review and approve them.' }]);
+              }
+            } else {
+              setMessages(prev => [...prev, { role: 'assistant', content: 'Could not parse the generated files. Response was not an array:\n' + responseText }]);
+            }
+          } catch (err) {
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Error parsing changes: ' + err + '\n\nResponse:\n' + responseText }]);
           }
-        } catch (err) {
-          setMessages(prev => [...prev, { role: 'assistant', content: 'Error parsing changes: ' + err + '\n\nResponse:\n' + responseText }]);
         }
       }
 
@@ -197,6 +192,16 @@ export default function AIAssistant({
             </span>
           </div>
         </div>
+        <button 
+          onClick={() => setBattlegroundMode(!battlegroundMode)}
+          className={cn(
+            "p-1 rounded transition-colors mr-1",
+            battlegroundMode ? "bg-blue-600 text-white" : "text-gray-500 hover:bg-gray-200 dark:hover:bg-[#333]"
+          )}
+          title="Multi-Model Battleground"
+        >
+          <Zap size={14} />
+        </button>
         <button 
           onClick={() => setMessages([])}
           className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded text-gray-500 transition-colors"
@@ -242,7 +247,7 @@ export default function AIAssistant({
         )}
         <div className="flex flex-col gap-4">
           {messages.map((msg, i) => (
-            <div key={i} className={cn("flex w-full", msg.role === 'user' ? "justify-end" : "justify-start")}>
+            <div key={i} className={cn("flex w-full flex-col", msg.role === 'user' ? "items-end" : "items-start")}>
               <div className={cn(
                 "max-w-[90%] p-2.5 rounded-lg text-sm shadow-sm border",
                 msg.role === 'user' 
@@ -253,6 +258,17 @@ export default function AIAssistant({
                   {msg.role === 'user' ? 'You' : 'Nexus AI'}
                 </div>
                 <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                
+                {msg.role === 'assistant' && i === messages.length - 1 && battleResponses.length > 0 && (
+                  <div className="mt-4 grid grid-cols-1 gap-2">
+                    {battleResponses.map((res, idx) => (
+                      <div key={idx} className="p-3 bg-black/20 rounded border border-white/5">
+                        <div className="text-[10px] font-bold uppercase text-blue-400 mb-2">{res.provider}</div>
+                        <div className="text-xs whitespace-pre-wrap opacity-80">{res.text}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 
                 {msg.role === 'assistant' && pendingChanges && i === messages.length - 1 && (
                   <div className="mt-3 pt-3 border-t border-[#3c3c3c] space-y-2">

@@ -52,6 +52,10 @@ class SocketService {
     this.send({ type: 'session:join', sessionId });
   }
 
+  hostWorkspace(sessionId: string, files: { name: string, content: string }[]) {
+    this.send({ type: 'workspace:host', sessionId, files });
+  }
+
   subscribe(handler: MessageHandler) {
     this.handlers.add(handler);
     return () => this.handlers.delete(handler);

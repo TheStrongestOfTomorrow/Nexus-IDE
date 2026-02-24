@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Key, LogIn, Plus, Copy, Check, ShieldAlert } from 'lucide-react';
+import { Users, Key, LogIn, Plus, Copy, Check, ShieldAlert, Globe, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface CollaborationViewProps {
@@ -9,6 +9,8 @@ interface CollaborationViewProps {
   setJoinId: (id: string) => void;
   onCreateSession: () => void;
   onJoinSession: (e: React.FormEvent) => void;
+  onHostProject: () => void;
+  hostedUrl: string | null;
 }
 
 export default function CollaborationView({
@@ -17,7 +19,9 @@ export default function CollaborationView({
   joinId,
   setJoinId,
   onCreateSession,
-  onJoinSession
+  onJoinSession,
+  onHostProject,
+  hostedUrl
 }: CollaborationViewProps) {
   const [copied, setCopied] = React.useState(false);
 
@@ -52,6 +56,45 @@ export default function CollaborationView({
               </div>
               <p className="text-[10px] text-gray-500 mt-2">
                 Share this code with a friend to start coding together.
+              </p>
+            </div>
+
+            <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-400 mb-2">
+                <Globe size={16} />
+                <span className="text-xs font-bold uppercase">Self-Hosting</span>
+              </div>
+              {hostedUrl ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between bg-[#1e1e1e] p-2 rounded border border-[#333]">
+                    <span className="text-[10px] font-mono text-blue-400 truncate max-w-[140px]">{hostedUrl}</span>
+                    <a 
+                      href={hostedUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="p-1 hover:bg-[#333] rounded text-gray-400 transition-colors"
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                  <button 
+                    onClick={onHostProject}
+                    className="w-full bg-[#3c3c3c] hover:bg-[#444] text-white py-1 rounded text-[10px] font-bold transition-colors border border-[#444]"
+                  >
+                    Update Hosted Site
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={onHostProject}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                >
+                  <Globe size={14} />
+                  Host Project Online
+                </button>
+              )}
+              <p className="text-[10px] text-gray-500 mt-2 leading-tight">
+                Make your project accessible via a public URL.
               </p>
             </div>
             
