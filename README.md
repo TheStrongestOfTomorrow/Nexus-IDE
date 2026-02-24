@@ -58,6 +58,25 @@ We're constantly working to make Nexus better. Here's what's on the horizon:
 
 ## 📜 Update Log
 
+### V2.6 Alpha Release (Feb 2026)
+- **Diff View**: Compare local changes with original versions or imported repository files.
+- **AI Approval Workflow**: Review and approve AI-generated code changes with an "Always Allow" option.
+- **Framework Templates**: Added templates for Next.js, Vue, Svelte, and Tailwind CSS.
+- **Improved Sidebar**: Enhanced explorer with file comparison tools.
+
+### V2.5 Alpha Release (Feb 2026)
+- **Session-based Collaboration**: One-time session keys for instant pair programming with friends.
+- **Inactivity Auto-Wipe**: Sessions automatically expire and wipe data after 30 minutes of inactivity.
+- **IndexedDB Persistence**: Robust workspace saving using browser-native IndexedDB.
+- **VSIX Support**: Load and install VS Code extensions directly from `.vsix` files.
+- **GitHub Customization**: Set descriptions, licenses, and visibility when creating new repositories.
+- **WASM Support**: Added templates and runtime considerations for WebAssembly.
+
+### V2.1 Alpha Release (Feb 2026)
+- **Graphics & Game Dev**: Added templates for WebGL, Three.js, and WebGPU to bootstrap high-performance graphics projects.
+- **VS Code Extension Support**: Enhanced the extension system to support loading VS Code themes and language configurations directly into Monaco.
+- **Extension Marketplace**: Added a featured marketplace to discover and install popular IDE enhancements.
+
 ### V2 Alpha Release (Feb 2026)
 - **Real-time Collaboration**: Implemented WebSocket-based code synchronization for team editing.
 - **Terminal Integration**: Added a functional terminal (xterm.js) with server-side shell access.

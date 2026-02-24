@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
 interface SidebarProps {
   files: FileNode[];
@@ -11,6 +12,8 @@ interface SidebarProps {
   onDeleteFile: (id: string) => void;
   onRenameFile: (id: string, newName: string) => void;
   onExport: () => void;
+  onApplyTemplate: (template: any) => void;
+  onShowDiff?: (id: string) => void;
 }
 
 export default function Sidebar({
@@ -20,9 +23,12 @@ export default function Sidebar({
   onAddFile,
   onDeleteFile,
   onRenameFile,
-  onExport
+  onExport,
+  onApplyTemplate,
+  onShowDiff
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -97,6 +103,39 @@ export default function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
+        {/* Templates Section */}
+        <div className="mb-4">
+          <button 
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="w-full flex items-center justify-between px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Layout size={12} />
+              Templates
+            </div>
+            <span className={cn("transition-transform", showTemplates ? "rotate-90" : "")}>›</span>
+          </button>
+          
+          {showTemplates && (
+            <div className="mt-1 px-2 space-y-1">
+              {Object.entries(GRAPHICS_TEMPLATES).map(([key, template]) => (
+                <button
+                  key={key}
+                  onClick={() => onApplyTemplate(template)}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#2a2d2e] rounded transition-colors text-left"
+                >
+                  <Box size={14} className="text-emerald-500" />
+                  {template.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="px-4 py-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+          Files
+        </div>
+
         {isAdding && (
           <form onSubmit={handleAddSubmit} className="px-4 py-1 flex items-center gap-2">
             <File size={16} className="text-gray-400" />
@@ -142,6 +181,18 @@ export default function Sidebar({
                   <span className="truncate">{file.name}</span>
                 </div>
                 <div className="hidden group-hover:flex items-center gap-1">
+                  {onShowDiff && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onShowDiff(file.id);
+                      }}
+                      className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                      title="Show Diff"
+                    >
+                      <GitCompare size={12} />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

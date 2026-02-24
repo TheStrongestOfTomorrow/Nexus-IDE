@@ -213,24 +213,77 @@ async function startServer() {
   const wss = new WebSocketServer({ server: httpServer });
 
   const clients = new Set<WebSocket>();
+  const sessions = new Map<string, { clients: Set<WebSocket>, lastActivity: number }>();
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+  // Cleanup inactive sessions
+  setInterval(() => {
+    const now = Date.now();
+    sessions.forEach((session, sessionId) => {
+      if (now - session.lastActivity > SESSION_TIMEOUT) {
+        console.log(`Session ${sessionId} timed out due to inactivity.`);
+        session.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'session:timeout', sessionId }));
+          }
+        });
+        sessions.delete(sessionId);
+      }
+    });
+  }, 60000); // Check every minute
 
   wss.on("connection", (ws) => {
     clients.add(ws);
     console.log("Client connected. Total clients:", clients.size);
 
     let shell: any = null;
+    let currentSessionId: string | null = null;
 
     ws.on("message", (message: string) => {
       try {
         const data = JSON.parse(message.toString());
 
-        if (data.type === "collab") {
-          // Broadcast collaboration data to all other clients
-          clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify(data));
+        if (data.type === "session:create") {
+          const { sessionId } = data;
+          sessions.set(sessionId, { clients: new Set([ws]), lastActivity: Date.now() });
+          currentSessionId = sessionId;
+          ws.send(JSON.stringify({ type: 'session:created', sessionId }));
+        } else if (data.type === "session:join") {
+          const { sessionId } = data;
+          const session = sessions.get(sessionId);
+          if (session) {
+            session.clients.add(ws);
+            session.lastActivity = Date.now();
+            currentSessionId = sessionId;
+            ws.send(JSON.stringify({ type: 'session:joined', sessionId }));
+            // Notify others in session
+            session.clients.forEach(client => {
+              if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'session:user_joined', sessionId }));
+              }
+            });
+          } else {
+            ws.send(JSON.stringify({ type: 'session:error', message: 'Session not found' }));
+          }
+        } else if (data.type === "collab") {
+          if (currentSessionId) {
+            const session = sessions.get(currentSessionId);
+            if (session) {
+              session.lastActivity = Date.now();
+              session.clients.forEach((client) => {
+                if (client !== ws && client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify(data));
+                }
+              });
             }
-          });
+          } else {
+            // Broadcast collaboration data to all other clients (legacy/global)
+            clients.forEach((client) => {
+              if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
+              }
+            });
+          }
         } else if (data.type === "terminal-init") {
           if (shell) shell.kill();
           
@@ -263,6 +316,15 @@ async function startServer() {
 
     ws.on("close", () => {
       clients.delete(ws);
+      if (currentSessionId) {
+        const session = sessions.get(currentSessionId);
+        if (session) {
+          session.clients.delete(ws);
+          if (session.clients.size === 0) {
+            session.lastActivity = Date.now(); // Start timeout countdown
+          }
+        }
+      }
       if (shell) shell.kill();
       console.log("Client disconnected. Total clients:", clients.size);
     });

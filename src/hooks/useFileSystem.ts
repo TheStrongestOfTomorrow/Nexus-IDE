@@ -5,6 +5,7 @@ export interface FileNode {
   id: string;
   name: string;
   content: string;
+  originalContent?: string;
   language: string;
 }
 
@@ -85,14 +86,24 @@ export function useFileSystem() {
       id: uuidv4(),
       name,
       content,
+      originalContent: content,
       language,
     };
     setFiles(prev => [...prev, newFile]);
     return newFile;
   };
 
-  const updateFile = (id: string, content: string) => {
-    setFiles(prev => prev.map(f => f.id === id ? { ...f, content } : f));
+  const updateFile = (id: string, content: string, updateOriginal = false) => {
+    setFiles(prev => prev.map(f => {
+      if (f.id === id) {
+        return { 
+          ...f, 
+          content, 
+          originalContent: updateOriginal ? content : (f.originalContent ?? f.content) 
+        };
+      }
+      return f;
+    }));
   };
 
   const deleteFile = (id: string) => {

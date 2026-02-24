@@ -18,6 +18,9 @@ export default function GithubView({ files, onImportFiles, onClearWorkspace, onU
   const [isCreating, setIsCreating] = useState(false);
   const [isPushing, setIsPushing] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
+  const [newRepoDesc, setNewRepoDesc] = useState('Created via Nexus IDE');
+  const [newRepoLicense, setNewRepoLicense] = useState('mit');
+  const [isPrivate, setIsPrivate] = useState(false);
   const [commitMessage, setCommitMessage] = useState('Update from Nexus IDE');
 
   useEffect(() => {
@@ -86,8 +89,9 @@ export default function GithubView({ files, onImportFiles, onClearWorkspace, onU
     if (!newRepoName.trim()) return;
     setIsLoading(true);
     try {
-      await githubService.createRepo(token!, newRepoName, 'Created via Nexus IDE', false);
+      await githubService.createRepo(token!, newRepoName, newRepoDesc, isPrivate, newRepoLicense);
       setNewRepoName('');
+      setNewRepoDesc('Created via Nexus IDE');
       setIsCreating(false);
       fetchGithubData();
       alert('Repository created successfully!');
@@ -183,6 +187,33 @@ export default function GithubView({ files, onImportFiles, onClearWorkspace, onU
                 onChange={e => setNewRepoName(e.target.value)}
                 className="w-full bg-[#2d2d2d] border border-[#444] rounded px-2 py-1.5 text-xs outline-none text-white focus:border-blue-500"
               />
+              <textarea
+                placeholder="Description"
+                value={newRepoDesc}
+                onChange={e => setNewRepoDesc(e.target.value)}
+                className="w-full bg-[#2d2d2d] border border-[#444] rounded px-2 py-1.5 text-xs outline-none text-white focus:border-blue-500 h-16 resize-none"
+              />
+              <div className="flex gap-2">
+                <select
+                  value={newRepoLicense}
+                  onChange={e => setNewRepoLicense(e.target.value)}
+                  className="flex-1 bg-[#2d2d2d] border border-[#444] rounded px-2 py-1.5 text-xs outline-none text-white focus:border-blue-500"
+                >
+                  <option value="mit">MIT License</option>
+                  <option value="apache-2.0">Apache 2.0</option>
+                  <option value="gpl-3.0">GPL 3.0</option>
+                  <option value="unlicense">Unlicense</option>
+                </select>
+                <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={isPrivate} 
+                    onChange={e => setIsPrivate(e.target.checked)}
+                    className="rounded border-[#444] bg-[#2d2d2d]"
+                  />
+                  Private
+                </label>
+              </div>
               <div className="flex justify-end gap-2">
                 <button 
                   type="button"

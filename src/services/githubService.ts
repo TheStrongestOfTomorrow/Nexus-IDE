@@ -29,11 +29,12 @@ export const githubService = {
     return response.data;
   },
 
-  createRepo: async (token: string, name: string, description: string, isPrivate: boolean) => {
+  createRepo: async (token: string, name: string, description: string, isPrivate: boolean, license?: string) => {
     const response = await axios.post(`${API_BASE}/repos`, {
       name,
       description,
-      private: isPrivate
+      private: isPrivate,
+      license_template: license
     }, {
       headers: { Authorization: `token ${token}` }
     });

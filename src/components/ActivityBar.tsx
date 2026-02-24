@@ -1,8 +1,8 @@
 import React from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'ai' | 'settings';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -17,6 +17,7 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'git', icon: GitBranch, label: 'Source Control' },
     { id: 'debug', icon: Play, label: 'Run and Debug' },
     { id: 'extensions', icon: Puzzle, label: 'Extensions' },
+    { id: 'collab', icon: Users, label: 'Collaboration' },
     { id: 'ai', icon: MessageSquare, label: 'AI Assistant' },
   ];
 

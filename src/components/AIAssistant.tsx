@@ -38,6 +38,8 @@ export default function AIAssistant({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState<any[] | null>(null);
+  const [alwaysAllow, setAlwaysAllow] = useState(() => localStorage.getItem('nexus_ai_always_allow') === 'true');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeFile = files.find(f => f.id === activeFileId);
@@ -46,6 +48,27 @@ export default function AIAssistant({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_ai_always_allow', alwaysAllow.toString());
+  }, [alwaysAllow]);
+
+  const applyChanges = (parsedFiles: any[]) => {
+    let changes = '';
+    for (const pf of parsedFiles) {
+      if (!pf.name || typeof pf.content !== 'string') continue;
+      const existingFile = files.find(f => f.name === pf.name);
+      if (existingFile) {
+        onUpdateFile(existingFile.id, pf.content);
+        changes += `Updated ${pf.name}\n`;
+      } else {
+        onAddFile(pf.name, pf.content);
+        changes += `Created ${pf.name}\n`;
+      }
+    }
+    setMessages(prev => [...prev, { role: 'assistant', content: `I have applied the following changes:\n${changes || 'No valid files found.'}` }]);
+    setPendingChanges(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,19 +161,12 @@ export default function AIAssistant({
           
           const parsedFiles = JSON.parse(jsonStr);
           if (Array.isArray(parsedFiles)) {
-            let changes = '';
-            for (const pf of parsedFiles) {
-              if (!pf.name || typeof pf.content !== 'string') continue;
-              const existingFile = files.find(f => f.name === pf.name);
-              if (existingFile) {
-                onUpdateFile(existingFile.id, pf.content);
-                changes += `Updated ${pf.name}\n`;
-              } else {
-                onAddFile(pf.name, pf.content);
-                changes += `Created ${pf.name}\n`;
-              }
+            if (alwaysAllow) {
+              applyChanges(parsedFiles);
+            } else {
+              setPendingChanges(parsedFiles);
+              setMessages(prev => [...prev, { role: 'assistant', content: 'I have generated some changes. Please review and approve them.' }]);
             }
-            setMessages(prev => [...prev, { role: 'assistant', content: `I have applied the following changes:\n${changes || 'No valid files found.'}` }]);
           } else {
             setMessages(prev => [...prev, { role: 'assistant', content: 'Could not parse the generated files. Response was not an array:\n' + responseText }]);
           }
@@ -237,6 +253,37 @@ export default function AIAssistant({
                   {msg.role === 'user' ? 'You' : 'Nexus AI'}
                 </div>
                 <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                
+                {msg.role === 'assistant' && pendingChanges && i === messages.length - 1 && (
+                  <div className="mt-3 pt-3 border-t border-[#3c3c3c] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-500 uppercase font-bold">Proposed Changes</span>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={alwaysAllow} 
+                          onChange={e => setAlwaysAllow(e.target.checked)}
+                          className="rounded border-[#444] bg-[#1e1e1e]"
+                        />
+                        <span className="text-[10px] text-gray-500">Always Allow</span>
+                      </label>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setPendingChanges(null)}
+                        className="flex-1 py-1 text-[10px] bg-[#3c3c3c] hover:bg-[#444] text-white rounded font-bold transition-colors"
+                      >
+                        Reject
+                      </button>
+                      <button 
+                        onClick={() => applyChanges(pendingChanges)}
+                        className="flex-1 py-1 text-[10px] bg-blue-600 hover:bg-blue-700 text-white rounded font-bold transition-colors"
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

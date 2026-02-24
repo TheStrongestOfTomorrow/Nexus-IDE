@@ -1,13 +1,29 @@
-import React from 'react';
-import MonacoEditor from '@monaco-editor/react';
+import React, { useEffect } from 'react';
+import MonacoEditor, { loader } from '@monaco-editor/react';
 import { FileNode } from '../hooks/useFileSystem';
 
 interface EditorProps {
   activeFile: FileNode | null;
   onChange: (id: string, content: string) => void;
+  extensions?: any[];
 }
 
-export default function Editor({ activeFile, onChange }: EditorProps) {
+export default function Editor({ activeFile, onChange, extensions = [] }: EditorProps) {
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    // Load themes from extensions
+    extensions.forEach(async (ext) => {
+      if (ext.enabled && ext.url.endsWith('.json')) {
+        try {
+          const response = await fetch(ext.url);
+          const themeData = await response.json();
+          monaco.editor.defineTheme(ext.name, themeData);
+          monaco.editor.setTheme(ext.name);
+        } catch (err) {
+          console.error(`Failed to load theme ${ext.name}:`, err);
+        }
+      }
+    });
+  };
   if (!activeFile) {
     return (
       <div className="flex-1 flex items-center justify-center bg-[#1e1e1e] text-[#cccccc]">
@@ -31,6 +47,7 @@ export default function Editor({ activeFile, onChange }: EditorProps) {
           theme="vs-dark"
           value={activeFile.content}
           onChange={(value) => onChange(activeFile.id, value || '')}
+          onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
             fontSize: 14,

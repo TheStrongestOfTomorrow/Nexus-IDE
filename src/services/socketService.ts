@@ -42,6 +42,16 @@ class SocketService {
     }
   }
 
+  createSession() {
+    const sessionId = Math.random().toString(36).substring(2, 10).toUpperCase();
+    this.send({ type: 'session:create', sessionId });
+    return sessionId;
+  }
+
+  joinSession(sessionId: string) {
+    this.send({ type: 'session:join', sessionId });
+  }
+
   subscribe(handler: MessageHandler) {
     this.handlers.add(handler);
     return () => this.handlers.delete(handler);

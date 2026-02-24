@@ -7,8 +7,11 @@ import ActivityBar, { ActivityType } from './components/ActivityBar';
 import StatusBar from './components/StatusBar';
 import GithubView from './components/GithubView';
 import ExtensionsView from './components/ExtensionsView';
+import CollaborationView from './components/CollaborationView';
+import DiffEditor from './components/DiffEditor';
 import Terminal from './components/Terminal';
 import { socketService } from './services/socketService';
+import { workspaceService } from './services/workspaceService';
 import { useFileSystem } from './hooks/useFileSystem';
 import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -31,6 +34,11 @@ export default function App() {
     const saved = localStorage.getItem('nexus_extensions');
     return saved ? JSON.parse(saved) : [];
   });
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isJoining, setIsJoining] = useState(false);
+  const [joinId, setJoinId] = useState('');
+  const [isWorkspaceLoading, setIsWorkspaceLoading] = useState(true);
+  const [diffData, setDiffData] = useState<{ original: string, modified: string, fileId: string } | null>(null);
   
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -81,6 +89,36 @@ export default function App() {
   }, [backendBase]);
 
   useEffect(() => {
+    const loadWorkspace = async () => {
+      const savedId = localStorage.getItem('nexus_active_workspace_id') || 'default';
+      const workspace = await workspaceService.getWorkspace(savedId);
+      if (workspace) {
+        // Clear current files and add saved ones
+        // This is a bit tricky with useFileSystem, might need to add a reset method
+        // For now, let's just assume we can use addFile
+        workspace.files.forEach(f => {
+          const existing = files.find(ex => ex.name === f.name);
+          if (!existing) addFile(f.name, f.content);
+        });
+      }
+      setIsWorkspaceLoading(false);
+    };
+    loadWorkspace();
+  }, []);
+
+  useEffect(() => {
+    if (!isWorkspaceLoading) {
+      const activeId = localStorage.getItem('nexus_active_workspace_id') || 'default';
+      workspaceService.saveWorkspace({
+        id: activeId,
+        name: 'My Workspace',
+        files,
+        lastModified: Date.now()
+      });
+    }
+  }, [files, isWorkspaceLoading]);
+
+  useEffect(() => {
     localStorage.setItem('nexus_extensions', JSON.stringify(extensions));
     
     // Load enabled extensions
@@ -101,10 +139,18 @@ export default function App() {
     });
   }, [extensions]);
 
-  const handleAddExtension = (url: string) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const name = url.split('/').pop() || 'New Extension';
-    setExtensions(prev => [...prev, { id, name, url, enabled: true, description: 'External script extension' }]);
+  const handleAddExtension = (url: string, metadata?: any) => {
+    const id = metadata?.id || Math.random().toString(36).substr(2, 9);
+    const name = metadata?.name || url.split('/').pop() || 'New Extension';
+    setExtensions(prev => [...prev, { 
+      id, 
+      name, 
+      url, 
+      enabled: true, 
+      description: metadata?.description || 'External script extension',
+      isVsix: metadata?.isVsix || false,
+      packageJson: metadata?.packageJson
+    }]);
   };
 
   const handleRemoveExtension = (id: string) => {
@@ -124,11 +170,34 @@ export default function App() {
       if (msg.type === 'collab') {
         const { fileId, content } = msg;
         updateFile(fileId, content);
+      } else if (msg.type === 'session:created' || msg.type === 'session:joined') {
+        setSessionId(msg.sessionId);
+        setIsJoining(false);
+      } else if (msg.type === 'session:timeout') {
+        alert('Session timed out due to inactivity. Workspace will be wiped.');
+        handleClearWorkspace();
+        setSessionId(null);
+      } else if (msg.type === 'session:error') {
+        alert(msg.message);
+        setIsJoining(false);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  const handleCreateSession = () => {
+    const id = socketService.createSession();
+    setSessionId(id);
+  };
+
+  const handleJoinSession = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (joinId.trim()) {
+      socketService.joinSession(joinId.trim());
+      setIsJoining(true);
+    }
+  };
 
   const handleUpdateFile = (id: string, content: string, fromRemote = false) => {
     updateFile(id, content);
@@ -199,8 +268,49 @@ export default function App() {
     }
   };
 
+  const handleApplyTemplate = (template: any) => {
+    if (confirm(`Apply ${template.name} template? This will add new files to your project.`)) {
+      template.files.forEach((file: any) => {
+        const existing = files.find(f => f.name === file.name);
+        if (existing) {
+          updateFile(existing.id, file.content);
+        } else {
+          addFile(file.name, file.content);
+        }
+      });
+      setShowPreview(true);
+    }
+  };
+
+  const handleApplyDiff = () => {
+    if (diffData) {
+      updateFile(diffData.fileId, diffData.modified, true); // Update original content too on apply
+      setDiffData(null);
+    }
+  };
+
+  const handleShowDiff = (id: string) => {
+    const file = files.find(f => f.id === id);
+    if (file) {
+      setDiffData({
+        original: file.originalContent || file.content,
+        modified: file.content,
+        fileId: id
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#1e1e1e] text-[#cccccc] font-sans overflow-hidden select-none">
+      {diffData && (
+        <DiffEditor
+          original={diffData.original}
+          modified={diffData.modified}
+          language={files.find(f => f.id === diffData.fileId)?.language}
+          onClose={() => setDiffData(null)}
+          onApply={handleApplyDiff}
+        />
+      )}
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex overflow-hidden">
@@ -221,6 +331,8 @@ export default function App() {
                 onDeleteFile={deleteFile}
                 onRenameFile={renameFile}
                 onExport={exportAsZip}
+                onApplyTemplate={handleApplyTemplate}
+                onShowDiff={handleShowDiff}
               />
             )}
             {activeActivity === 'search' && (
@@ -247,6 +359,16 @@ export default function App() {
                 onAddExtension={handleAddExtension}
                 onRemoveExtension={handleRemoveExtension}
                 onToggleExtension={handleToggleExtension}
+              />
+            )}
+            {activeActivity === 'collab' && (
+              <CollaborationView
+                sessionId={sessionId}
+                isJoining={isJoining}
+                joinId={joinId}
+                setJoinId={setJoinId}
+                onCreateSession={handleCreateSession}
+                onJoinSession={handleJoinSession}
               />
             )}
           </div>
@@ -284,6 +406,7 @@ export default function App() {
               <Editor
                 activeFile={activeFile}
                 onChange={(id, content) => handleUpdateFile(id, content)}
+                extensions={extensions}
               />
             </div>
             
