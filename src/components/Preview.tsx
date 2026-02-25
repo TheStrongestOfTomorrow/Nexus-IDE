@@ -64,8 +64,43 @@ export default function Preview({ files, activeFileId }: PreviewProps) {
       }
     }
 
-    const htmlDir = htmlFile ? getDir(htmlFile.name) : '';
-    let htmlContent = htmlFile ? htmlFile.content : '<html><body><h1>No HTML file found to preview</h1></body></html>';
+    const htmlDir = htmlFile ? getDir(htmlFile.name) : (activeFile ? getDir(activeFile.name) : '');
+    let htmlContent = '';
+    
+    if (htmlFile) {
+      htmlContent = htmlFile.content;
+    } else {
+      // Directory Listing Fallback
+      const dirFiles = files.filter(f => getDir(f.name) === htmlDir);
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: system-ui, sans-serif; padding: 2rem; background: #1e1e1e; color: #d4d4d4; }
+            h1 { font-size: 1.2rem; color: #569cd6; border-bottom: 1px solid #333; padding-bottom: 0.5rem; }
+            ul { list-style: none; padding: 0; }
+            li { padding: 0.5rem; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px; }
+            a { color: #9cdcfe; text-decoration: none; }
+            a:hover { text-decoration: underline; }
+            .icon { opacity: 0.6; }
+          </style>
+        </head>
+        <body>
+          <h1>Index of /${htmlDir}</h1>
+          <ul>
+            ${htmlDir ? '<li><span class="icon">📁</span> <a href="#" onclick="window.parent.postMessage({type: \'preview:up\'}, \'*\')">..</a></li>' : ''}
+            ${dirFiles.map(f => `
+              <li>
+                <span class="icon">${f.name.endsWith('.html') ? '🌐' : '📄'}</span>
+                <a href="#" onclick="window.parent.postMessage({type: 'preview:open', id: '${f.id}'}, '*')">${f.name.split('/').pop()}</a>
+              </li>
+            `).join('')}
+          </ul>
+        </body>
+        </html>
+      `;
+    }
 
     const inlinedFiles = new Set<string>();
 

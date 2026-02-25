@@ -122,6 +122,22 @@ export default function AIAssistant({
             temperature: 0.2,
           });
           return response.content.map(block => 'text' in block ? block.text : '').join('');
+        } else if (provider === 'ollama') {
+          // Placeholder for Ollama support via local fetch
+          try {
+            const response = await fetch('http://localhost:11434/api/generate', {
+              method: 'POST',
+              body: JSON.stringify({
+                model: model || 'llama3',
+                prompt: `${systemInstruction}\n\n${prompt}`,
+                stream: false
+              })
+            });
+            const data = await response.json();
+            return data.response || '';
+          } catch (err) {
+            return 'Ollama connection failed. Ensure Ollama is running locally on port 11434.';
+          }
         }
         return '';
       };
@@ -142,17 +158,19 @@ export default function AIAssistant({
         } else {
           // Parse JSON for agent/vibe
           try {
-            let jsonStr = responseText;
-            const jsonMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-            if (jsonMatch) {
-              jsonStr = jsonMatch[1];
-            } else {
-              const arrayMatch = responseText.match(/\[[\s\S]*\]/);
-              if (arrayMatch) {
-                jsonStr = arrayMatch[0];
+            const cleanJson = (str: string) => {
+              // Remove markdown code blocks
+              let cleaned = str.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1');
+              // Find the first [ and last ]
+              const start = cleaned.indexOf('[');
+              const end = cleaned.lastIndexOf(']');
+              if (start !== -1 && end !== -1) {
+                cleaned = cleaned.substring(start, end + 1);
               }
-            }
-            
+              return cleaned;
+            };
+
+            const jsonStr = cleanJson(responseText);
             const parsedFiles = JSON.parse(jsonStr);
             if (Array.isArray(parsedFiles)) {
               if (alwaysAllow) {

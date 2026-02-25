@@ -318,8 +318,33 @@ export default function App() {
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data.type === 'preview:open') {
+        setActiveFileId(e.data.id);
+        if (!openFileIds.includes(e.data.id)) {
+          setOpenFileIds(prev => [...prev, e.data.id]);
+        }
+      } else if (e.data.type === 'preview:up') {
+        const activeFile = files.find(f => f.id === activeFileId);
+        if (activeFile) {
+          const parts = activeFile.name.split('/');
+          parts.pop(); // current file
+          if (parts.length > 0) {
+            parts.pop(); // parent dir
+            const parentDir = parts.join('/');
+            const firstInParent = files.find(f => f.name.startsWith(parentDir ? parentDir + '/' : ''));
+            if (firstInParent) setActiveFileId(firstInParent.id);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [files, activeFileId, openFileIds]);
 
   const handleHostProject = () => {
     if (!sessionId) {

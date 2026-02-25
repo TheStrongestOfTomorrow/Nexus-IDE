@@ -1,46 +1,82 @@
-# Nexus IDE V2.9 Alpha
+# 🚀 Nexus IDE v3.0 Beta
 
-Welcome to Nexus IDE, a professional-grade web-based development environment.
+<p align="center">
+  <img src="https://lucide.dev/api/icons/zap?size=64&color=3b82f6" alt="Nexus Logo" />
+</p>
 
-## Features
+<p align="center">
+  <img src="https://img.shields.io/badge/Version-3.0_Beta-blue?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Status-Stable-emerald?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/AI-Powered-violet?style=for-the-badge" alt="AI" />
+</p>
 
-- **Native File System Access**: Open local folders directly from your computer.
-- **AI Assistant**: Powered by Gemini, OpenAI, and Anthropic.
-  - **Ghost Text**: predictive code completions as you type.
-  - **Code Lens**: AI actions directly in your code.
-  - **Battleground**: Compare responses from multiple AI models.
-  - **Project Memory**: AI understands your entire project context.
-- **Collaboration**: Real-time multi-user coding sessions.
-- **Command Palette**: Quick access to all IDE features (Ctrl+Shift+P).
-- **Architecture Analysis**: Generate Mermaid.js diagrams of your project.
-- **Diff View**: Compare and approve AI-generated changes.
-- **Framework Support**: Templates for React, Vue, Svelte, Next.js, and more.
-- **Terminal & Execution**: Run your code directly in the integrated terminal.
+Welcome to **Nexus IDE v3.0 Beta**, the most powerful web-based development environment. Version 3.0 introduces major architectural shifts and "Pro" level features for serious developers.
 
-## Getting Started
-
-1. Set your API keys in the **Settings** (bottom left).
-2. Use the **Explorer** to create or import files.
-3. Try the **AI Assistant** (Cmd+I or the Sparkles icon).
-4. Use the **Command Palette** (Ctrl+Shift+P) to explore features.
-
-## Self-Hosting (Beta)
-
-Nexus IDE now supports "Self-Hosting" your project directly from the workspace.
-
-### How to use:
-1. Go to the **Collaboration** tab.
-2. Generate a **Session Key**.
-3. Click **Host Project Online**.
-4. Your project will be accessible via a public URL (e.g., `/hosted/SESSION_ID/index.html`).
-
-### Configuration:
-The self-host feature automatically serves:
-- `index.html` as the entry point.
-- All `.js` and `.css` files in the same directory.
-- Relative paths are resolved automatically.
-
-> **Note**: This is a session-based hosting feature. If the session expires (30 minutes of inactivity), the hosted site will be taken down.
+## 🌈 What's New in v3.0 Beta
+- **📁 Full Folder Preview**: Preview entire directory structures with resolved relative paths and directory listings.
+- **🤖 AI Composer v2**: Enhanced "Agent" and "Vibe" modes with multi-file generation and auto-approval.
+- **🌐 Session-Based Self-Hosting**: Host your project live with a single click during your session.
+- **⚡ Performance Boost**: Optimized Monaco Editor instance management and IndexedDB sync.
+- **🎨 UI Refinement**: More "colorful" and intuitive interface with improved activity bars.
 
 ---
-*Crafted with passion for developers.*
+
+## 🛠️ Self-Hosting Instructions (Git/NPM)
+
+If you are hosting Nexus IDE yourself, follow these steps to ensure the server points to the correct build folder:
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/your-repo/nexus-ide.git
+cd nexus-ide
+npm install
+```
+
+### 2. Build the Frontend
+```bash
+npm run build
+```
+
+### 3. Start the Full-Stack Server
+The server is configured to serve the `dist` folder in production mode.
+```bash
+# Development mode (with Vite middleware)
+npm run dev
+
+# Production mode
+NODE_ENV=production npm start
+```
+
+> **Pro Tip**: If you want to host a specific project folder *inside* Nexus, use the **Self-Hosting** feature in the **Collaboration** tab.
+
+---
+
+## 📜 Update Logs
+
+### 🟦 v3.0 Beta (Current)
+- Added **Full Folder Preview** logic with directory listing fallback.
+- Fixed AI Tab response parsing bugs for complex JSON.
+- Updated README with colorful branding and shields.
+- Improved terminal responsiveness and shell initialization.
+- Added **Ollama** support placeholder for local AI models.
+
+### 🟩 v2.9 Alpha
+- Native File System Access (File System Access API).
+- AI Ghost Text & Code Lens.
+- Mermaid.js Architecture Analysis.
+- Real-time Collaboration Sessions.
+
+### 🟨 v2.5 Alpha
+- Initial AI Assistant integration.
+- Monaco Editor core implementation.
+- Basic File System (LocalStorage).
+
+---
+
+## 🚀 Getting Started
+1. Set your **API Keys** in Settings.
+2. Open a **Local Folder** or use a **Template**.
+3. Use **Cmd+Shift+P** for the Command Palette.
+4. Click **Host Project Online** to share your work!
+
+*Crafted with ❤️ for the next generation of developers.*
