@@ -27,7 +27,7 @@ If you are hosting Nexus IDE yourself, follow these steps to ensure the server p
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-repo/nexus-ide.git
+git clone https://github.com/TheStrongestOfTomorrow/nexus-ide.git
 cd nexus-ide
 npm install
 ```
