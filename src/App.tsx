@@ -68,8 +68,13 @@ export default function App() {
     return saved ? JSON.parse(saved) : {
       gemini: 'gemini-2.5-flash',
       openai: 'gpt-4o',
-      anthropic: 'claude-sonnet-4-6'
+      anthropic: 'claude-sonnet-4-6',
+      ollama: 'llama3'
     };
+  });
+
+  const [ollamaUrl, setOllamaUrl] = useState(() => {
+    return localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434';
   });
 
   const [backendBase, setBackendBase] = useState(() => {
@@ -85,6 +90,10 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('nexus_touch_mode', isTouchMode.toString());
   }, [isTouchMode]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_ollama_url', ollamaUrl);
+  }, [ollamaUrl]);
 
   const handleClearWorkspace = () => {
     if (confirm('Are you sure you want to clear the entire workspace? This cannot be undone.')) {
@@ -609,7 +618,11 @@ export default function App() {
             </div>
 
             {showTerminal && (
-              <Terminal onClose={() => setShowTerminal(false)} />
+              <Terminal 
+                files={files} 
+                onClose={() => setShowTerminal(false)} 
+                onPreview={() => setShowPreview(true)}
+              />
             )}
           </div>
       </div>
@@ -624,6 +637,7 @@ export default function App() {
             apiKeys={apiKeys}
             selectedProvider={selectedAIProvider}
             selectedModel={selectedModels[selectedAIProvider]}
+            ollamaUrl={ollamaUrl}
           />
         )}
       </div>
@@ -727,6 +741,21 @@ export default function App() {
                               {provider.models.find(m => m.id === selectedModels[provider.id])?.description}
                             </p>
                           </div>
+                          {provider.id === 'ollama' && (
+                            <div className="mt-3 pt-3 border-t border-[#333]">
+                              <label className="block text-[10px] font-medium text-gray-500 uppercase mb-1">Ollama URL</label>
+                              <input
+                                type="text"
+                                value={ollamaUrl}
+                                onChange={e => setOllamaUrl(e.target.value)}
+                                placeholder="http://localhost:11434"
+                                className="w-full bg-[#2d2d2d] border border-[#444] rounded px-2 py-1.5 text-xs outline-none text-white focus:border-blue-500"
+                              />
+                              <p className="text-[10px] text-gray-500 mt-1 italic">
+                                Ensure Ollama is running with OLLAMA_ORIGINS="*"
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}

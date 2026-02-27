@@ -15,6 +15,7 @@ interface AIAssistantProps {
   apiKeys: Record<string, string>;
   selectedProvider: string;
   selectedModel: string;
+  ollamaUrl?: string;
 }
 
 type AIMode = 'chat' | 'agent' | 'vibe';
@@ -32,7 +33,8 @@ export default function AIAssistant({
   onDeleteFile,
   apiKeys,
   selectedProvider,
-  selectedModel
+  selectedModel,
+  ollamaUrl = 'http://localhost:11434'
 }: AIAssistantProps) {
   const [mode, setMode] = useState<AIMode>('chat');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -123,9 +125,9 @@ export default function AIAssistant({
           });
           return response.content.map(block => 'text' in block ? block.text : '').join('');
         } else if (provider === 'ollama') {
-          // Placeholder for Ollama support via local fetch
+          // Full Ollama support via local fetch
           try {
-            const response = await fetch('http://localhost:11434/api/generate', {
+            const response = await fetch(`${ollamaUrl}/api/generate`, {
               method: 'POST',
               body: JSON.stringify({
                 model: model || 'llama3',
@@ -133,10 +135,11 @@ export default function AIAssistant({
                 stream: false
               })
             });
+            if (!response.ok) throw new Error(`Ollama error: ${response.statusText}`);
             const data = await response.json();
             return data.response || '';
-          } catch (err) {
-            return 'Ollama connection failed. Ensure Ollama is running locally on port 11434.';
+          } catch (err: any) {
+            return `Ollama connection failed (${ollamaUrl}). Ensure Ollama is running locally with OLLAMA_ORIGINS="*" environment variable.\nError: ${err.message}`;
           }
         }
         return '';

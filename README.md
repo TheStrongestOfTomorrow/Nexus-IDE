@@ -15,6 +15,11 @@ Welcome to **Nexus IDE v3.1 Beta**, the most powerful web-based development envi
 ## 🌈 What's New in v3.1 Beta
 - **📁 Folder Preview Dashboard**: Click any folder in the explorer to see a dashboard of its contents and quick-run options.
 - **📱 Touch Mode**: Toggle "Touch Friendly Mode" in settings for a mobile-optimized experience with larger targets.
+- **🤖 Full Ollama Support**: Connect to local Ollama instances with configurable URLs and models.
+- **🐚 Nexus Shell v3.1**:
+    - **Python (Pyodide)**: Run Python files directly in the terminal using `python [file]`.
+    - **NPM Simulation**: Run `npm run dev` in the terminal to trigger the preview server.
+    - **Local Commands**: Support for `ls`, `clear`, and `help` within the browser shell.
 - **📁 Full Folder Preview**: Preview entire directory structures with resolved relative paths and directory listings.
 - **🤖 AI Composer v2**: Enhanced "Agent" and "Vibe" modes with multi-file generation and auto-approval.
 - **🌐 Session-Based Self-Hosting**: Host your project live with a single click during your session.
