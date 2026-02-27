@@ -45,6 +45,10 @@ export default function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [mermaidChart, setMermaidChart] = useState<string | null>(null);
   const [hostedUrl, setHostedUrl] = useState<string | null>(null);
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
+  const [isTouchMode, setIsTouchMode] = useState(() => {
+    return localStorage.getItem('nexus_touch_mode') === 'true';
+  });
   
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -77,6 +81,10 @@ export default function App() {
   });
 
   const [showSettings, setShowSettings] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_touch_mode', isTouchMode.toString());
+  }, [isTouchMode]);
 
   const handleClearWorkspace = () => {
     if (confirm('Are you sure you want to clear the entire workspace? This cannot be undone.')) {
@@ -378,9 +386,16 @@ export default function App() {
 
   const handleSelectFile = (id: string) => {
     setActiveFileId(id);
+    setActiveFolder(null);
     if (!openFileIds.includes(id)) {
       setOpenFileIds(prev => [...prev, id]);
     }
+  };
+
+  const handleSelectFolder = (folderPath: string) => {
+    setActiveFolder(folderPath);
+    setActiveFileId(null);
+    setShowPreview(true);
   };
 
   const closeFile = (e: React.MouseEvent, id: string) => {
@@ -492,6 +507,8 @@ export default function App() {
                 onApplyTemplate={handleApplyTemplate}
                 onShowDiff={handleShowDiff}
                 onOpenFolder={handleOpenFolder}
+                onSelectFolder={handleSelectFolder}
+                activeFolder={activeFolder}
               />
             )}
             {activeActivity === 'search' && (
@@ -535,9 +552,9 @@ export default function App() {
           </div>
         )}
 
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={cn("flex-1 flex flex-col overflow-hidden", isTouchMode && "touch-mode")}>
             {/* Tabs Bar */}
-            <div className="h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]">
+            <div className={cn("h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]", isTouchMode && "h-12")}>
               {openFileIds.map(id => {
                 const file = files.find(f => f.id === id);
                 if (!file) return null;
@@ -547,15 +564,16 @@ export default function App() {
                     onClick={() => setActiveFileId(id)}
                     className={cn(
                       "h-full flex items-center px-3 gap-2 border-r border-[#1e1e1e] cursor-pointer text-xs min-w-[120px] max-w-[200px] transition-colors group",
-                      activeFileId === id ? "bg-[#1e1e1e] text-white" : "bg-[#2d2d2d] text-gray-500 hover:bg-[#2a2d2e]"
+                      activeFileId === id ? "bg-[#1e1e1e] text-white" : "bg-[#2d2d2d] text-gray-500 hover:bg-[#2a2d2e]",
+                      isTouchMode && "text-sm px-4 min-w-[150px]"
                     )}
                   >
                     <span className="truncate flex-1">{file.name}</span>
                     <button 
                       onClick={(e) => closeFile(e, id)}
-                      className="p-0.5 rounded hover:bg-[#454545] opacity-0 group-hover:opacity-100 transition-opacity"
+                      className={cn("p-0.5 rounded hover:bg-[#454545] opacity-0 group-hover:opacity-100 transition-opacity", isTouchMode && "opacity-100 p-1")}
                     >
-                      <X size={12} />
+                      <X size={isTouchMode ? 16 : 12} />
                     </button>
                   </div>
                 );
@@ -581,7 +599,11 @@ export default function App() {
               
               {showPreview && !mermaidChart && (
                 <div className="w-1/2 h-full">
-                  <Preview files={files} activeFileId={activeFileId} />
+                  <Preview 
+                  files={files} 
+                  activeFileId={activeFileId} 
+                  activeFolder={activeFolder}
+                />
                 </div>
               )}
             </div>
@@ -626,6 +648,31 @@ export default function App() {
             </div>
 
             <div className="space-y-8">
+              {/* Interface Settings */}
+              <section>
+                <h3 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Zap size={16} /> Interface Mode
+                </h3>
+                <div className="flex items-center justify-between p-4 bg-[#1e1e1e] rounded border border-[#333]">
+                  <div>
+                    <div className="text-sm font-bold text-white">Touch Friendly Mode</div>
+                    <div className="text-[10px] text-gray-500 uppercase">Optimized for mobile and tablet devices</div>
+                  </div>
+                  <button 
+                    onClick={() => setIsTouchMode(!isTouchMode)}
+                    className={cn(
+                      "w-12 h-6 rounded-full transition-colors relative",
+                      isTouchMode ? "bg-blue-600" : "bg-gray-600"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                      isTouchMode ? "left-7" : "left-1"
+                    )} />
+                  </button>
+                </div>
+              </section>
+
               {/* AI Provider Settings */}
               <section>
                 <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">

@@ -5,9 +5,10 @@ import { Play, RefreshCw } from 'lucide-react';
 interface PreviewProps {
   files: FileNode[];
   activeFileId: string | null;
+  activeFolder?: string | null;
 }
 
-export default function Preview({ files, activeFileId }: PreviewProps) {
+export default function Preview({ files, activeFileId, activeFolder }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [key, setKey] = useState(0);
 
@@ -64,10 +65,50 @@ export default function Preview({ files, activeFileId }: PreviewProps) {
       }
     }
 
-    const htmlDir = htmlFile ? getDir(htmlFile.name) : (activeFile ? getDir(activeFile.name) : '');
+    const htmlDir = activeFolder || (htmlFile ? getDir(htmlFile.name) : (activeFile ? getDir(activeFile.name) : ''));
     let htmlContent = '';
     
-    if (htmlFile) {
+    if (activeFolder) {
+      const folderFiles = files.filter(f => getDir(f.name) === activeFolder);
+      htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: system-ui, sans-serif; padding: 2rem; background: #1e1e1e; color: #d4d4d4; }
+            .folder-header { display: flex; items-center: center; gap: 10px; margin-bottom: 2rem; border-bottom: 1px solid #333; padding-bottom: 1rem; }
+            .folder-icon { font-size: 2rem; }
+            .folder-name { font-size: 1.5rem; font-weight: bold; color: #569cd6; }
+            .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+            .file-card { background: #252526; border: 1px solid #333; border-radius: 8px; padding: 1rem; cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+            .file-card:hover { transform: translateY(-2px); border-color: #007acc; }
+            .file-name { font-weight: bold; margin-bottom: 0.5rem; color: #9cdcfe; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .file-meta { font-size: 10px; color: #6a9955; text-transform: uppercase; }
+            .preview-btn { margin-top: 1rem; display: inline-block; background: #007acc; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="folder-header">
+            <span class="folder-icon">📁</span>
+            <span class="folder-name">${activeFolder}</span>
+          </div>
+          <div class="file-grid">
+            ${folderFiles.map(f => `
+              <div class="file-card" onclick="window.parent.postMessage({type: 'preview:open', id: '${f.id}'}, '*')">
+                <div class="file-name">${f.name.split('/').pop()}</div>
+                <div class="file-meta">${f.language}</div>
+              </div>
+            `).join('')}
+          </div>
+          ${folderFiles.find(f => f.name.endsWith('index.html')) ? `
+            <div style="margin-top: 2rem;">
+              <a href="#" class="preview-btn" onclick="window.parent.postMessage({type: 'preview:open', id: '${folderFiles.find(f => f.name.endsWith('index.html'))?.id}'}, '*')">Run index.html</a>
+            </div>
+          ` : ''}
+        </body>
+        </html>
+      `;
+    } else if (htmlFile) {
       htmlContent = htmlFile.content;
     } else {
       // Directory Listing Fallback
@@ -306,7 +347,7 @@ ${activeFile.content.replace(/</g, '\\u003c')}
     iframeRef.current.src = url;
 
     return () => URL.revokeObjectURL(url);
-  }, [files, activeFileId, key]);
+  }, [files, activeFileId, activeFolder, key]);
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[#1e1e1e] border-l border-gray-200 dark:border-[#333]">

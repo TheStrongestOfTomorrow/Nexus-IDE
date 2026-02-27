@@ -1,18 +1,20 @@
-# 🚀 Nexus IDE v3.0 Beta
+# 🚀 Nexus IDE v3.1 Beta
 
 <p align="center">
   <img src="https://lucide.dev/api/icons/zap?size=64&color=3b82f6" alt="Nexus Logo" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.0_Beta-blue?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1_Beta-blue?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Stable-emerald?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/AI-Powered-violet?style=for-the-badge" alt="AI" />
 </p>
 
-Welcome to **Nexus IDE v3.0 Beta**, the most powerful web-based development environment. Version 3.0 introduces major architectural shifts and "Pro" level features for serious developers.
+Welcome to **Nexus IDE v3.1 Beta**, the most powerful web-based development environment. Version 3.1 introduces major architectural shifts and "Pro" level features for serious developers.
 
-## 🌈 What's New in v3.0 Beta
+## 🌈 What's New in v3.1 Beta
+- **📁 Folder Preview Dashboard**: Click any folder in the explorer to see a dashboard of its contents and quick-run options.
+- **📱 Touch Mode**: Toggle "Touch Friendly Mode" in settings for a mobile-optimized experience with larger targets.
 - **📁 Full Folder Preview**: Preview entire directory structures with resolved relative paths and directory listings.
 - **🤖 AI Composer v2**: Enhanced "Agent" and "Vibe" modes with multi-file generation and auto-approval.
 - **🌐 Session-Based Self-Hosting**: Host your project live with a single click during your session.
@@ -47,13 +49,17 @@ npm run dev
 NODE_ENV=production npm start
 ```
 
-> **Pro Tip**: If you want to host a specific project folder *inside* Nexus, use the **Self-Hosting** feature in the **Collaboration** tab.
-
 ---
 
 ## 📜 Update Logs
 
-### 🟦 v3.0 Beta (Current)
+### 🟦 v3.1 Beta (Current)
+- Added **Folder Preview Dashboard** for quick directory overview.
+- Implemented **Touch Friendly Mode** for mobile/tablet optimization.
+- Updated core dependencies to latest stable versions.
+- Improved folder grouping in the File Explorer.
+
+### 🟦 v3.0 Beta
 - Added **Full Folder Preview** logic with directory listing fallback.
 - Fixed AI Tab response parsing bugs for complex JSON.
 - Updated README with colorful branding and shields.

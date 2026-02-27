@@ -15,6 +15,8 @@ interface SidebarProps {
   onApplyTemplate: (template: any) => void;
   onShowDiff?: (id: string) => void;
   onOpenFolder?: () => void;
+  onSelectFolder?: (folderPath: string) => void;
+  activeFolder?: string | null;
 }
 
 export default function Sidebar({
@@ -27,13 +29,42 @@ export default function Sidebar({
   onExport,
   onApplyTemplate,
   onShowDiff,
-  onOpenFolder
+  onOpenFolder,
+  onSelectFolder,
+  activeFolder
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['']));
+
+  const toggleFolder = (folder: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folder)) {
+      newExpanded.delete(folder);
+    } else {
+      newExpanded.add(folder);
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  const getDir = (path: string) => {
+    const parts = path.split('/');
+    parts.pop();
+    return parts.join('/');
+  };
+
+  // Group files by directory
+  const fileTree: Record<string, FileNode[]> = {};
+  files.forEach(file => {
+    const dir = getDir(file.name);
+    if (!fileTree[dir]) fileTree[dir] = [];
+    fileTree[dir].push(file);
+  });
+
+  const allFolders = Array.from(new Set(files.map(f => getDir(f.name)))).sort();
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,71 +196,98 @@ export default function Sidebar({
           </form>
         )}
 
-        {files.map(file => (
-          <div key={file.id}>
-            {editingId === file.id ? (
-              <form 
-                onSubmit={(e) => handleRenameSubmit(e, file.id)}
-                className="px-4 py-1 flex items-center gap-2 bg-blue-50 dark:bg-[#37373d]"
-              >
-                <File size={16} className="text-gray-400" />
-                <input
-                  autoFocus
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  onBlur={() => setEditingId(null)}
-                  className="flex-1 bg-white dark:bg-[#3c3c3c] border border-blue-500 text-sm px-1 py-0.5 outline-none text-gray-900 dark:text-white"
-                />
-              </form>
-            ) : (
-              <div
-                onClick={() => onSelectFile(file.id)}
+        {allFolders.map(folder => (
+          <div key={folder}>
+            {folder !== '' && (
+              <div 
+                onClick={() => toggleFolder(folder)}
                 className={cn(
-                  "group flex items-center justify-between px-4 py-1 cursor-pointer text-sm",
-                  activeFileId === file.id 
-                    ? "bg-blue-100 dark:bg-[#37373d] text-blue-900 dark:text-white" 
-                    : "text-gray-700 dark:text-[#cccccc] hover:bg-gray-200 dark:hover:bg-[#2a2d2e]"
+                  "flex items-center gap-2 px-4 py-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-[#2a2d2e] group transition-colors",
+                  activeFolder === folder && "bg-blue-500/10 text-blue-500"
                 )}
               >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  {getFileIcon(file.name, activeFileId === file.id)}
-                  <span className="truncate">{file.name}</span>
-                </div>
-                <div className="hidden group-hover:flex items-center gap-1">
-                  {onShowDiff && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onShowDiff(file.id);
-                      }}
-                      className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
-                      title="Show Diff"
-                    >
-                      <GitCompare size={12} />
-                    </button>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(file.id);
-                      setEditName(file.name);
-                    }}
-                    className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteFile(file.id);
-                    }}
-                    className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
+                <span className={cn("text-[10px] transition-transform", expandedFolders.has(folder) ? "rotate-90" : "")}>›</span>
+                <span className="text-xs font-bold truncate flex-1">{folder}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectFolder?.(folder);
+                  }}
+                  className="hidden group-hover:block p-1 hover:bg-blue-500/20 rounded text-blue-500"
+                  title="Preview Folder"
+                >
+                  <Layout size={12} />
+                </button>
               </div>
             )}
+            
+            {(folder === '' || expandedFolders.has(folder)) && fileTree[folder]?.map(file => (
+              <div key={file.id} className={cn(folder !== '' && "pl-4")}>
+                {editingId === file.id ? (
+                  <form 
+                    onSubmit={(e) => handleRenameSubmit(e, file.id)}
+                    className="px-4 py-1 flex items-center gap-2 bg-blue-50 dark:bg-[#37373d]"
+                  >
+                    <File size={16} className="text-gray-400" />
+                    <input
+                      autoFocus
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      onBlur={() => setEditingId(null)}
+                      className="flex-1 bg-white dark:bg-[#3c3c3c] border border-blue-500 text-sm px-1 py-0.5 outline-none text-gray-900 dark:text-white"
+                    />
+                  </form>
+                ) : (
+                  <div
+                    onClick={() => onSelectFile(file.id)}
+                    className={cn(
+                      "group flex items-center justify-between px-4 py-1 cursor-pointer text-sm",
+                      activeFileId === file.id 
+                        ? "bg-blue-100 dark:bg-[#37373d] text-blue-900 dark:text-white" 
+                        : "text-gray-700 dark:text-[#cccccc] hover:bg-gray-200 dark:hover:bg-[#2a2d2e]"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      {getFileIcon(file.name, activeFileId === file.id)}
+                      <span className="truncate">{file.name.split('/').pop()}</span>
+                    </div>
+                    <div className="hidden group-hover:flex items-center gap-1">
+                      {onShowDiff && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onShowDiff(file.id);
+                          }}
+                          className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                          title="Show Diff"
+                        >
+                          <GitCompare size={12} />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(file.id);
+                          setEditName(file.name);
+                        }}
+                        className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                      >
+                        <Edit2 size={12} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteFile(file.id);
+                        }}
+                        className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         ))}
       </div>
