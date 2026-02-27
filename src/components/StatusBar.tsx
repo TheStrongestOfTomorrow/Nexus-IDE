@@ -14,44 +14,29 @@ export default function StatusBar({ activeFile, githubUser, onScanProject }: Sta
       <div className="flex items-center h-full">
         <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors">
           <GitBranch size={12} />
-          <span>main*</span>
-        </div>
-        <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors">
-          <Wifi size={12} />
-          <span>{githubUser ? `GitHub: ${githubUser.login}` : 'Connected'}</span>
+          <span>main</span>
         </div>
         {onScanProject && (
           <div 
             onClick={onScanProject}
-            className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors text-yellow-200"
-            title="Scan Project for AI Memory"
+            className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors"
+            title="Scan Project"
           >
             <Brain size={12} />
-            <span>Scan Project</span>
+            <span>Scan</span>
           </div>
         )}
       </div>
       
       <div className="flex items-center h-full">
         {activeFile && (
-          <>
-            <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer">
-              Ln 1, Col 1
-            </div>
-            <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer">
-              Spaces: 2
-            </div>
-            <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer uppercase">
-              {activeFile.language}
-            </div>
-          </>
+          <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer uppercase">
+            {activeFile.language}
+          </div>
         )}
         <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer">
           <CheckCircle2 size={12} className="mr-1" />
-          Prettier
-        </div>
-        <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer">
-          <Bell size={12} />
+          Ready
         </div>
       </div>
     </div>

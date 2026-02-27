@@ -62,5 +62,22 @@ export const AI_PROVIDERS: ProviderInfo[] = [
       { id: 'codellama', name: 'Code Llama', description: 'Specialized for coding tasks.' },
       { id: 'phi3', name: 'Phi-3', description: 'Microsoft\'s lightweight powerful model.' },
     ]
+  },
+  {
+    id: 'groq',
+    name: 'Groq',
+    models: [
+      { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', description: 'Fast and capable versatile model.' },
+      { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B', description: 'Ultra-fast instant model.' },
+      { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B', description: 'High-performance MoE model.' },
+    ]
+  },
+  {
+    id: 'deepseek',
+    name: 'Deepseek',
+    models: [
+      { id: 'deepseek-chat', name: 'Deepseek Chat', description: 'Optimized for conversation and coding.' },
+      { id: 'deepseek-coder', name: 'Deepseek Coder', description: 'Specialized for advanced coding tasks.' },
+    ]
   }
 ];

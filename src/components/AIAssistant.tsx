@@ -124,6 +124,30 @@ export default function AIAssistant({
             temperature: 0.2,
           });
           return response.content.map(block => 'text' in block ? block.text : '').join('');
+        } else if (provider === 'groq') {
+          const groq = new OpenAI({ 
+            apiKey: key, 
+            baseURL: 'https://api.groq.com/openai/v1',
+            dangerouslyAllowBrowser: true 
+          });
+          const response = await groq.chat.completions.create({
+            model,
+            messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
+            temperature: 0.2,
+          });
+          return response.choices[0]?.message?.content || '';
+        } else if (provider === 'deepseek') {
+          const deepseek = new OpenAI({ 
+            apiKey: key, 
+            baseURL: 'https://api.deepseek.com',
+            dangerouslyAllowBrowser: true 
+          });
+          const response = await deepseek.chat.completions.create({
+            model,
+            messages: [{ role: 'system', content: systemInstruction }, { role: 'user', content: prompt }],
+            temperature: 0.2,
+          });
+          return response.choices[0]?.message?.content || '';
         } else if (provider === 'ollama') {
           // Full Ollama support via local fetch
           try {

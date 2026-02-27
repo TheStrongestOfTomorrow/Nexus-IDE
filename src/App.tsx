@@ -69,7 +69,9 @@ export default function App() {
       gemini: 'gemini-2.5-flash',
       openai: 'gpt-4o',
       anthropic: 'claude-sonnet-4-6',
-      ollama: 'llama3'
+      ollama: 'llama3',
+      groq: 'llama-3.3-70b-versatile',
+      deepseek: 'deepseek-chat'
     };
   });
 
