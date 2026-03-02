@@ -35,17 +35,14 @@ jobs:
       - name: Install Capacitor
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Initialize Capacitor
-        run: npx cap init "Nexus IDE" "com.nexus.ide" --web-dir dist
-
-      - name: Add Android Platform
-        run: npx cap add android
-
       - name: Sync Capacitor
         run: npx cap sync
 
       - name: Build Android APK
         run: |
+          mkdir -p android
+          npx cap add android || true
+          npx cap sync android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug

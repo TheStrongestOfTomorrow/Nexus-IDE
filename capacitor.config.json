@@ -1,0 +1,6 @@
+{
+  "appId": "com.nexus.ide",
+  "appName": "Nexus IDE",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
