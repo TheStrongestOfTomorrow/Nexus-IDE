@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Detect Package Manager
         id: detect-package-manager
         run: |
           if [ -f yarn.lock ]; then
-            echo "::set-output name=runner::yarn";
+            echo "runner=yarn" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=runner::npm";
+            echo "runner=npm" >> $GITHUB_OUTPUT
           fi
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.runner }} install
