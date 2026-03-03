@@ -1,0 +1,23 @@
+{
+  "name": "Nexus IDE",
+  "short_name": "Nexus",
+  "description": "The most powerful web-based development environment.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e1e1e",
+  "theme_color": "#007acc",
+  "icons": [
+    {
+      "src": "https://lucide.dev/api/icons/zap?size=192&color=3b82f6",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://lucide.dev/api/icons/zap?size=512&color=3b82f6",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
