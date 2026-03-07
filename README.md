@@ -12,13 +12,42 @@
 
 Welcome to **Nexus IDE v3.2 Beta**, the most powerful web-based development environment. Version 3.2 focuses on UI simplification, Termux/Android compatibility, and expanded AI capabilities.
 
-## 🌈 What's New in v3.2 Beta
-- **✨ Simplified UI**: Cleaner Activity Bar with "More Tools" menu and streamlined Status Bar.
-- **📱 Termux Compatibility**: Removed problematic native dependencies (`better-sqlite3`) to ensure smooth installation on Android/Termux.
-- **🤖 Expanded AI Providers**: Native support for **Groq**, **Deepseek**, and enhanced **Ollama** integration.
-- **📁 Folder Preview Dashboard**: Click any folder in the explorer to see a dashboard of its contents and quick-run options.
-- **📱 Touch Mode**: Toggle "Touch Friendly Mode" in settings for a mobile-optimized experience.
-- **🐚 Nexus Shell v3.1**: Run Python (Pyodide) and NPM commands directly in the browser.
+## 🚀 Nexus IDE v3.5 Standalone PWA
+
+Nexus IDE is a fully standalone Progressive Web App (PWA) that works on both PC and Mobile. It also features deep GitHub integration for professional developers.
+
+### 🌐 Live Access
+Launch Nexus IDE directly in your browser:
+**[Launch Nexus IDE](https://ais-dev-2ohtpjmveazkc6kl5yej3e-83785088393.asia-southeast1.run.app)**
+
+### 📱 How to Install (Mobile & PC)
+1.  **Open the link** above in your browser (Chrome, Edge, or Safari).
+2.  **Install the App**:
+    *   **On Android/Chrome**: Click the three dots and select **"Install App"** or **"Add to Home Screen"**.
+    *   **On iOS/Safari**: Click the **Share** button and select **"Add to Home Screen"**.
+    *   **On PC (Chrome/Edge)**: Click the **Install icon** in the address bar.
+3.  **Use Offline**: Once installed, Nexus IDE will work even without an internet connection.
+
+### 🐙 GitHub Integration
+- **Connect**: Link your GitHub account to clone, commit, and push changes.
+- **Native Builds**: Push with a version tag (e.g., `v3.5.0`) to trigger automatic builds for:
+    - **Windows (.exe)**
+    - **macOS (.dmg)**
+    - **Linux (.deb)**
+    - **Android (.apk)**
+
+### 📁 Local-First Storage
+- **IndexedDB**: All your files are stored safely in your browser's local database.
+- **Privacy**: Your code never leaves your device unless you explicitly export or push it.
+- **Instant Save**: Changes are saved automatically as you type.
+
+---
+
+## 🌈 What's New in v3.5
+- **📦 Standalone PWA**: No GitHub or external accounts required.
+- **⚡ Offline Mode**: Full service worker support for instant loading.
+- **✨ Simplified UI**: Focused on coding, previewing, and AI assistance.
+- **🤖 Local AI**: Support for **Ollama** allows you to run AI models entirely on your own machine.
 
 ---
 

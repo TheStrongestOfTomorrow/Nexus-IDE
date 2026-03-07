@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { Play, RefreshCw } from 'lucide-react';
+import { Play, RefreshCw, ExternalLink } from 'lucide-react';
+import { nexusChannel } from '../hooks/useWindow';
 
 interface PreviewProps {
   files: FileNode[];
@@ -16,6 +17,12 @@ export default function Preview({ files, activeFileId, activeFolder }: PreviewPr
 
   const runPreview = () => {
     setKey(prev => prev + 1);
+  };
+
+  const handlePopOut = () => {
+    const popoutUrl = `${window.location.origin}/preview-popout?id=${activeFileId || ''}`;
+    window.open(popoutUrl, 'nexus-preview', 'width=800,height=600');
+    nexusChannel.postMessage({ type: 'preview:popout' });
   };
 
   useEffect(() => {
@@ -350,25 +357,36 @@ ${activeFile.content.replace(/</g, '\\u003c')}
   }, [files, activeFileId, activeFolder, key]);
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-[#1e1e1e] border-l border-gray-200 dark:border-[#333]">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#252526]">
-        <span className="text-sm font-medium text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">Preview</span>
+    <div className="flex flex-col h-full bg-nexus-bg border-l border-nexus-border">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-nexus-border bg-nexus-sidebar">
+        <div className="flex items-center gap-2">
+          <Play size={14} className="text-nexus-accent" />
+          <span className="text-xs font-bold text-white uppercase tracking-wider">Preview</span>
+        </div>
         <div className="flex items-center gap-2">
           {activeFile?.name.endsWith('.py') && (
             <button 
               onClick={runPreview}
-              className="p-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors flex items-center gap-1.5 text-xs font-bold shadow-sm"
+              className="p-1.5 rounded bg-nexus-accent hover:bg-nexus-accent/80 text-white transition-colors flex items-center gap-1.5 text-[10px] font-bold shadow-sm"
             >
-              <Play size={14} fill="currentColor" />
-              Run Python
+              <Play size={12} fill="currentColor" />
+              RUN PYTHON
             </button>
           )}
           <button 
             onClick={runPreview}
-            className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-[#333] text-gray-600 dark:text-[#cccccc] transition-colors flex items-center gap-1 text-xs"
+            className="p-1.5 rounded hover:bg-nexus-bg text-nexus-text-muted hover:text-white transition-colors flex items-center gap-1 text-[10px] font-bold"
           >
-            <RefreshCw size={14} />
-            {activeFile?.name.endsWith('.py') ? 'Reset' : 'Run'}
+            <RefreshCw size={12} />
+            {activeFile?.name.endsWith('.py') ? 'RESET' : 'RUN'}
+          </button>
+          <button 
+            onClick={handlePopOut}
+            className="p-1.5 rounded hover:bg-nexus-bg text-nexus-text-muted hover:text-white transition-colors flex items-center gap-1 text-[10px] font-bold"
+            title="Pop out preview"
+          >
+            <ExternalLink size={12} />
+            POP OUT
           </button>
         </div>
       </div>

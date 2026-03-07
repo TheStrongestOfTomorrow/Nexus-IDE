@@ -63,27 +63,28 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-xl bg-[#252526] border border-[#333] shadow-2xl rounded-xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center px-4 py-3 border-b border-[#333] gap-3">
-          <Search size={18} className="text-gray-500" />
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 bg-black/60 backdrop-blur-md">
+      <div className="w-full max-w-xl bg-nexus-sidebar border border-nexus-border shadow-2xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center px-5 py-4 border-b border-nexus-border gap-4">
+          <Search size={20} className="text-nexus-accent" />
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command or search..."
+            placeholder="Search commands, files, or tools..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder-gray-500"
+            className="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder-nexus-text-muted font-medium"
           />
-          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-[#333] rounded text-[10px] text-gray-400 font-mono">
+          <div className="flex items-center gap-1 px-2 py-1 bg-nexus-bg rounded-lg text-[10px] text-nexus-text-muted font-bold border border-nexus-border">
             ESC
           </div>
         </div>
 
-        <div className="max-h-[400px] overflow-y-auto py-2">
+        <div className="max-h-[400px] overflow-y-auto py-2 no-scrollbar">
           {filteredCommands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-gray-500 text-sm">
-              No commands found for "{search}"
+            <div className="px-4 py-12 text-center text-nexus-text-muted text-sm flex flex-col items-center gap-3">
+              <Zap size={32} className="opacity-10" />
+              No results found for "{search}"
             </div>
           ) : (
             filteredCommands.map((cmd, index) => (
@@ -95,19 +96,30 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={cn(
-                  "flex items-center justify-between px-4 py-2.5 cursor-pointer transition-colors",
-                  index === selectedIndex ? "bg-[#094771] text-white" : "text-gray-400 hover:bg-[#2a2d2e]"
+                  "flex items-center justify-between px-5 py-3 cursor-pointer transition-all mx-2 rounded-xl",
+                  index === selectedIndex ? "bg-nexus-accent text-white shadow-lg shadow-nexus-accent/20" : "text-nexus-text-muted hover:bg-nexus-bg hover:text-white"
                 )}
               >
-                <div className="flex items-center gap-3">
-                  <cmd.icon size={16} className={cn(index === selectedIndex ? "text-white" : "text-gray-500")} />
+                <div className="flex items-center gap-4">
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    index === selectedIndex ? "bg-white/20" : "bg-nexus-bg border border-nexus-border"
+                  )}>
+                    <cmd.icon size={16} className={cn(index === selectedIndex ? "text-white" : "text-nexus-accent")} />
+                  </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{cmd.label}</span>
-                    <span className="text-[10px] uppercase tracking-wider opacity-60">{cmd.category}</span>
+                    <span className="text-sm font-bold uppercase tracking-wide">{cmd.label}</span>
+                    <span className={cn(
+                      "text-[9px] uppercase tracking-widest font-bold",
+                      index === selectedIndex ? "text-white/70" : "text-nexus-text-muted"
+                    )}>{cmd.category}</span>
                   </div>
                 </div>
                 {cmd.shortcut && (
-                  <div className="text-[10px] font-mono opacity-60 bg-black/20 px-1.5 py-0.5 rounded">
+                  <div className={cn(
+                    "text-[10px] font-bold px-2 py-1 rounded-lg border transition-colors",
+                    index === selectedIndex ? "bg-white/20 border-white/30 text-white" : "bg-nexus-bg border-nexus-border text-nexus-text-muted"
+                  )}>
                     {cmd.shortcut}
                   </div>
                 )}
@@ -116,12 +128,12 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
           )}
         </div>
 
-        <div className="px-4 py-2 bg-[#1e1e1e] border-t border-[#333] flex items-center justify-between text-[10px] text-gray-500 uppercase tracking-widest">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1"><span className="font-mono bg-[#333] px-1 rounded text-white">↑↓</span> Navigate</span>
-            <span className="flex items-center gap-1"><span className="font-mono bg-[#333] px-1 rounded text-white">ENTER</span> Select</span>
+        <div className="px-5 py-3 bg-nexus-bg border-t border-nexus-border flex items-center justify-between text-[10px] text-nexus-text-muted font-bold uppercase tracking-widest">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-2"><span className="bg-nexus-sidebar border border-nexus-border px-1.5 py-0.5 rounded text-white">↑↓</span> NAVIGATE</span>
+            <span className="flex items-center gap-2"><span className="bg-nexus-sidebar border border-nexus-border px-1.5 py-0.5 rounded text-white">ENTER</span> SELECT</span>
           </div>
-          <span>Nexus Command Palette</span>
+          <span className="text-nexus-accent">NEXUS 4.0 COMMANDS</span>
         </div>
       </div>
     </div>

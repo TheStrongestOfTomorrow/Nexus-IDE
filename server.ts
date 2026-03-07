@@ -213,6 +213,7 @@ async function startServer() {
   const wss = new WebSocketServer({ server: httpServer });
 
   const clients = new Set<WebSocket>();
+  const minecraftClients = new Map<string, WebSocket>(); // sessionId -> Minecraft WS
   const sessions = new Map<string, { clients: Set<WebSocket>, lastActivity: number }>();
   const hostedWorkspaces = new Map<string, { files: { name: string, content: string }[], lastUpdate: number }>();
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
@@ -270,16 +271,75 @@ async function startServer() {
     });
   }, 60000); // Check every minute
 
-  wss.on("connection", (ws) => {
+  wss.on("connection", (ws, req) => {
     clients.add(ws);
-    console.log("Client connected. Total clients:", clients.size);
+    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+    const isMinecraft = url.pathname === '/minecraft';
+    const minecraftSessionId = url.searchParams.get('sid');
+
+    console.log(`${isMinecraft ? 'Minecraft' : 'IDE'} client connected. Total clients:`, clients.size);
+
+    if (isMinecraft && minecraftSessionId) {
+      minecraftClients.set(minecraftSessionId, ws);
+      // Notify IDE clients in this session
+      const session = sessions.get(minecraftSessionId);
+      if (session) {
+        session.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'minecraft:connected', sessionId: minecraftSessionId }));
+          }
+        });
+      }
+    }
 
     let shell: any = null;
     let currentSessionId: string | null = null;
 
-    ws.on("message", (message: string) => {
+    ws.on("message", (message: any) => {
       try {
+        if (message instanceof Buffer) {
+          // Handle binary message
+          const type = message.readUInt8(0);
+          if (type === 0x01) { // Minecraft Command
+            const sessionLen = message.readUInt8(1);
+            const sessionId = message.toString('utf8', 2, 2 + sessionLen);
+            const command = message.toString('utf8', 2 + sessionLen);
+            
+            const mcWs = minecraftClients.get(sessionId);
+            if (mcWs && mcWs.readyState === WebSocket.OPEN) {
+              const requestId = Math.random().toString(36).substring(7);
+              mcWs.send(JSON.stringify({
+                header: {
+                  version: 1,
+                  requestId,
+                  messagePurpose: "commandRequest",
+                  messageType: "commandRequest"
+                },
+                body: {
+                  version: 1,
+                  commandLine: command,
+                  origin: { type: "player" }
+                }
+              }));
+            }
+          }
+          return;
+        }
+
         const data = JSON.parse(message.toString());
+
+        // Forward Minecraft events to IDE clients
+        if (isMinecraft && minecraftSessionId) {
+          const session = sessions.get(minecraftSessionId);
+          if (session) {
+            session.clients.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'minecraft:event', data }));
+              }
+            });
+          }
+          return;
+        }
 
         if (data.type === "session:create") {
           const { sessionId } = data;
@@ -391,6 +451,40 @@ async function startServer() {
             type: 'workspace:hosted', 
             url: `${process.env.APP_URL || ''}/hosted/${sessionId}/index.html` 
           }));
+        } else if (data.type === "minecraft:command") {
+          const { sessionId, command } = data;
+          const mcWs = minecraftClients.get(sessionId);
+          if (mcWs && mcWs.readyState === WebSocket.OPEN) {
+            const requestId = Math.random().toString(36).substring(7);
+            mcWs.send(JSON.stringify({
+              header: {
+                version: 1,
+                requestId,
+                messagePurpose: "commandRequest",
+                messageType: "commandRequest"
+              },
+              body: {
+                version: 1,
+                commandLine: command,
+                origin: { type: "player" }
+              }
+            }));
+          }
+        } else if (data.type === "minecraft:subscribe") {
+          const { sessionId, eventName } = data;
+          const mcWs = minecraftClients.get(sessionId);
+          if (mcWs && mcWs.readyState === WebSocket.OPEN) {
+            const requestId = Math.random().toString(36).substring(7);
+            mcWs.send(JSON.stringify({
+              header: {
+                version: 1,
+                requestId,
+                messagePurpose: "subscribe",
+                messageType: "commandRequest"
+              },
+              body: { eventName }
+            }));
+          }
         }
       } catch (err) {
         console.error("WS Message Error:", err);
@@ -399,6 +493,17 @@ async function startServer() {
 
     ws.on("close", () => {
       clients.delete(ws);
+      if (isMinecraft && minecraftSessionId) {
+        minecraftClients.delete(minecraftSessionId);
+        const session = sessions.get(minecraftSessionId);
+        if (session) {
+          session.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({ type: 'minecraft:disconnected', sessionId: minecraftSessionId }));
+            }
+          });
+        }
+      }
       if (currentSessionId) {
         const session = sessions.get(currentSessionId);
         if (session) {

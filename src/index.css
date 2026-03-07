@@ -1,1 +1,61 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-nexus-bg: #0a0a0a;
+  --color-nexus-sidebar: #121212;
+  --color-nexus-border: #1f1f1f;
+  --color-nexus-accent: #007acc;
+  --color-nexus-text: #cccccc;
+  --color-nexus-text-muted: #8e8e8e;
+}
+
+@layer base {
+  .titlebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+  }
+
+  body {
+    padding-top: env(titlebar-area-height, 0);
+    @apply bg-nexus-bg text-nexus-text font-sans selection:bg-nexus-accent/30;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+}
+
+@layer components {
+  .nexus-panel {
+    @apply bg-nexus-sidebar border-nexus-border;
+  }
+  
+  .nexus-tab {
+    @apply h-9 flex items-center px-3 gap-2 border-r border-nexus-border cursor-pointer text-xs transition-all;
+  }
+  
+  .nexus-tab-active {
+    @apply bg-nexus-bg text-white border-b border-b-nexus-accent;
+  }
+  
+  .nexus-tab-inactive {
+    @apply bg-nexus-sidebar text-nexus-text-muted hover:bg-nexus-bg/50;
+  }
+}

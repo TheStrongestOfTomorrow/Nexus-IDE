@@ -1,27 +1,40 @@
 import React, { useEffect, useRef } from 'react';
 import MonacoEditor, { loader } from '@monaco-editor/react';
+
+// Configure Monaco loader
+loader.config({
+  paths: {
+    vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs'
+  }
+});
+
+// Handle loader errors
+loader.init().catch(error => {
+  console.error('Monaco initialization: error:', error);
+});
+
 import { FileNode } from '../hooks/useFileSystem';
 import { GoogleGenAI } from '@google/genai';
-import { Play, Bug, Sparkles, Layout } from 'lucide-react';
+import { Play, Bug, Sparkles, Wand2 } from 'lucide-react';
 import { socketService } from '../services/socketService';
 import FormattingService from '../services/formattingService';
 
 interface EditorProps {
-  activeFile: FileNode | null;
-  onChange: (id: string, content: string) => void;
+  file: FileNode | null;
+  onChange: (content: string) => void;
   extensions?: any[];
   apiKeys?: Record<string, string>;
   onToggleTerminal?: () => void;
 }
 
-export default function Editor({ activeFile, onChange, extensions = [], apiKeys = {}, onToggleTerminal }: EditorProps) {
+export default function Editor({ file, onChange, extensions = [], apiKeys = {}, onToggleTerminal }: EditorProps) {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
 
   const handleFormat = async () => {
-    if (activeFile) {
-      const formatted = await FormattingService.formatCode(activeFile.content, activeFile.language);
-      onChange(activeFile.id, formatted);
+    if (file) {
+      const formatted = await FormattingService.formatCode(file.content, file.language);
+      onChange(formatted);
     }
   };
 
@@ -30,7 +43,7 @@ export default function Editor({ activeFile, onChange, extensions = [], apiKeys 
     monacoRef.current = monaco;
 
     // Register Inline Completions (Ghost Text)
-    monaco.languages.registerInlineCompletionsProvider(activeFile?.language || 'javascript', {
+    monaco.languages.registerInlineCompletionsProvider(file?.language || 'javascript', {
       provideInlineCompletions: async (model: any, position: any) => {
         const apiKey = apiKeys['gemini'];
         if (!apiKey) return;
@@ -66,7 +79,7 @@ export default function Editor({ activeFile, onChange, extensions = [], apiKeys 
     });
 
     // Register Code Lens
-    monaco.languages.registerCodeLensProvider(activeFile?.language || 'javascript', {
+    monaco.languages.registerCodeLensProvider(file?.language || 'javascript', {
       provideCodeLenses: (model: any) => {
         const lenses: any[] = [];
         const lines = model.getLineCount();
@@ -118,73 +131,90 @@ export default function Editor({ activeFile, onChange, extensions = [], apiKeys 
     });
   };
   const handleRun = () => {
-    if (activeFile) {
+    if (file) {
       socketService.send({
         type: 'run-file',
-        filename: activeFile.name,
-        content: activeFile.content,
-        language: activeFile.language
+        filename: file.name,
+        content: file.content,
+        language: file.language
       });
       if (onToggleTerminal) onToggleTerminal();
     }
   };
 
-  if (!activeFile) {
+  if (!file) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#1e1e1e] text-[#cccccc]">
+      <div className="flex-1 flex items-center justify-center bg-nexus-bg text-nexus-text-muted">
         <div className="text-center">
-          <h2 className="text-2xl font-light mb-2">Nexus IDE</h2>
-          <p className="text-gray-500">Select a file to start editing</p>
+          <h2 className="text-2xl font-light mb-2">Nexus IDE 4.1</h2>
+          <p className="text-xs">Select a file to start editing</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#1e1e1e]">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#1e1e1e]">
-        <span className="text-sm text-[#cccccc] font-mono">{activeFile.name}</span>
+    <div className="flex-1 flex flex-col h-full bg-nexus-bg">
+      <div className="flex items-center justify-between px-4 py-2 bg-nexus-sidebar border-b border-nexus-border">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-nexus-accent" />
+          <span className="text-xs text-nexus-text font-mono tracking-tight">{file.name}</span>
+        </div>
         <div className="flex items-center gap-2">
           <button 
             onClick={handleFormat}
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-[#3c3c3c] hover:bg-[#444] text-gray-300 rounded text-[11px] font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold transition-colors shadow-sm"
             title="Format Code"
           >
-            <Layout size={12} />
-            Format
+            <Wand2 size={10} />
+            FORMAT
           </button>
           <button 
             onClick={handleRun}
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold transition-colors shadow-sm"
             title="Run File"
           >
-            <Play size={12} />
-            Run
+            <Play size={10} />
+            RUN
           </button>
           <button 
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-[#3c3c3c] hover:bg-[#444] text-gray-300 rounded text-[11px] font-bold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1 bg-nexus-border hover:bg-nexus-border/80 text-nexus-text rounded text-[10px] font-bold transition-colors"
             title="Debug File"
           >
-            <Bug size={12} />
-            Debug
+            <Bug size={10} />
+            DEBUG
           </button>
         </div>
       </div>
       <div className="flex-1 relative">
         <MonacoEditor
           height="100%"
-          language={activeFile.language}
+          language={file.language}
           theme="vs-dark"
-          value={activeFile.content}
-          onChange={(value) => onChange(activeFile.id, value || '')}
+          value={file.content}
+          onChange={(value) => onChange(value || '')}
           onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
-            fontSize: 14,
+            fontSize: 13,
+            fontFamily: "'JetBrains Mono', monospace",
             wordWrap: 'on',
             padding: { top: 16 },
             scrollBeyondLastLine: false,
             smoothScrolling: true,
+            cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
+            lineNumbersMinChars: 4,
+            glyphMargin: true,
+            folding: true,
+            renderLineHighlight: 'all',
+            scrollbar: {
+              vertical: 'visible',
+              horizontal: 'visible',
+              useShadows: false,
+              verticalScrollbarSize: 10,
+              horizontalScrollbarSize: 10
+            }
           }}
         />
       </div>

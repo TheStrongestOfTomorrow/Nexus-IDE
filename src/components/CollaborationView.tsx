@@ -34,52 +34,52 @@ export default function CollaborationView({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#252526]">
-      <div className="p-4 border-b border-[#333]">
+    <div className="flex flex-col h-full bg-nexus-sidebar">
+      <div className="p-4 border-b border-nexus-border">
         <h2 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Collaboration</h2>
         
         {sessionId ? (
           <div className="space-y-4">
-            <div className="p-3 bg-emerald-900/20 border border-emerald-500/30 rounded-lg">
+            <div className="p-3 bg-emerald-900/10 border border-emerald-500/20 rounded-xl shadow-sm">
               <div className="flex items-center gap-2 text-emerald-400 mb-2">
                 <Users size={16} />
-                <span className="text-xs font-bold uppercase">Active Session</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Active Session</span>
               </div>
-              <div className="flex items-center justify-between bg-[#1e1e1e] p-2 rounded border border-[#333]">
-                <code className="text-sm font-mono text-white">{sessionId}</code>
+              <div className="flex items-center justify-between bg-nexus-bg p-2 rounded-lg border border-nexus-border shadow-inner">
+                <code className="text-sm font-mono text-white font-bold">{sessionId}</code>
                 <button 
                   onClick={handleCopy}
-                  className="p-1 hover:bg-[#333] rounded text-gray-400 transition-colors"
+                  className="p-1.5 hover:bg-nexus-sidebar rounded-md text-nexus-text-muted transition-colors"
                 >
                   {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500 mt-2">
-                Share this code with a friend to start coding together.
+              <p className="text-[10px] text-nexus-text-muted mt-2 leading-relaxed">
+                Share this code with a friend to start coding together in real-time.
               </p>
             </div>
 
-            <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-              <div className="flex items-center gap-2 text-blue-400 mb-2">
+            <div className="p-3 bg-nexus-accent/10 border border-nexus-accent/20 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 text-nexus-accent mb-2">
                 <Globe size={16} />
-                <span className="text-xs font-bold uppercase">Self-Hosting</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Self-Hosting</span>
               </div>
               {hostedUrl ? (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between bg-[#1e1e1e] p-2 rounded border border-[#333]">
-                    <span className="text-[10px] font-mono text-blue-400 truncate max-w-[140px]">{hostedUrl}</span>
+                  <div className="flex items-center justify-between bg-nexus-bg p-2 rounded-lg border border-nexus-border shadow-inner">
+                    <span className="text-[10px] font-mono text-nexus-accent truncate max-w-[140px] font-bold">{hostedUrl}</span>
                     <a 
                       href={hostedUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="p-1 hover:bg-[#333] rounded text-gray-400 transition-colors"
+                      className="p-1.5 hover:bg-nexus-sidebar rounded-md text-nexus-text-muted transition-colors"
                     >
                       <ExternalLink size={14} />
                     </a>
                   </div>
                   <button 
                     onClick={onHostProject}
-                    className="w-full bg-[#3c3c3c] hover:bg-[#444] text-white py-1 rounded text-[10px] font-bold transition-colors border border-[#444]"
+                    className="w-full bg-nexus-bg hover:bg-nexus-bg/80 text-white py-1.5 rounded-lg text-[10px] font-bold transition-all border border-nexus-border uppercase tracking-widest"
                   >
                     Update Hosted Site
                   </button>
@@ -87,34 +87,34 @@ export default function CollaborationView({
               ) : (
                 <button 
                   onClick={onHostProject}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-nexus-accent hover:bg-nexus-accent/80 text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-nexus-accent/20 uppercase tracking-widest"
                 >
                   <Globe size={14} />
                   Host Project Online
                 </button>
               )}
-              <p className="text-[10px] text-gray-500 mt-2 leading-tight">
+              <p className="text-[10px] text-nexus-text-muted mt-2 leading-tight">
                 Make your project accessible via a public URL.
               </p>
             </div>
             
-            <div className="p-3 bg-amber-900/20 border border-amber-500/30 rounded-lg">
+            <div className="p-3 bg-amber-900/10 border border-amber-500/20 rounded-xl shadow-sm">
               <div className="flex items-center gap-2 text-amber-400 mb-1">
                 <ShieldAlert size={14} />
-                <span className="text-[10px] font-bold uppercase">Auto-Wipe Active</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider">Auto-Wipe Active</span>
               </div>
-              <p className="text-[10px] text-amber-500/70">
-                Workspace will be wiped after 30 minutes of total inactivity.
+              <p className="text-[10px] text-amber-500/70 leading-relaxed">
+                Workspace will be wiped after 30 minutes of total inactivity for security.
               </p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="space-y-3">
-              <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Start a Session</h3>
+              <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Start a Session</h3>
               <button
                 onClick={onCreateSession}
-                className="w-full bg-[#007acc] hover:bg-[#0062a3] text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-nexus-accent hover:bg-nexus-accent/80 text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-nexus-accent/20 uppercase tracking-widest"
               >
                 <Plus size={16} />
                 Generate Session Key
@@ -122,22 +122,22 @@ export default function CollaborationView({
             </div>
 
             <div className="space-y-3">
-              <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Join a Session</h3>
+              <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Join a Session</h3>
               <form onSubmit={onJoinSession} className="space-y-2">
                 <div className="relative">
-                  <Key size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-nexus-text-muted" />
                   <input
                     type="text"
                     placeholder="Enter Session Key"
                     value={joinId}
                     onChange={e => setJoinId(e.target.value.toUpperCase())}
-                    className="w-full bg-[#3c3c3c] border border-[#3c3c3c] rounded pl-8 pr-2 py-2 text-xs outline-none focus:border-[#007acc] text-white font-mono uppercase"
+                    className="w-full bg-nexus-bg border border-nexus-border rounded-lg pl-10 pr-3 py-2.5 text-xs outline-none focus:border-nexus-accent text-white font-mono uppercase font-bold shadow-inner"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isJoining || !joinId}
-                  className="w-full bg-[#3c3c3c] hover:bg-[#444] text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-[#444] disabled:opacity-50"
+                  className="w-full bg-nexus-bg hover:bg-nexus-bg/80 text-white py-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 border border-nexus-border disabled:opacity-50 uppercase tracking-widest"
                 >
                   {isJoining ? <LogIn size={16} className="animate-pulse" /> : <LogIn size={16} />}
                   Join Session
@@ -148,29 +148,29 @@ export default function CollaborationView({
         )}
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto">
+      <div className="flex-1 p-4 overflow-y-auto bg-nexus-sidebar">
         <div className="space-y-4">
-          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">How it works</h3>
-          <div className="space-y-3">
+          <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">How it works</h3>
+          <div className="space-y-4">
             <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-[#333] flex items-center justify-center text-[10px] font-bold shrink-0">1</div>
-              <p className="text-[11px] text-gray-400">Generate a one-time key or enter a friend's key.</p>
+              <div className="w-6 h-6 rounded-full bg-nexus-bg border border-nexus-border flex items-center justify-center text-[10px] font-bold shrink-0 text-nexus-accent shadow-sm">1</div>
+              <p className="text-[11px] text-nexus-text-muted leading-relaxed">Generate a one-time key or enter a friend's key to connect.</p>
             </div>
             <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-[#333] flex items-center justify-center text-[10px] font-bold shrink-0">2</div>
-              <p className="text-[11px] text-gray-400">Collaborate in real-time on any file in the workspace.</p>
+              <div className="w-6 h-6 rounded-full bg-nexus-bg border border-nexus-border flex items-center justify-center text-[10px] font-bold shrink-0 text-nexus-accent shadow-sm">2</div>
+              <p className="text-[11px] text-nexus-text-muted leading-relaxed">Collaborate in real-time on any file in the workspace with low latency.</p>
             </div>
             <div className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-[#333] flex items-center justify-center text-[10px] font-bold shrink-0">3</div>
-              <p className="text-[11px] text-gray-400">Progress is synced automatically across all participants.</p>
+              <div className="w-6 h-6 rounded-full bg-nexus-bg border border-nexus-border flex items-center justify-center text-[10px] font-bold shrink-0 text-nexus-accent shadow-sm">3</div>
+              <p className="text-[11px] text-nexus-text-muted leading-relaxed">Progress is synced automatically across all participants via Nexus Cloud.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 border-t border-[#333] bg-[#1e1e1e]">
-        <p className="text-[10px] text-gray-500 leading-relaxed italic">
-          Nexus v2.5 Alpha: Real-time session-based collaboration.
+      <div className="p-4 border-t border-nexus-border bg-nexus-bg">
+        <p className="text-[10px] text-nexus-text-muted leading-relaxed italic text-center font-bold tracking-wider">
+          NEXUS 4.0 COLLABORATION ENGINE
         </p>
       </div>
     </div>

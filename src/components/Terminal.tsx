@@ -3,8 +3,10 @@ import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { socketService } from '../services/socketService';
-import { X, Terminal as TerminalIcon, Cpu, Loader2 } from 'lucide-react';
+import { terminalService } from '../services/terminalService';
+import { X, Terminal as TerminalIcon, Cpu, Loader2, ScrollText } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
+import { cn } from '../lib/utils';
 
 interface TerminalProps {
   files: FileNode[];
@@ -19,6 +21,7 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
   const [isPyodideLoading, setIsPyodideLoading] = useState(false);
   const pyodideRef = useRef<any>(null);
   const currentLineRef = useRef('');
+  const [activeStream, setActiveStream] = useState<'bash' | 'scripts'>('bash');
 
   useEffect(() => {
     if (!terminalRef.current) return;
@@ -28,9 +31,10 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
       fontSize: 12,
       fontFamily: 'JetBrains Mono, Menlo, Monaco, "Courier New", monospace',
       theme: {
-        background: '#1e1e1e',
+        background: '#0a0a0a',
         foreground: '#cccccc',
-        cursor: '#569cd6',
+        cursor: '#00ff00',
+        selectionBackground: 'rgba(0, 255, 0, 0.3)',
       },
     });
 
@@ -39,14 +43,23 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
     term.open(terminalRef.current);
     fitAddon.fit();
 
-    term.writeln('\x1b[1;34mWelcome to Nexus Shell v3.1\x1b[0m');
-    term.writeln('Type \x1b[1;32m"help"\x1b[0m to see available local commands.');
-    term.write('\r\n$ ');
+    if (activeStream === 'bash') {
+      term.writeln('\x1b[1;32mWelcome to Nexus Shell v4.0\x1b[0m');
+      term.writeln('Type \x1b[1;36m"help"\x1b[0m to see available local commands.');
+      term.write('\r\n\x1b[1;32m$\x1b[0m ');
+    } else {
+      term.writeln('\x1b[1;33mNexus Script Logs\x1b[0m');
+      term.writeln('Background script output will appear here.');
+      term.writeln('------------------------------------------');
+      const logs = terminalService.getOutput('scripts');
+      if (logs) term.write(logs.replace(/\n/g, '\r\n'));
+    }
 
     xtermRef.current = term;
     fitAddonRef.current = fitAddon;
 
     const handleCommand = async (command: string) => {
+      if (activeStream !== 'bash') return;
       const args = command.trim().split(' ');
       const cmd = args[0].toLowerCase();
 
@@ -106,6 +119,7 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
     };
 
     term.onData((data) => {
+      if (activeStream !== 'bash') return;
       if (data === '\r') { // Enter
         handleCommand(currentLineRef.current);
         currentLineRef.current = '';
@@ -121,11 +135,25 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
       }
     });
 
-    socketService.send({ type: 'terminal-init' });
+    if (activeStream === 'bash') {
+      socketService.send({ type: 'terminal-init' });
+    }
 
     const unsubscribe = socketService.subscribe((msg) => {
-      if (msg.type === 'terminal-output') {
+      if (msg.type === 'terminal-output' && activeStream === 'bash') {
         term.write(msg.data);
+        terminalService.append('bash', msg.data);
+      }
+    });
+
+    const unsubscribeLogs = terminalService.subscribe((streams) => {
+      if (activeStream === 'scripts') {
+        // This is a bit inefficient, but for demo purposes
+        term.clear();
+        term.writeln('\x1b[1;33mNexus Script Logs\x1b[0m');
+        term.writeln('Background script output will appear here.');
+        term.writeln('------------------------------------------');
+        term.write(streams.scripts.join('\r\n'));
       }
     });
 
@@ -137,17 +165,42 @@ export default function Terminal({ files, onClose, onPreview }: TerminalProps) {
 
     return () => {
       unsubscribe();
+      unsubscribeLogs();
       term.dispose();
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [activeStream]);
 
   return (
-    <div className="h-64 bg-[#1e1e1e] border-t border-[#333] flex flex-col">
-      <div className="flex items-center justify-between px-4 py-1 bg-[#252526] border-b border-[#333]">
-        <div className="flex items-center gap-2">
-          <TerminalIcon size={12} className="text-blue-500" />
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Nexus Shell</span>
+    <div className="h-64 bg-nexus-bg border-t border-nexus-border flex flex-col">
+      <div className="flex items-center justify-between px-4 py-1 bg-nexus-sidebar border-b border-nexus-border">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <TerminalIcon size={12} className="text-nexus-accent" />
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Terminal</span>
+          </div>
+          
+          <div className="flex items-center bg-nexus-bg rounded p-0.5">
+            <button 
+              onClick={() => setActiveStream('bash')}
+              className={cn(
+                "px-3 py-0.5 rounded text-[10px] font-bold transition-all",
+                activeStream === 'bash' ? "bg-nexus-sidebar text-white" : "text-nexus-text-muted hover:text-white"
+              )}
+            >
+              Bash
+            </button>
+            <button 
+              onClick={() => setActiveStream('scripts')}
+              className={cn(
+                "px-3 py-0.5 rounded text-[10px] font-bold transition-all",
+                activeStream === 'scripts' ? "bg-nexus-sidebar text-white" : "text-nexus-text-muted hover:text-white"
+              )}
+            >
+              Script Logs
+            </button>
+          </div>
+
           {isPyodideLoading && (
             <div className="flex items-center gap-1 ml-2 text-[10px] text-amber-500">
               <Loader2 size={10} className="animate-spin" />

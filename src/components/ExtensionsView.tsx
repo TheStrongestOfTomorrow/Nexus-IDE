@@ -96,8 +96,8 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#252526]">
-      <div className="p-4 border-b border-[#333]">
+    <div className="flex flex-col h-full bg-nexus-sidebar">
+      <div className="p-4 border-b border-nexus-border">
         <h2 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Extensions</h2>
         <form onSubmit={handleSubmit} className="space-y-2">
           <input
@@ -105,11 +105,11 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
             placeholder="Extension Script URL"
             value={newUrl}
             onChange={e => setNewUrl(e.target.value)}
-            className="w-full bg-[#3c3c3c] border border-[#3c3c3c] rounded px-2 py-1.5 text-xs outline-none focus:border-[#007acc] text-white"
+            className="w-full bg-nexus-bg border border-nexus-border rounded-lg px-3 py-2 text-xs outline-none focus:border-nexus-accent text-white shadow-inner"
           />
           <button
             type="submit"
-            className="w-full bg-[#007acc] hover:bg-[#0062a3] text-white py-1.5 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-nexus-accent hover:bg-nexus-accent/80 text-white py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-nexus-accent/20 uppercase tracking-widest"
           >
             <Plus size={14} />
             Install from URL
@@ -124,7 +124,7 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
             />
             <button
               type="button"
-              className="w-full bg-[#3c3c3c] hover:bg-[#444] text-white py-1.5 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2 border border-[#444]"
+              className="w-full bg-nexus-bg hover:bg-nexus-bg/80 text-white py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 border border-nexus-border uppercase tracking-widest"
             >
               {isUploading ? <Plus size={14} className="animate-spin" /> : <Upload size={14} />}
               Load .VSIX
@@ -133,34 +133,34 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
         </form>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-nexus-sidebar">
         {/* Marketplace */}
         <section className="space-y-3">
-          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+          <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest flex items-center gap-2">
             <ShoppingBag size={12} /> Featured
           </h3>
           <div className="space-y-2">
             {FEATURED_EXTENSIONS.map(ext => {
               const isInstalled = extensions.some(e => e.url === ext.url);
               return (
-                <div key={ext.id} className="p-3 bg-[#1e1e1e] rounded border border-[#333] hover:border-[#444] transition-colors">
-                  <div className="flex items-center justify-between mb-1">
+                <div key={ext.id} className="p-3 bg-nexus-bg rounded-xl border border-nexus-border hover:border-nexus-accent/30 transition-all shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Star size={12} className="text-yellow-500" />
-                      <span className="text-xs font-bold text-gray-200">{ext.name}</span>
+                      <Star size={12} className="text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-bold text-white">{ext.name}</span>
                     </div>
                     {!isInstalled && (
                       <button
                         onClick={() => onAddExtension(ext.url)}
-                        className="p-1 hover:bg-[#333] text-blue-400 rounded"
+                        className="p-1.5 hover:bg-nexus-sidebar text-nexus-accent rounded-md transition-colors"
                         title="Install"
                       >
                         <Download size={14} />
                       </button>
                     )}
                   </div>
-                  <p className="text-[10px] text-gray-500 mb-2">{ext.description}</p>
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#333] text-gray-400 font-bold uppercase">
+                  <p className="text-[10px] text-nexus-text-muted mb-3 leading-relaxed">{ext.description}</p>
+                  <span className="text-[9px] px-2 py-0.5 rounded-lg bg-nexus-sidebar text-nexus-text-muted font-bold uppercase border border-nexus-border">
                     {ext.type}
                   </span>
                 </div>
@@ -170,21 +170,24 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Installed</h3>
+          <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Installed</h3>
           {extensions.length === 0 ? (
-            <p className="text-xs text-gray-500 italic text-center py-4">No extensions installed</p>
+            <div className="flex flex-col items-center justify-center py-8 text-nexus-text-muted gap-2">
+              <Puzzle size={32} className="opacity-10" />
+              <p className="text-xs italic">No extensions installed</p>
+            </div>
           ) : (
             <div className="space-y-2">
               {extensions.map(ext => (
-                <div key={ext.id} className="p-3 bg-[#1e1e1e] rounded border border-[#333] group">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-gray-200">{ext.name}</span>
+                <div key={ext.id} className="p-3 bg-nexus-bg rounded-xl border border-nexus-border group shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-white">{ext.name}</span>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => onToggleExtension(ext.id)}
                         className={cn(
-                          "p-1 rounded hover:bg-[#333]",
-                          ext.enabled ? "text-emerald-500" : "text-gray-500"
+                          "p-1.5 rounded-md hover:bg-nexus-sidebar transition-colors",
+                          ext.enabled ? "text-emerald-500" : "text-nexus-text-muted"
                         )}
                         title={ext.enabled ? "Disable" : "Enable"}
                       >
@@ -192,23 +195,23 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
                       </button>
                       <button
                         onClick={() => onRemoveExtension(ext.id)}
-                        className="p-1 rounded hover:bg-[#333] text-red-400"
+                        className="p-1.5 rounded-md hover:bg-nexus-sidebar text-red-400 transition-colors"
                         title="Uninstall"
                       >
                         <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-500 mb-2 line-clamp-2">{ext.description || ext.url}</p>
+                  <p className="text-[10px] text-nexus-text-muted mb-3 line-clamp-2 leading-relaxed">{ext.description || ext.url}</p>
                   <div className="flex items-center gap-2">
                     <span className={cn(
-                      "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase",
-                      ext.enabled ? "bg-emerald-900/30 text-emerald-400" : "bg-gray-800 text-gray-500"
+                      "text-[9px] px-2 py-0.5 rounded-lg font-bold uppercase border",
+                      ext.enabled ? "bg-emerald-900/10 text-emerald-400 border-emerald-500/20" : "bg-nexus-sidebar text-nexus-text-muted border-nexus-border"
                     )}>
                       {ext.enabled ? 'Enabled' : 'Disabled'}
                     </span>
-                    <a href={ext.url} target="_blank" rel="noreferrer" className="text-[9px] text-blue-400 hover:underline flex items-center gap-0.5">
-                      Source <ExternalLink size={8} />
+                    <a href={ext.url} target="_blank" rel="noreferrer" className="text-[9px] text-nexus-accent hover:underline flex items-center gap-0.5 ml-auto font-bold">
+                      SOURCE <ExternalLink size={8} />
                     </a>
                   </div>
                 </div>
@@ -218,9 +221,9 @@ export default function ExtensionsView({ extensions, onAddExtension, onRemoveExt
         </section>
       </div>
 
-      <div className="p-4 border-t border-[#333] bg-[#1e1e1e]">
-        <p className="text-[10px] text-gray-500 leading-relaxed">
-          Extensions are external JavaScript files that can modify the IDE's behavior. Use with caution.
+      <div className="p-4 border-t border-nexus-border bg-nexus-bg">
+        <p className="text-[10px] text-nexus-text-muted leading-relaxed italic text-center font-bold tracking-wider">
+          NEXUS 4.0 EXTENSION ENGINE
         </p>
       </div>
     </div>

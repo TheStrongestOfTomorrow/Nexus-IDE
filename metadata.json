@@ -1,5 +1,5 @@
 {
-  "name": "Nexus IDE",
-  "description": "A professional web-based IDE with VS Code UI, native file system access, AI-powered coding (Gemini/GPT), real-time collaboration, and session-based self-hosting.",
+  "name": "Nexus IDE 4.1",
+  "description": "The ultimate professional web-based IDE. Rebuilt for speed, stability, and AI-native development. Features native file system access, real-time collaboration, and deep AI integration.",
   "requestFramePermissions": []
 }

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  nexus-ide:
+    build: .
+    container_name: nexus-ide-v4.2
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      # Optional: persist workspace data
+      - nexus-workspace:/app/data
+    labels:
+      - "com.nexus.version=4.2"
+      - "com.nexus.description=Browser-based IDE with AI integration"
+
+  # Optional: Redis for session management (future enhancement)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: nexus-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+volumes:
+  nexus-workspace:
+    driver: local

@@ -3,7 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <meta name="theme-color" content="#007acc" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Nexus IDE</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('Nexus SW registered');
+          }).catch(err => {
+            console.log('Nexus SW registration failed', err);
+          });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

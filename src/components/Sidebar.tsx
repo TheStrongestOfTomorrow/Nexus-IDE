@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
@@ -17,6 +17,9 @@ interface SidebarProps {
   onOpenFolder?: () => void;
   onSelectFolder?: (folderPath: string) => void;
   activeFolder?: string | null;
+  pendingAiActions?: any[] | null;
+  onAcceptAiActions?: (actions: any[]) => void;
+  onRejectAiActions?: () => void;
 }
 
 export default function Sidebar({
@@ -31,7 +34,10 @@ export default function Sidebar({
   onShowDiff,
   onOpenFolder,
   onSelectFolder,
-  activeFolder
+  activeFolder,
+  pendingAiActions,
+  onAcceptAiActions,
+  onRejectAiActions
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -118,20 +124,20 @@ export default function Sidebar({
   };
 
   return (
-    <div className="w-64 flex-shrink-0 bg-[#f3f3f3] dark:bg-[#252526] border-r border-gray-200 dark:border-[#333] flex flex-col h-full">
-      <div className="flex items-center justify-between px-4 py-2 text-sm font-semibold text-gray-700 dark:text-[#cccccc] uppercase tracking-wider">
+    <div className="w-64 flex-shrink-0 bg-nexus-sidebar border-r border-nexus-border flex flex-col h-full">
+      <div className="flex items-center justify-between px-4 py-2 text-sm font-semibold text-nexus-text uppercase tracking-wider">
         <span>Explorer</span>
         <div className="flex items-center gap-1">
           <button 
             onClick={() => setIsAdding(true)}
-            className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+            className="p-1 hover:bg-nexus-bg rounded transition-colors"
             title="New File"
           >
             <FilePlus size={16} />
           </button>
           <button 
             onClick={onExport}
-            className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+            className="p-1 hover:bg-nexus-bg rounded transition-colors"
             title="Export as ZIP"
           >
             <Download size={16} />
@@ -139,7 +145,7 @@ export default function Sidebar({
           {onOpenFolder && (
             <button 
               onClick={onOpenFolder}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-[#333] rounded"
+              className="p-1 hover:bg-nexus-bg rounded transition-colors"
               title="Open Local Folder"
             >
               <FolderOpen size={16} />
@@ -148,7 +154,34 @@ export default function Sidebar({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto py-2 relative">
+        {/* Vibe Check Popup */}
+        {pendingAiActions && (
+          <div className="absolute top-2 left-2 right-2 z-20 bg-nexus-accent text-white p-3 rounded-lg shadow-xl border border-white/20 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={16} className="text-yellow-300" />
+              <span className="text-xs font-bold uppercase tracking-wider">AI Vibe Check</span>
+            </div>
+            <p className="text-[10px] opacity-90 mb-3">
+              The AI wants to perform {pendingAiActions.length} actions.
+            </p>
+            <div className="flex gap-2">
+              <button 
+                onClick={onRejectAiActions}
+                className="flex-1 py-1.5 bg-white/10 hover:bg-white/20 rounded text-[10px] font-bold transition-colors"
+              >
+                Reject
+              </button>
+              <button 
+                onClick={() => onAcceptAiActions?.(pendingAiActions)}
+                className="flex-1 py-1.5 bg-white hover:bg-blue-50 text-nexus-accent rounded text-[10px] font-bold transition-colors shadow-sm"
+              >
+                Accept
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Templates Section */}
         <div className="mb-4">
           <button 
@@ -168,7 +201,7 @@ export default function Sidebar({
                 <button
                   key={key}
                   onClick={() => onApplyTemplate(template)}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-[#2a2d2e] rounded transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-nexus-text-muted hover:bg-nexus-bg hover:text-white rounded transition-colors text-left"
                 >
                   <Box size={14} className="text-emerald-500" />
                   {template.name}
@@ -202,8 +235,8 @@ export default function Sidebar({
               <div 
                 onClick={() => toggleFolder(folder)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-1 cursor-pointer hover:bg-gray-200 dark:hover:bg-[#2a2d2e] group transition-colors",
-                  activeFolder === folder && "bg-blue-500/10 text-blue-500"
+                  "flex items-center gap-2 px-4 py-1 cursor-pointer hover:bg-nexus-bg group transition-colors",
+                  activeFolder === folder && "bg-nexus-accent/10 text-nexus-accent"
                 )}
               >
                 <span className={cn("text-[10px] transition-transform", expandedFolders.has(folder) ? "rotate-90" : "")}>›</span>
@@ -213,7 +246,7 @@ export default function Sidebar({
                     e.stopPropagation();
                     onSelectFolder?.(folder);
                   }}
-                  className="hidden group-hover:block p-1 hover:bg-blue-500/20 rounded text-blue-500"
+                  className="hidden group-hover:block p-1 hover:bg-nexus-accent/20 rounded text-nexus-accent"
                   title="Preview Folder"
                 >
                   <Layout size={12} />
@@ -243,8 +276,8 @@ export default function Sidebar({
                     className={cn(
                       "group flex items-center justify-between px-4 py-1 cursor-pointer text-sm",
                       activeFileId === file.id 
-                        ? "bg-blue-100 dark:bg-[#37373d] text-blue-900 dark:text-white" 
-                        : "text-gray-700 dark:text-[#cccccc] hover:bg-gray-200 dark:hover:bg-[#2a2d2e]"
+                        ? "bg-nexus-bg text-white border-l-2 border-nexus-accent" 
+                        : "text-nexus-text hover:bg-nexus-bg/50"
                     )}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
@@ -258,7 +291,7 @@ export default function Sidebar({
                             e.stopPropagation();
                             onShowDiff(file.id);
                           }}
-                          className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                          className="p-1 hover:bg-nexus-border rounded text-nexus-text-muted"
                           title="Show Diff"
                         >
                           <GitCompare size={12} />
@@ -270,7 +303,7 @@ export default function Sidebar({
                           setEditingId(file.id);
                           setEditName(file.name);
                         }}
-                        className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                        className="p-1 hover:bg-nexus-border rounded text-nexus-text-muted"
                       >
                         <Edit2 size={12} />
                       </button>
@@ -279,7 +312,7 @@ export default function Sidebar({
                           e.stopPropagation();
                           onDeleteFile(file.id);
                         }}
-                        className="p-1 hover:bg-gray-300 dark:hover:bg-[#4d4d4d] rounded text-gray-500 dark:text-gray-400"
+                        className="p-1 hover:bg-nexus-border rounded text-nexus-text-muted"
                       >
                         <Trash2 size={12} />
                       </button>

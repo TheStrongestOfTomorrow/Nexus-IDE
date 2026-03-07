@@ -1,0 +1,20 @@
+[package]
+name = "nexus-ide"
+version = "3.2.0"
+description = "Nexus IDE"
+authors = ["Nexus Team"]
+license = "MIT"
+repository = "https://github.com/your-repo/nexus-ide"
+edition = "2021"
+rust-version = "1.60"
+
+[build-dependencies]
+tauri-build = { version = "1.5" }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.5", features = ["api-all"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

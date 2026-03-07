@@ -42,15 +42,16 @@ export default function MermaidViewer({ chart, onClose }: MermaidViewerProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#1e1e1e] border border-[#333] rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#252526] border-b border-[#333]">
+    <div className="flex flex-col h-full bg-nexus-bg border border-nexus-border rounded-2xl overflow-hidden shadow-xl">
+      <div className="flex items-center justify-between px-4 py-3 bg-nexus-sidebar border-b border-nexus-border">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Architecture Diagram</span>
+          <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
+          <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Architecture Diagram</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button 
             onClick={handleDownload}
-            className="p-1 hover:bg-[#333] rounded text-gray-400 transition-colors"
+            className="p-1.5 hover:bg-nexus-bg rounded-lg text-nexus-text-muted hover:text-white transition-all"
             title="Download SVG"
           >
             <Download size={14} />
@@ -58,15 +59,15 @@ export default function MermaidViewer({ chart, onClose }: MermaidViewerProps) {
           {onClose && (
             <button 
               onClick={onClose}
-              className="p-1 hover:bg-[#333] rounded text-gray-400 transition-colors"
+              className="p-1.5 hover:bg-nexus-bg rounded-lg text-nexus-text-muted hover:text-white transition-all"
             >
               <Maximize2 size={14} />
             </button>
           )}
         </div>
       </div>
-      <div className="flex-1 overflow-auto p-4 flex items-center justify-center bg-[#1a1a1a]">
-        <div ref={containerRef} className="w-full h-full flex items-center justify-center" />
+      <div className="flex-1 overflow-auto p-8 flex items-center justify-center bg-nexus-bg no-scrollbar">
+        <div ref={containerRef} className="w-full h-full flex items-center justify-center transition-all duration-500" />
       </div>
     </div>
   );
