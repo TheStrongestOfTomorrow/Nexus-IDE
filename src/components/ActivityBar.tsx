@@ -18,11 +18,11 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
   const primaryActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
     { id: 'explorer', icon: Files, label: 'Explorer' },
     { id: 'search', icon: Search, label: 'Search' },
+    { id: 'git', icon: GitBranch, label: 'Source Control' },
     { id: 'ai', icon: MessageSquare, label: 'AI Assistant' },
   ];
 
   const secondaryActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
-    { id: 'git', icon: GitBranch, label: 'Source Control' },
     { id: 'debug', icon: Play, label: 'Run and Debug' },
     { id: 'extensions', icon: Puzzle, label: 'Extensions' },
     { id: 'collab', icon: Users, label: 'Collaboration' },
