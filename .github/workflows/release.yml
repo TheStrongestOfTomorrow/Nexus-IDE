@@ -1,8 +1,13 @@
-name: Release
+name: Desktop Releases
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - main
 
 jobs:
   release:
@@ -43,8 +48,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Nexus IDE ${{ github.ref_name }}"
-          releaseBody: "Automated release of Nexus IDE."
+          tagName: ${{ github.ref_name || 'latest' }}
+          releaseName: "Nexus IDE ${{ github.ref_name || 'Latest Build' }}"
+          releaseBody: "Automated build of Nexus IDE."
           releaseDraft: true
           prerelease: false
