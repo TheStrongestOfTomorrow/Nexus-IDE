@@ -325,9 +325,24 @@ async function startServer() {
         } else if (data.type === "terminal-init") {
           if (shell) shell.kill();
           
-          const shellCmd = os.platform() === "win32" ? "powershell.exe" : "bash";
+          let shellCmd = "bash";
+          if (os.platform() === "win32") {
+            shellCmd = "powershell.exe";
+          } else {
+            // Check for common shells in order of preference
+            const shells = ["/data/data/com.termux/files/usr/bin/bash", "/data/data/com.termux/files/usr/bin/sh", "bash", "sh"];
+            for (const s of shells) {
+              try {
+                if (os.platform() !== "win32") {
+                  shellCmd = s;
+                  break; 
+                }
+              } catch (e) {}
+            }
+          }
+
           shell = spawn(shellCmd, [], {
-            env: process.env,
+            env: { ...process.env, TERM: "xterm-256color" },
             cwd: process.cwd(),
           });
 

@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import MonacoEditor, { loader } from '@monaco-editor/react';
 import { FileNode } from '../hooks/useFileSystem';
 import { GoogleGenAI } from '@google/genai';
-import { Play, Bug, Sparkles } from 'lucide-react';
+import { Play, Bug, Sparkles, Layout } from 'lucide-react';
 import { socketService } from '../services/socketService';
+import FormattingService from '../services/formattingService';
 
 interface EditorProps {
   activeFile: FileNode | null;
@@ -16,6 +17,13 @@ interface EditorProps {
 export default function Editor({ activeFile, onChange, extensions = [], apiKeys = {}, onToggleTerminal }: EditorProps) {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
+
+  const handleFormat = async () => {
+    if (activeFile) {
+      const formatted = await FormattingService.formatCode(activeFile.content, activeFile.language);
+      onChange(activeFile.id, formatted);
+    }
+  };
 
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
@@ -137,6 +145,14 @@ export default function Editor({ activeFile, onChange, extensions = [], apiKeys 
       <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#1e1e1e]">
         <span className="text-sm text-[#cccccc] font-mono">{activeFile.name}</span>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={handleFormat}
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-[#3c3c3c] hover:bg-[#444] text-gray-300 rounded text-[11px] font-bold transition-colors"
+            title="Format Code"
+          >
+            <Layout size={12} />
+            Format
+          </button>
           <button 
             onClick={handleRun}
             className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold transition-colors"

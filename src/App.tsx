@@ -15,7 +15,8 @@ import Terminal from './components/Terminal';
 import { socketService } from './services/socketService';
 import { workspaceService } from './services/workspaceService';
 import { useFileSystem } from './hooks/useFileSystem';
-import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X, Command, Zap, FilePlus, FolderOpen, Play, Search, Trash2, Layout, Users, GitCompare, Brain } from 'lucide-react';
+import ErrorHandlingService from './services/errorHandlingService';
+import { Settings, Code2, LayoutPanelLeft, MessageSquare, Download, Database, Globe, ChevronRight, X, Command, Zap, FilePlus, FolderOpen, Play, Search, Trash2, Layout, Users, GitCompare, Brain, AlertCircle } from 'lucide-react';
 import { cn } from './lib/utils';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -88,6 +89,12 @@ export default function App() {
   });
 
   const [showSettings, setShowSettings] = useState(false);
+  const [errors, setErrors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = ErrorHandlingService.subscribe(setErrors);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('nexus_touch_mode', isTouchMode.toString());
@@ -564,6 +571,30 @@ export default function App() {
         )}
 
           <div className={cn("flex-1 flex flex-col overflow-hidden", isTouchMode && "touch-mode")}>
+            {/* Error List Dashboard Overlay */}
+            {errors.length > 0 && (
+              <div className="absolute top-12 right-4 z-40 max-w-sm space-y-2 pointer-events-none">
+                {errors.slice(-3).map(err => (
+                  <div key={err.id} className="p-3 bg-red-900/90 border border-red-500 rounded text-white shadow-xl pointer-events-auto flex items-start gap-3 backdrop-blur-sm">
+                    <AlertCircle className="flex-shrink-0 mt-0.5" size={16} />
+                    <div className="flex-1 overflow-hidden">
+                      <div className="text-xs font-bold uppercase tracking-wider">{err.title}</div>
+                      <div className="text-[11px] opacity-90 line-clamp-2">{err.message}</div>
+                      {err.suggestion && (
+                        <div className="text-[10px] mt-1 text-red-200 italic font-medium">{err.suggestion}</div>
+                      )}
+                    </div>
+                    <button onClick={() => ErrorHandlingService.clearError(err.id)} className="opacity-60 hover:opacity-100">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                {errors.length > 3 && (
+                  <div className="text-[10px] text-right text-gray-400 font-mono">+ {errors.length - 3} more errors</div>
+                )}
+              </div>
+            )}
+
             {/* Tabs Bar */}
             <div className={cn("h-9 bg-[#252526] flex items-center overflow-x-auto no-scrollbar border-b border-[#1e1e1e]", isTouchMode && "h-12")}>
               {openFileIds.map(id => {
