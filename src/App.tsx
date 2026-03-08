@@ -17,6 +17,11 @@ import PreviewPopout from './components/PreviewPopout';
 import SettingsPanel from './components/SettingsPanel';
 import SearchView from './components/SearchView';
 import DebugView from './components/DebugView';
+import ThemeStudio from './components/ThemeStudio';
+import DependencyGraph from './components/DependencyGraph';
+import TodoScanner from './components/TodoScanner';
+import SnippetManager from './components/SnippetManager';
+import ProjectInsights from './components/ProjectInsights';
 
 import { useFileSystem } from './hooks/useFileSystem';
 import { useIDEState } from './hooks/useIDEState';
@@ -176,6 +181,8 @@ export default function App() {
         onSearch={() => ide.setIsCommandPaletteOpen(true)} 
         onSettings={() => ide.setShowSettings(true)}
         onToggleVoice={() => setIsVoiceListening(!isVoiceListening)}
+        onToggleZenMode={ide.toggleZenMode}
+        isZenMode={ide.isZenMode}
       />
       
       {pwa.showUpdatePrompt && (
@@ -313,6 +320,31 @@ export default function App() {
                 <MinecraftView sessionId={ide.sessionId} />
               </div>
             )}
+            {ide.activeActivity === 'themes' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <ThemeStudio />
+              </div>
+            )}
+            {ide.activeActivity === 'deps' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <DependencyGraph files={files} />
+              </div>
+            )}
+            {ide.activeActivity === 'todos' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <TodoScanner files={files} onSelectFile={ide.handleSelectFile} />
+              </div>
+            )}
+            {ide.activeActivity === 'snippets' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <SnippetManager />
+              </div>
+            )}
+            {ide.activeActivity === 'insights' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <ProjectInsights files={files} />
+              </div>
+            )}
           </div>
         )}
 
@@ -431,6 +463,7 @@ export default function App() {
 
       <StatusBar 
         activeFile={activeFile} 
+        files={files}
       />
 
       <SettingsPanel

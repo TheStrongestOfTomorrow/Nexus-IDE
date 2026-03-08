@@ -20,6 +20,20 @@ export function useIDEState(files: any[]) {
   const [diffData, setDiffData] = useState<{ original: string, modified: string, fileId: string } | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [mermaidChart, setMermaidChart] = useState<string | null>(null);
+  const [isZenMode, setIsZenMode] = useState(false);
+
+  const toggleZenMode = useCallback(() => {
+    if (!isZenMode) {
+      setShowSidebar(false);
+      setShowTerminal(false);
+      setShowAI(false);
+      setShowPreview(false);
+    } else {
+      setShowSidebar(true);
+      setShowPreview(true);
+    }
+    setIsZenMode(!isZenMode);
+  }, [isZenMode]);
 
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
@@ -94,6 +108,7 @@ export function useIDEState(files: any[]) {
     diffData, setDiffData,
     isCommandPaletteOpen, setIsCommandPaletteOpen,
     mermaidChart, setMermaidChart,
+    isZenMode, toggleZenMode,
     apiKeys, setApiKeys,
     setApiKey,
     selectedAIProvider, setSelectedAIProvider,

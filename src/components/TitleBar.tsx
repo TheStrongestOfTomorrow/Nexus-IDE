@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Zap, Command, Globe, Settings, User, Mic } from 'lucide-react';
+import { Search, ChevronRight, Zap, Command, Globe, Settings, User, Mic, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { FileNode } from '../hooks/useFileSystem';
 
@@ -8,9 +8,11 @@ interface TitleBarProps {
   onSearch: (query: string) => void;
   onSettings?: () => void;
   onToggleVoice?: () => void;
+  onToggleZenMode?: () => void;
+  isZenMode?: boolean;
 }
 
-export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoice }: TitleBarProps) {
+export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoice, onToggleZenMode, isZenMode }: TitleBarProps) {
   const [isWCOSupported, setIsWCOSupported] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -100,6 +102,15 @@ export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoi
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 ml-auto" style={{ appRegion: 'no-drag' } as any}>
+          {onToggleZenMode && (
+            <button 
+              onClick={onToggleZenMode}
+              className="p-1 hover:bg-[#333] rounded text-gray-500 hover:text-gray-300 transition-colors"
+              title="Toggle Zen Mode"
+            >
+              {isZenMode ? <EyeOff size={14} className="text-nexus-accent" /> : <Eye size={14} />}
+            </button>
+          )}
           <button className="p-1 hover:bg-[#333] rounded text-gray-500 hover:text-gray-300 transition-colors">
             <Globe size={14} />
           </button>

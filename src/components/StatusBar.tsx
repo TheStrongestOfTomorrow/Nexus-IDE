@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles } from 'lucide-react';
+import { Wifi, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles, FileText } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
+import PomodoroTimer from './PomodoroTimer';
 
 interface StatusBarProps {
   activeFile: FileNode | null;
+  files?: FileNode[];
   onScanProject?: () => void;
   onPreinstallOffline?: () => void;
   isPreinstalling?: boolean;
@@ -14,6 +16,7 @@ interface StatusBarProps {
 
 export default function StatusBar({ 
   activeFile, 
+  files = [],
   onScanProject, 
   onPreinstallOffline, 
   isPreinstalling, 
@@ -21,6 +24,7 @@ export default function StatusBar({
   vibeProgress
 }: StatusBarProps) {
   const [isPwaInstalled, setIsPwaInstalled] = useState(false);
+  const totalLines = files.reduce((acc, file) => acc + file.content.split('\n').length, 0);
 
   useEffect(() => {
     const checkPwa = () => {
@@ -76,6 +80,8 @@ export default function StatusBar({
             <span>{isPreinstalling ? 'Pre-installing...' : preinstallProgress === 100 ? 'Offline Ready' : 'Go Offline Ready'}</span>
           </div>
         )}
+
+        <PomodoroTimer />
         
         {vibeProgress?.active && (
           <div className="flex items-center gap-2 px-3 bg-blue-600/50 h-full animate-pulse">
@@ -86,6 +92,10 @@ export default function StatusBar({
       </div>
       
       <div className="flex items-center h-full">
+        <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors text-nexus-text-muted" title="Total Lines of Code">
+          <FileText size={12} />
+          <span>{totalLines.toLocaleString()} LOC</span>
+        </div>
         {activeFile && (
           <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer uppercase">
             {activeFile.language}

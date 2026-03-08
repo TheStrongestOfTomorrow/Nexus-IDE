@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -26,6 +26,11 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'debug', icon: Play, label: 'Run and Debug' },
     { id: 'extensions', icon: Puzzle, label: 'Extensions' },
     { id: 'collab', icon: Users, label: 'Collaboration' },
+    { id: 'deps', icon: Package, label: 'Dependencies' },
+    { id: 'todos', icon: CheckSquare, label: 'Todo Scanner' },
+    { id: 'snippets', icon: Scissors, label: 'Snippets' },
+    { id: 'insights', icon: BarChart, label: 'Project Insights' },
+    { id: 'themes', icon: Palette, label: 'Theme Studio' },
     { id: 'minecraft', icon: Gamepad2, label: 'Minecraft Bridge' },
   ];
 
