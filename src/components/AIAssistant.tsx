@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
 import { Send, Bot, MessageSquare, Sparkles, Settings, Trash2, Terminal, Wand2, Zap, Maximize2, Minimize2, X, Play, Terminal as TerminalIcon, Globe } from 'lucide-react';
@@ -7,7 +7,6 @@ import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
 import { terminalService } from '../services/terminalService';
 import { socketService } from '../services/socketService';
-import { Type } from '@google/genai';
 
 interface AIAssistantProps {
   files: FileNode[];
@@ -148,40 +147,43 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
 
       const fetchAIResponse = async (provider: string, model: string, key: string): Promise<{ text: string, groundingMetadata?: any }> => {
         if (provider === 'gemini') {
-          const ai = new GoogleGenAI({ apiKey: key });
-          const config: any = { 
-            systemInstruction, 
-            temperature: 0.2,
-            tools: [{
-              functionDeclarations: [{
-                name: 'mc_exec',
-                description: 'Execute a command in Minecraft Bedrock Edition via the WebSocket bridge.',
-                parameters: {
-                  type: Type.OBJECT,
-                  properties: {
-                    command: {
-                      type: Type.STRING,
-                      description: 'The Minecraft command to execute (e.g., "/fill 0 0 0 10 10 10 glass").'
-                    }
-                  },
-                  required: ['command']
-                }
-              }]
-            }]
-          };
-
-          if (isSearchEnabled) {
-            config.tools.push({ googleSearch: {} });
-          }
-
-          const response = await ai.models.generateContent({
+          const genAI = new GoogleGenerativeAI(key);
+          const aiModel = genAI.getGenerativeModel({ 
             model,
-            contents: prompt,
-            config
+            systemInstruction
           });
 
-          if (response.functionCalls) {
-            for (const call of response.functionCalls) {
+          const tools: any[] = [{
+            functionDeclarations: [{
+              name: 'mc_exec',
+              description: 'Execute a command in Minecraft Bedrock Edition via the WebSocket bridge.',
+              parameters: {
+                type: 'OBJECT',
+                properties: {
+                  command: {
+                    type: 'STRING',
+                    description: 'The Minecraft command to execute (e.g., "/fill 0 0 0 10 10 10 glass").'
+                  }
+                },
+                required: ['command']
+              }
+            }]
+          }];
+
+          if (isSearchEnabled) {
+            tools.push({ googleSearch: {} });
+          }
+
+          const result = await aiModel.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            tools
+          });
+
+          const response = result.response;
+          const functionCalls = response.functionCalls();
+
+          if (functionCalls && functionCalls.length > 0) {
+            for (const call of functionCalls) {
               if (call.name === 'mc_exec' && sessionId) {
                 const cmd = (call.args as any).command;
                 socketService.sendMinecraftCommand(sessionId, cmd);
@@ -192,7 +194,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
           }
 
           return {
-            text: response.text || '',
+            text: response.text() || '',
             groundingMetadata: response.candidates?.[0]?.groundingMetadata
           };
         } else if (provider === 'openai') {

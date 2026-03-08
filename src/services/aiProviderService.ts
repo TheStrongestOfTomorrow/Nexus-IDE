@@ -21,6 +21,15 @@ export interface AIResponse {
 
 class AIProviderService {
   private async callProxy(provider: string, config: AIProviderConfig, body: any): Promise<any> {
+    const isStatic = window.location.host.includes('github.io') || 
+                    window.location.host.includes('vercel.app') || 
+                    window.location.host.includes('netlify.app');
+
+    // If static mode, try direct API calls
+    if (isStatic) {
+      return this.callDirect(provider, config, body);
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${config.apiKey}`
@@ -39,6 +48,52 @@ class AIProviderService {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || `${provider} API error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  private async callDirect(provider: string, config: AIProviderConfig, body: any): Promise<any> {
+    let url = '';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    switch (provider) {
+      case 'openai':
+        url = 'https://api.openai.com/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${config.apiKey}`;
+        break;
+      case 'anthropic':
+        url = 'https://api.anthropic.com/v1/messages';
+        headers['x-api-key'] = config.apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        headers['anthropic-dangerous-direct-browser-access'] = 'true';
+        break;
+      case 'groq':
+        url = 'https://api.groq.com/openai/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${config.apiKey}`;
+        break;
+      case 'deepseek':
+        url = 'https://api.deepseek.com/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${config.apiKey}`;
+        break;
+      case 'ollama':
+        url = `${config.baseURL || 'http://localhost:11434'}/api/chat`;
+        break;
+      default:
+        throw new Error(`Direct calls not supported for ${provider}`);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error?.message || error.error || `${provider} API error: ${response.statusText}`);
     }
 
     return response.json();

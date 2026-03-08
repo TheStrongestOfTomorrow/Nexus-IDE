@@ -15,9 +15,17 @@ class SocketService {
   }
 
   connect() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    this.socket = new WebSocket(`${protocol}//${host}`);
+    try {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      
+      // Don't try to connect if we're on github pages or similar static hosts without a backend
+      if (host.includes('github.io') || host.includes('vercel.app') || host.includes('netlify.app')) {
+        console.warn('Nexus IDE is running in static mode. Some backend features (Terminal, Collab) will be disabled.');
+        return;
+      }
+
+      this.socket = new WebSocket(`${protocol}//${host}`);
     if (this.binaryMode) this.socket.binaryType = 'arraybuffer';
 
     this.socket.onopen = () => {

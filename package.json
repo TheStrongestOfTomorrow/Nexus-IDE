@@ -7,6 +7,7 @@
     "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
+    "deploy": "npm run build && npx gh-pages -d dist",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },
@@ -15,7 +16,7 @@
     "@capacitor/android": "^8.1.0",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
-    "@google/genai": "^1.29.0",
+    "@google/generative-ai": "^0.21.0",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.1.14",
     "@types/cookie-parser": "^1.4.10",

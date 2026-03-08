@@ -35,7 +35,39 @@ import { cn } from './lib/utils';
 import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain, AlertCircle, X } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Simple Error Boundary Component
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("Nexus App Crash:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen w-screen bg-slate-900 text-white flex flex-col items-center justify-center p-8 text-center">
+          <Zap size={48} className="text-red-500 mb-4 animate-pulse" />
+          <h1 className="text-2xl font-bold mb-2">Nexus IDE has encountered an error</h1>
+          <p className="text-slate-400 max-w-md mb-6">{this.state.error?.message || "Something went wrong during rendering."}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-nexus-accent rounded-lg font-bold hover:opacity-90 transition-all"
+          >
+            Reload IDE
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export default function App() {
   const isPopout = window.location.pathname === '/preview-popout';
@@ -143,14 +175,14 @@ export default function App() {
   const handleAnalyzeArchitecture = async () => {
     const apiKey = ide.apiKeys['gemini'];
     if (!apiKey) return alert('Set Gemini API key in settings.');
-    const genAI = new GoogleGenAI({ apiKey });
-    const model = genAI.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Analyze: ${files.map(f => f.name).join(', ')}. Generate Mermaid graph TD.`,
-    });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    
     try {
-      const res = await model;
-      const match = res.text?.match(/```mermaid\s*([\s\S]*?)\s*```/);
+      const result = await model.generateContent(`Analyze the following project structure and generate a Mermaid class diagram or flowchart (TD) representing the architecture. Return only the mermaid code block.\n\nFiles: ${files.map(f => f.name).join(', ')}`);
+      const response = result.response;
+      const text = response.text();
+      const match = text.match(/```mermaid\s*([\s\S]*?)\s*```/);
       if (match) ide.setMermaidChart(match[1]);
     } catch (e) { console.error(e); }
   };
@@ -169,12 +201,13 @@ export default function App() {
   const activeFile = files.find(f => f.id === ide.activeFileId) || null;
 
   return (
-    <div className="flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none">
-      <VoiceCommand 
-        isListening={isVoiceListening} 
-        onToggle={() => setIsVoiceListening(!isVoiceListening)} 
-        onCommand={handleVoiceCommand}
-      />
+    <ErrorBoundary>
+      <div className="flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none">
+        <VoiceCommand 
+          isListening={isVoiceListening} 
+          onToggle={() => setIsVoiceListening(!isVoiceListening)} 
+          onCommand={handleVoiceCommand}
+        />
 
       <TitleBar 
         activeFile={activeFile} 
@@ -483,5 +516,6 @@ export default function App() {
         }}
       />
     </div>
+    </ErrorBoundary>
   );
 }
