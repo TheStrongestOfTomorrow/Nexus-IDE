@@ -25,6 +25,7 @@ import { nexusChannel } from './hooks/useWindow';
 import { socketService } from './services/socketService';
 import { workspaceService } from './services/workspaceService';
 import ErrorHandlingService from './services/errorHandlingService';
+import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
 import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain, AlertCircle, X } from 'lucide-react';
 import JSZip from 'jszip';
@@ -40,11 +41,42 @@ export default function App() {
   const aiAssistantRef = useRef<any>(null);
   const [pendingAiActions, setPendingAiActions] = useState<any[] | null>(null);
   const [errors, setErrors] = useState<any[]>([]);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   useEffect(() => {
     const unsubscribe = ErrorHandlingService.subscribe(setErrors);
     return () => unsubscribe();
   }, []);
+
+  const handleVoiceCommand = (command: string) => {
+    console.log("Voice Command:", command);
+    
+    if (command.includes("run code") || command.includes("run application")) {
+      // Trigger run via socket
+      const activeFile = files.find(f => f.id === ide.activeFileId);
+      if (activeFile) {
+        socketService.send({
+          type: 'run-file',
+          filename: activeFile.name,
+          content: activeFile.content,
+          language: activeFile.language
+        });
+        ide.setShowTerminal(true);
+      }
+    } else if (command.includes("open settings")) {
+      ide.setShowSettings(true);
+    } else if (command.includes("close settings")) {
+      ide.setShowSettings(false);
+    } else if (command.includes("toggle terminal")) {
+      ide.setShowTerminal(!ide.showTerminal);
+    } else if (command.includes("toggle sidebar")) {
+      ide.setShowSidebar(!ide.showSidebar);
+    } else if (command.includes("clear workspace")) {
+      handleClearWorkspace();
+    } else if (command.includes("analyze")) {
+      handleAnalyzeArchitecture();
+    }
+  };
 
   useEffect(() => {
     if (isFsLoaded && !ide.activeFileId && files.length > 0) {
@@ -133,10 +165,17 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none">
+      <VoiceCommand 
+        isListening={isVoiceListening} 
+        onToggle={() => setIsVoiceListening(!isVoiceListening)} 
+        onCommand={handleVoiceCommand}
+      />
+
       <TitleBar 
         activeFile={activeFile} 
         onSearch={() => ide.setIsCommandPaletteOpen(true)} 
         onSettings={() => ide.setShowSettings(true)}
+        onToggleVoice={() => setIsVoiceListening(!isVoiceListening)}
       />
       
       {pwa.showUpdatePrompt && (

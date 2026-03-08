@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Zap, Command, Globe, Settings, User } from 'lucide-react';
+import { Search, ChevronRight, Zap, Command, Globe, Settings, User, Mic } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { FileNode } from '../hooks/useFileSystem';
 
@@ -7,9 +7,10 @@ interface TitleBarProps {
   activeFile: FileNode | null;
   onSearch: (query: string) => void;
   onSettings?: () => void;
+  onToggleVoice?: () => void;
 }
 
-export default function TitleBar({ activeFile, onSearch, onSettings }: TitleBarProps) {
+export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoice }: TitleBarProps) {
   const [isWCOSupported, setIsWCOSupported] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -48,7 +49,7 @@ export default function TitleBar({ activeFile, onSearch, onSettings }: TitleBarP
         {/* App Icon & Name */}
         <div className="flex items-center gap-2 mr-4">
           <Zap size={14} className="text-nexus-accent" />
-          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 4.1</span>
+          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 4.3</span>
         </div>
 
         {/* Breadcrumbs */}
@@ -67,8 +68,8 @@ export default function TitleBar({ activeFile, onSearch, onSettings }: TitleBarP
         </div>
 
         {/* Global Search Bar */}
-        <div className="flex-1 max-w-md mx-4" style={{ appRegion: 'no-drag' } as any}>
-          <div className="relative group">
+        <div className="flex-1 max-w-md mx-4 flex items-center gap-2" style={{ appRegion: 'no-drag' } as any}>
+          <div className="relative group flex-1">
             <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-nexus-text-muted group-focus-within:text-nexus-accent transition-colors" />
             <input 
               type="text"
@@ -85,6 +86,16 @@ export default function TitleBar({ activeFile, onSearch, onSettings }: TitleBarP
               <span className="text-[9px]">P</span>
             </div>
           </div>
+          
+          {onToggleVoice && (
+            <button 
+              onClick={onToggleVoice}
+              className="p-1 hover:bg-[#333] rounded text-nexus-accent hover:text-white transition-colors"
+              title="Voice Control"
+            >
+              <Mic size={14} />
+            </button>
+          )}
         </div>
 
         {/* Right Side Actions */}
