@@ -19,13 +19,18 @@ class SocketService {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const host = window.location.host;
       
-      // Don't try to connect if we're on github pages or similar static hosts without a backend
-      if (host.includes('github.io') || host.includes('vercel.app') || host.includes('netlify.app')) {
-        console.warn('Nexus IDE is running in static mode. Some backend features (Terminal, Collab) will be disabled.');
-        return;
+      const isStatic = host.includes('github.io') || host.includes('vercel.app') || host.includes('netlify.app');
+      
+      // Fallback to Nexus Cloud signaling server if in static mode
+      const socketUrl = isStatic 
+        ? 'wss://nexus-cloud-signal.up.railway.app' 
+        : `${protocol}//${host}`;
+
+      if (isStatic) {
+        console.log('Nexus IDE is running in static mode. Connecting to Nexus Cloud for collaboration...');
       }
 
-      this.socket = new WebSocket(`${protocol}//${host}`);
+      this.socket = new WebSocket(socketUrl);
     if (this.binaryMode) this.socket.binaryType = 'arraybuffer';
 
     this.socket.onopen = () => {

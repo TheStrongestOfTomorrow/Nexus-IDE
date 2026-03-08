@@ -223,7 +223,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Zap size={18} className="text-yellow-300 fill-yellow-300" />
             <div>
-              <p className="text-sm font-bold">Nexus 4.1 Update Available</p>
+              <p className="text-sm font-bold">Nexus 4.3 Update Available</p>
               <p className="text-[10px] opacity-90">A new version is ready to install.</p>
             </div>
           </div>
@@ -444,7 +444,7 @@ export default function App() {
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                     <Zap size={64} className="opacity-10" />
-                    <p className="text-sm">Select a file to start coding in Nexus 4.0</p>
+                    <p className="text-sm">Select a file to start coding in Nexus 4.3</p>
                     <div className="flex gap-2">
                       <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
                       <span className="text-[10px]">Command Palette</span>
