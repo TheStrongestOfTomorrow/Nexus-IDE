@@ -70,13 +70,31 @@ docker-compose up -d
 
 ## 🔧 Local Development
 
-```bash
-# Install dependencies
-npm install
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+   cd Nexus-IDE
+   ```
 
-# Start development server (Vite + Express)
-npm run dev
-```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   Create a `.env` file in the root directory and add your GitHub OAuth credentials:
+   ```env
+   GITHUB_CLIENT_ID=your_client_id
+   GITHUB_CLIENT_SECRET=your_client_secret
+   APP_URL=http://localhost:3000
+   ```
+   *Note: You can create your own GitHub OAuth App in your [GitHub Developer Settings](https://github.com/settings/developers).*
+
+4. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   *Visit http://localhost:3000 to start coding.*
 
 ---
 
