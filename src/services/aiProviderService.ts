@@ -20,143 +20,66 @@ export interface AIResponse {
 }
 
 class AIProviderService {
+  private async callProxy(provider: string, config: AIProviderConfig, body: any): Promise<any> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${config.apiKey}`
+    };
+
+    if (provider === 'ollama' && config.baseURL) {
+      headers['x-ollama-url'] = config.baseURL;
+    }
+
+    const response = await fetch(`/api/ai/${provider}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || `${provider} API error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
   async callProvider(provider: string, config: AIProviderConfig, prompt: string): Promise<AIResponse> {
-    switch (provider) {
-      case 'mistral':
-        return this.callMistral(config, prompt);
-      case 'cohere':
-        return this.callCohere(config, prompt);
-      case 'perplexity':
-        return this.callPerplexity(config, prompt);
-      case 'together':
-        return this.callTogether(config, prompt);
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
-    }
-  }
-
-  private async callMistral(config: AIProviderConfig, prompt: string): Promise<AIResponse> {
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [
-          { role: 'system', content: config.systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.temperature || 0.2,
-        max_tokens: config.maxTokens || 2048,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Mistral API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return {
-      text: data.choices[0]?.message?.content || '',
-      usage: {
-        inputTokens: data.usage?.prompt_tokens || 0,
-        outputTokens: data.usage?.completion_tokens || 0,
-        totalTokens: data.usage?.total_tokens || 0,
-      },
+    const body = {
+      model: config.model,
+      messages: [
+        { role: 'system', content: config.systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      temperature: config.temperature || 0.2,
+      max_tokens: config.maxTokens || 2048,
     };
-  }
 
-  private async callCohere(config: AIProviderConfig, prompt: string): Promise<AIResponse> {
-    const response = await fetch('https://api.cohere.ai/v1/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
+    // Special handling for Anthropic structure
+    if (provider === 'anthropic') {
+      const anthropicBody = {
         model: config.model,
-        message: prompt,
-        preamble: config.systemPrompt,
-        temperature: config.temperature || 0.2,
+        messages: [{ role: 'user', content: prompt }],
+        system: config.systemPrompt,
         max_tokens: config.maxTokens || 2048,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cohere API error: ${response.statusText}`);
+        temperature: config.temperature || 0.2
+      };
+      const data = await this.callProxy(provider, config, anthropicBody);
+      return {
+        text: data.content[0]?.text || '',
+        usage: {
+          inputTokens: data.usage?.input_tokens || 0,
+          outputTokens: data.usage?.output_tokens || 0,
+          totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
+        },
+      };
     }
 
-    const data = await response.json();
+    const data = await this.callProxy(provider, config, body);
+    
+    // Unified response parsing for OpenAI-compatible providers (Mistral, Groq, Deepseek, Together)
     return {
-      text: data.text || '',
-      usage: {
-        inputTokens: 0,
-        outputTokens: 0,
-        totalTokens: 0,
-      },
-    };
-  }
-
-  private async callPerplexity(config: AIProviderConfig, prompt: string): Promise<AIResponse> {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [
-          { role: 'system', content: config.systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.temperature || 0.2,
-        max_tokens: config.maxTokens || 2048,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Perplexity API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return {
-      text: data.choices[0]?.message?.content || '',
-      usage: {
-        inputTokens: 0,
-        outputTokens: 0,
-        totalTokens: 0,
-      },
-    };
-  }
-
-  private async callTogether(config: AIProviderConfig, prompt: string): Promise<AIResponse> {
-    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [
-          { role: 'system', content: config.systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: config.temperature || 0.2,
-        max_tokens: config.maxTokens || 2048,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Together API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return {
-      text: data.choices[0]?.message?.content || '',
+      text: data.choices?.[0]?.message?.content || data.message?.content || '',
       usage: {
         inputTokens: data.usage?.prompt_tokens || 0,
         outputTokens: data.usage?.completion_tokens || 0,

@@ -24,8 +24,9 @@ import { usePWA } from './hooks/usePWA';
 import { nexusChannel } from './hooks/useWindow';
 import { socketService } from './services/socketService';
 import { workspaceService } from './services/workspaceService';
+import ErrorHandlingService from './services/errorHandlingService';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain, AlertCircle, X } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenAI } from '@google/genai';
@@ -38,6 +39,12 @@ export default function App() {
   
   const aiAssistantRef = useRef<any>(null);
   const [pendingAiActions, setPendingAiActions] = useState<any[] | null>(null);
+  const [errors, setErrors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = ErrorHandlingService.subscribe(setErrors);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (isFsLoaded && !ide.activeFileId && files.length > 0) {
@@ -271,6 +278,30 @@ export default function App() {
         )}
 
         <div className={cn("flex-1 flex flex-col overflow-hidden", ide.isTouchMode && "touch-mode")}>
+          {/* Error List Dashboard Overlay */}
+          {errors.length > 0 && (
+            <div className="absolute top-12 right-4 z-50 max-w-sm space-y-2 pointer-events-none">
+              {errors.slice(-3).map(err => (
+                <div key={err.id} className="p-3 bg-red-900/95 border border-red-500 rounded text-white shadow-2xl pointer-events-auto flex items-start gap-3 backdrop-blur-md animate-in slide-in-from-right-4">
+                  <AlertCircle className="flex-shrink-0 mt-0.5" size={16} />
+                  <div className="flex-1 overflow-hidden">
+                    <div className="text-xs font-bold uppercase tracking-wider">{err.title}</div>
+                    <div className="text-[11px] opacity-90 line-clamp-2">{err.message}</div>
+                    {err.suggestion && (
+                      <div className="text-[10px] mt-1 text-red-200 italic font-medium">{err.suggestion}</div>
+                    )}
+                  </div>
+                  <button onClick={() => ErrorHandlingService.clearError(err.id)} className="opacity-60 hover:opacity-100">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              {errors.length > 3 && (
+                <div className="text-[10px] text-right text-gray-400 font-mono pr-2">+ {errors.length - 3} more errors</div>
+              )}
+            </div>
+          )}
+
           <div className="h-9 bg-nexus-sidebar flex items-center overflow-x-auto no-scrollbar border-b border-nexus-border">
             {ide.openFileIds.map(id => {
               const file = files.find(f => f.id === id);

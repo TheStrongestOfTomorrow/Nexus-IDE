@@ -195,6 +195,53 @@ async function startServer() {
     }
   });
 
+  // AI Provider Proxies
+  app.post("/api/ai/:provider", async (req, res) => {
+    const { provider } = req.params;
+    const apiKey = req.headers.authorization?.split(" ")[1];
+    
+    if (!apiKey && provider !== 'ollama') {
+      return res.status(401).json({ error: "Missing API Key" });
+    }
+
+    try {
+      let response;
+      if (provider === 'openai') {
+        response = await axios.post("https://api.openai.com/v1/chat/completions", req.body, {
+          headers: { Authorization: `Bearer ${apiKey}` }
+        });
+      } else if (provider === 'anthropic') {
+        response = await axios.post("https://api.anthropic.com/v1/messages", req.body, {
+          headers: { 
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+          }
+        });
+      } else if (provider === 'groq') {
+        response = await axios.post("https://api.groq.com/openai/v1/chat/completions", req.body, {
+          headers: { Authorization: `Bearer ${apiKey}` }
+        });
+      } else if (provider === 'deepseek') {
+        response = await axios.post("https://api.deepseek.com/v1/chat/completions", req.body, {
+          headers: { Authorization: `Bearer ${apiKey}` }
+        });
+      } else if (provider === 'ollama') {
+        const ollamaUrl = req.headers['x-ollama-url'] || 'http://localhost:11434';
+        response = await axios.post(`${ollamaUrl}/api/chat`, req.body);
+      }
+
+      if (response) {
+        res.json(response.data);
+      } else {
+        res.status(400).json({ error: "Unsupported provider" });
+      }
+    } catch (error: any) {
+      console.error(`AI Proxy Error (${provider}):`, error.response?.data || error.message);
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "AI Request failed" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
