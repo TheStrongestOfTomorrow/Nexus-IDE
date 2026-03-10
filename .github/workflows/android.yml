@@ -35,22 +35,18 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Initialize and Sync Capacitor
+      - name: Sync Capacitor
         run: |
-          npx cap add android || echo "Android platform already exists"
-          npx cap copy android
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
 
       - name: Build Android APK
         run: |
-          if [ -d "android" ]; then
-            cd android
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            echo "Android directory not found!"
-            exit 1
-          fi
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

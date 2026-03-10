@@ -43,18 +43,14 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Generate Placeholder Icons (if missing)
+      - name: Setup Valid Icons
         run: |
           mkdir -p src-tauri/icons
-          # Create a dummy 32x32 png if it doesn't exist
-          if [ ! -f src-tauri/icons/32x32.png ]; then
-            echo "Creating placeholder icons..."
-            touch src-tauri/icons/32x32.png
-            touch src-tauri/icons/128x128.png
-            touch src-tauri/icons/128x128@2x.png
-            touch src-tauri/icons/icon.icns
-            touch src-tauri/icons/icon.ico
-          fi
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/templates/app/icons/32x32.png -o src-tauri/icons/32x32.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/templates/app/icons/128x128.png -o src-tauri/icons/128x128.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/templates/app/icons/128x128@2x.png -o src-tauri/icons/128x128@2x.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/templates/app/icons/icon.icns -o src-tauri/icons/icon.icns
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/templates/app/icons/icon.ico -o src-tauri/icons/icon.ico
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
@@ -66,4 +62,3 @@ jobs:
           releaseBody: "Automated build of Nexus IDE v4.3"
           releaseDraft: true
           prerelease: false
-          distDir: ../dist
