@@ -7,17 +7,29 @@
     <link rel="manifest" href="manifest.json" />
     <title>Nexus IDE</title>
     <script>
-      // Cache busting for new versions
-      const CURRENT_VERSION = '4.3.6';
-      if (localStorage.getItem('nexus_version') !== CURRENT_VERSION) {
-        localStorage.setItem('nexus_version', CURRENT_VERSION);
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let registration of registrations) { registrations.unregister(); }
+      // NUCLEAR CACHE BUST v4.3.7
+      (function() {
+        const VERSION = '4.3.7';
+        if (localStorage.getItem('nexus_version_hard') !== VERSION) {
+          localStorage.clear();
+          localStorage.setItem('nexus_version_hard', VERSION);
+          
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for (let registration of registrations) { registration.unregister(); }
+            });
+          }
+          
+          caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
           });
+
+          // Redirect to a URL with a cache-busting parameter
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', VERSION);
+          window.location.replace(url.href);
         }
-        window.location.reload(true);
-      }
+      })();
     </script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <script>

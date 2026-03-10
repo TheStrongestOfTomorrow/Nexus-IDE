@@ -8,6 +8,15 @@ export default defineConfig(({mode}) => {
   return {
     base: mode === 'production' ? '/Nexus-IDE/' : '/',
     plugins: [react(), tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: `assets/[name]-[hash]-v437.js`,
+          chunkFileNames: `assets/[name]-[hash]-v437.js`,
+          assetFileNames: `assets/[name]-[hash]-v437.[ext]`
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
