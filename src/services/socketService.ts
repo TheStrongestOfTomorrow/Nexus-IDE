@@ -31,44 +31,47 @@ class SocketService {
       }
 
       this.socket = new WebSocket(socketUrl);
-    if (this.binaryMode) this.socket.binaryType = 'arraybuffer';
+      if (this.binaryMode) this.socket.binaryType = 'arraybuffer';
 
-    this.socket.onopen = () => {
-      console.log('Connected to Nexus WebSocket');
-      this.reconnectAttempts = 0;
-    };
+      this.socket.onopen = () => {
+        console.log('Connected to Nexus WebSocket');
+        this.reconnectAttempts = 0;
+      };
 
-    this.socket.onmessage = (event) => {
-      if (event.data instanceof ArrayBuffer) {
-        // Handle binary message (e.g. Minecraft event)
-        const view = new DataView(event.data);
-        const type = view.getUint8(0);
-        if (type === 0x02) { // Minecraft Event
-          const decoder = new TextDecoder();
-          const jsonStr = decoder.decode(new Uint8Array(event.data, 1));
-          const data = JSON.parse(jsonStr);
-          this.handlers.forEach(handler => handler({ type: 'minecraft:event', data }));
+      this.socket.onmessage = (event) => {
+        if (event.data instanceof ArrayBuffer) {
+          // Handle binary message (e.g. Minecraft event)
+          const view = new DataView(event.data);
+          const type = view.getUint8(0);
+          if (type === 0x02) { // Minecraft Event
+            const decoder = new TextDecoder();
+            const jsonStr = decoder.decode(new Uint8Array(event.data, 1));
+            const data = JSON.parse(jsonStr);
+            this.handlers.forEach(handler => handler({ type: 'minecraft:event', data }));
+          }
+          return;
         }
-        return;
-      }
 
-      try {
-        const data = JSON.parse(event.data);
-        this.handlers.forEach(handler => handler(data));
-      } catch (err) {
-        console.error('Socket message parse error', err);
-      }
-    };
+        try {
+          const data = JSON.parse(event.data);
+          this.handlers.forEach(handler => handler(data));
+        } catch (err) {
+          console.error('Socket message parse error', err);
+        }
+      };
 
-    this.socket.onclose = () => {
-      console.log('Disconnected from Nexus WebSocket');
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        setTimeout(() => {
-          this.reconnectAttempts++;
-          this.connect();
-        }, 2000);
-      }
-    };
+      this.socket.onclose = () => {
+        console.log('Disconnected from Nexus WebSocket');
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          setTimeout(() => {
+            this.reconnectAttempts++;
+            this.connect();
+          }, 2000);
+        }
+      };
+    } catch (err) {
+      console.error('Socket connection error', err);
+    }
   }
 
   send(data: any) {
