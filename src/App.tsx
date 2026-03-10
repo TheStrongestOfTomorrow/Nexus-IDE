@@ -80,10 +80,14 @@ export default function App() {
   const [errors, setErrors] = useState<any[]>([]);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
+  const [githubClientId, setGithubClientId] = useState(() => localStorage.getItem('nexus_github_client_id') || '');
+  const [githubClientSecret, setGithubClientSecret] = useState(() => localStorage.getItem('nexus_github_client_secret') || '');
 
   useEffect(() => {
     localStorage.setItem('nexus_ollama_url', ollamaUrl);
-  }, [ollamaUrl]);
+    localStorage.setItem('nexus_github_client_id', githubClientId);
+    localStorage.setItem('nexus_github_client_secret', githubClientSecret);
+  }, [ollamaUrl, githubClientId, githubClientSecret]);
 
   useEffect(() => {
     const unsubscribe = ErrorHandlingService.subscribe(setErrors);
@@ -514,7 +518,7 @@ export default function App() {
         isTouchMode={ide.isTouchMode}
         onToggleTouchMode={ide.toggleTouchMode}
         onClearWorkspace={handleClearWorkspace}
-        onExport={handleExportZip}
+        onExport={exportAsZip}
         selectedAIProvider={ide.selectedAIProvider}
         onAIProviderChange={ide.setSelectedAIProvider}
         selectedModels={ide.selectedModels}
@@ -523,6 +527,10 @@ export default function App() {
         }}
         githubToken={ide.githubToken}
         onGithubTokenChange={ide.setGithubToken}
+        githubClientId={githubClientId}
+        onGithubClientIdChange={setGithubClientId}
+        githubClientSecret={githubClientSecret}
+        onGithubClientSecretChange={setGithubClientSecret}
         ollamaUrl={ollamaUrl}
         onOllamaUrlChange={setOllamaUrl}
       />

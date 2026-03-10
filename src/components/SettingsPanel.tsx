@@ -17,6 +17,10 @@ interface SettingsPanelProps {
   onModelChange: (provider: string, model: string) => void;
   githubToken?: string;
   onGithubTokenChange?: (token: string) => void;
+  githubClientId?: string;
+  onGithubClientIdChange?: (id: string) => void;
+  githubClientSecret?: string;
+  onGithubClientSecretChange?: (secret: string) => void;
   ollamaUrl?: string;
   onOllamaUrlChange?: (url: string) => void;
 }
@@ -36,6 +40,10 @@ export default function SettingsPanel({
   onModelChange,
   githubToken = '',
   onGithubTokenChange,
+  githubClientId = '',
+  onGithubClientIdChange,
+  githubClientSecret = '',
+  onGithubClientSecretChange,
   ollamaUrl = 'http://localhost:11434',
   onOllamaUrlChange
 }: SettingsPanelProps) {
@@ -212,7 +220,37 @@ export default function SettingsPanel({
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-nexus-border/50">
+              <div className="space-y-4 pt-4 border-t border-nexus-border/50">
+                <div className="flex items-center gap-2 text-white/70">
+                  <Globe size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">OAuth App Configuration</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Client ID</label>
+                    <input
+                      type="text"
+                      placeholder="Ov23li..."
+                      value={githubClientId}
+                      onChange={(e) => onGithubClientIdChange?.(e.target.value)}
+                      className="w-full bg-nexus-sidebar border border-nexus-border rounded-xl px-4 py-2 text-[10px] outline-none focus:border-nexus-accent text-white font-mono"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Client Secret</label>
+                    <input
+                      type="password"
+                      placeholder="6f7439..."
+                      value={githubClientSecret}
+                      onChange={(e) => onGithubClientSecretChange?.(e.target.value)}
+                      className="w-full bg-nexus-sidebar border border-nexus-border rounded-xl px-4 py-2 text-[10px] outline-none focus:border-nexus-accent text-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
                 <button
                   onClick={() => window.location.href = '/api/auth/github/url'}
                   className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#24292e] hover:bg-[#2f363d] text-white rounded-xl text-xs font-bold transition-all shadow-md group"
