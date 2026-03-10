@@ -37,11 +37,24 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Build frontend
         run: npm run build
+
+      - name: Generate Placeholder Icons (if missing)
+        run: |
+          mkdir -p src-tauri/icons
+          # Create a dummy 32x32 png if it doesn't exist
+          if [ ! -f src-tauri/icons/32x32.png ]; then
+            echo "Creating placeholder icons..."
+            touch src-tauri/icons/32x32.png
+            touch src-tauri/icons/128x128.png
+            touch src-tauri/icons/128x128@2x.png
+            touch src-tauri/icons/icon.icns
+            touch src-tauri/icons/icon.ico
+          fi
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
@@ -50,6 +63,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name || 'latest' }}
           releaseName: "Nexus IDE ${{ github.ref_name || 'Latest Build' }}"
-          releaseBody: "Automated build of Nexus IDE."
+          releaseBody: "Automated build of Nexus IDE v4.3"
           releaseDraft: true
           prerelease: false
+          distDir: ../dist
