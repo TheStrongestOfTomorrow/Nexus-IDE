@@ -14,7 +14,7 @@ loader.init().catch(error => {
 });
 
 import { FileNode } from '../hooks/useFileSystem';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Play, Bug, Sparkles, Wand2 } from 'lucide-react';
 import { socketService } from '../services/socketService';
 import FormattingService from '../services/formattingService';
@@ -56,14 +56,11 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
         });
 
         try {
-          const genAI = new GoogleGenAI({ apiKey });
-          const model = genAI.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: `You are an AI code autocomplete engine. Complete the following code snippet. Return ONLY the next 1-2 lines of code. Do not include markdown formatting.\n\nCode:\n${textBefore}`,
-            config: { temperature: 0.1, maxOutputTokens: 50 }
-          });
-          const response = await model;
-          const text = response.text || '';
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const aiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+          const result = await aiModel.generateContent(`You are an AI code autocomplete engine. Complete the following code snippet. Return ONLY the next 1-2 lines of code. Do not include markdown formatting.\n\nCode:\n${textBefore}`);
+          const response = result.response;
+          const text = response.text() || '';
 
           return {
             items: [{
