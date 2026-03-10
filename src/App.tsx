@@ -79,6 +79,23 @@ export default function App() {
   const [pendingAiActions, setPendingAiActions] = useState<any[] | null>(null);
   const [errors, setErrors] = useState<any[]>([]);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [vibeProgress, setVibeProgress] = useState<{ active: boolean, percent: number, message: string } | null>(null);
+
+  const exportAsZip = async () => {
+    const zip = new JSZip();
+    files.forEach(file => zip.file(file.name, file.content));
+    const content = await zip.generateAsync({ type: 'blob' });
+    saveAs(content, 'nexus-project-4.3.6.zip');
+  };
+
+  const handleClearWorkspace = () => {
+    if (confirm('Clear entire workspace?')) {
+      files.forEach(f => deleteFile(f.id));
+      ide.setOpenFileIds([]);
+      ide.setActiveFileId(null);
+    }
+  };
+
   const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
   const [githubClientId, setGithubClientId] = useState(() => localStorage.getItem('nexus_github_client_id') || '');
   const [githubClientSecret, setGithubClientSecret] = useState(() => localStorage.getItem('nexus_github_client_secret') || '');
@@ -165,21 +182,6 @@ export default function App() {
   if (isPopout) {
     return <PreviewPopout />;
   }
-
-  const exportAsZip = async () => {
-    const zip = new JSZip();
-    files.forEach(file => zip.file(file.name, file.content));
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-4.1.zip');
-  };
-
-  const handleClearWorkspace = () => {
-    if (confirm('Clear entire workspace?')) {
-      files.forEach(f => deleteFile(f.id));
-      ide.setOpenFileIds([]);
-      ide.setActiveFileId(null);
-    }
-  };
 
   const handleAnalyzeArchitecture = async () => {
     const apiKey = ide.apiKeys['gemini'];
@@ -508,6 +510,7 @@ export default function App() {
       <StatusBar 
         activeFile={activeFile} 
         files={files}
+        vibeProgress={vibeProgress || undefined}
       />
 
       <SettingsPanel
