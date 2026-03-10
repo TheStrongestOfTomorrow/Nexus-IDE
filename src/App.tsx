@@ -79,6 +79,11 @@ export default function App() {
   const [pendingAiActions, setPendingAiActions] = useState<any[] | null>(null);
   const [errors, setErrors] = useState<any[]>([]);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
+
+  useEffect(() => {
+    localStorage.setItem('nexus_ollama_url', ollamaUrl);
+  }, [ollamaUrl]);
 
   useEffect(() => {
     const unsubscribe = ErrorHandlingService.subscribe(setErrors);
@@ -505,16 +510,19 @@ export default function App() {
         apiKeys={ide.apiKeys}
         onApiKeyChange={ide.setApiKey}
         isTouchMode={ide.isTouchMode}
-        onToggleTouchMode={() => ide.setIsTouchMode(!ide.isTouchMode)}
+        onToggleTouchMode={ide.toggleTouchMode}
         onClearWorkspace={handleClearWorkspace}
-        onExport={exportAsZip}
+        onExport={handleExportZip}
         selectedAIProvider={ide.selectedAIProvider}
         onAIProviderChange={ide.setSelectedAIProvider}
         selectedModels={ide.selectedModels}
         onModelChange={(provider, model) => {
           ide.setSelectedModels(prev => ({ ...prev, [provider]: model }));
         }}
+        ollamaUrl={ollamaUrl}
+        onOllamaUrlChange={setOllamaUrl}
       />
+
     </div>
     </ErrorBoundary>
   );

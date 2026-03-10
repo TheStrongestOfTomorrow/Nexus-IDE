@@ -59,6 +59,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name || 'latest' }}
           releaseName: "Nexus IDE ${{ github.ref_name || 'Latest Build' }}"
-          releaseBody: "Automated build of Nexus IDE v4.3"
+          releaseBody: "Automated build of Nexus IDE v4.3.5"
           releaseDraft: true
           prerelease: false
+          args: --config src-tauri/tauri.conf.json
