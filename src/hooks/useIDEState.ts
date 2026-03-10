@@ -40,6 +40,8 @@ export function useIDEState(files: any[]) {
     return saved ? JSON.parse(saved) : { gemini: '', openai: '', anthropic: '' };
   });
 
+  const [githubToken, setGithubToken] = useState(() => localStorage.getItem('nexus_github_token') || '');
+
   const [selectedAIProvider, setSelectedAIProvider] = useState(() => localStorage.getItem('nexus_selected_ai') || 'gemini');
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_selected_models');
@@ -68,6 +70,10 @@ export function useIDEState(files: any[]) {
   useEffect(() => {
     localStorage.setItem('nexus_selected_models', JSON.stringify(selectedModels));
   }, [selectedModels]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_github_token', githubToken);
+  }, [githubToken]);
 
   const handleSelectFile = useCallback((id: string) => {
     setActiveFileId(id);
@@ -111,6 +117,7 @@ export function useIDEState(files: any[]) {
     isZenMode, toggleZenMode,
     apiKeys, setApiKeys,
     setApiKey,
+    githubToken, setGithubToken,
     selectedAIProvider, setSelectedAIProvider,
     selectedModels, setSelectedModels,
     handleSelectFile,

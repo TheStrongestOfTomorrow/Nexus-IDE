@@ -322,6 +322,7 @@ export default function App() {
                   apiKeys={ide.apiKeys}
                   selectedProvider={ide.selectedAIProvider}
                   selectedModels={ide.selectedModels}
+                  githubToken={ide.githubToken}
                   onPendingActions={setPendingAiActions}
                   onToggleMaximize={() => ide.setIsAiMaximized(!ide.isAiMaximized)}
                   isMaximized={false}
@@ -490,6 +491,7 @@ export default function App() {
               apiKeys={ide.apiKeys}
               selectedProvider={ide.selectedAIProvider}
               selectedModels={ide.selectedModels}
+              githubToken={ide.githubToken}
               onPendingActions={setPendingAiActions}
               onToggleMaximize={() => ide.setIsAiMaximized(!ide.isAiMaximized)}
               isMaximized={ide.isAiMaximized}
@@ -519,6 +521,8 @@ export default function App() {
         onModelChange={(provider, model) => {
           ide.setSelectedModels(prev => ({ ...prev, [provider]: model }));
         }}
+        githubToken={ide.githubToken}
+        onGithubTokenChange={ide.setGithubToken}
         ollamaUrl={ollamaUrl}
         onOllamaUrlChange={setOllamaUrl}
       />

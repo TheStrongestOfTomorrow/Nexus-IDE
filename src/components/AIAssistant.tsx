@@ -17,6 +17,7 @@ interface AIAssistantProps {
   apiKeys: Record<string, string>;
   selectedProvider: string;
   selectedModels: Record<string, string>;
+  githubToken?: string;
   ollamaUrl?: string;
   isMaximized?: boolean;
   onToggleMaximize?: () => void;
@@ -43,6 +44,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
   apiKeys,
   selectedProvider,
   selectedModels,
+  githubToken = '',
   ollamaUrl = 'http://localhost:11434',
   isMaximized = false,
   onToggleMaximize,
@@ -137,12 +139,14 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
       const prompt = `Current Files:\n${contextFiles}\n\nRecent Terminal Output:\n${terminalOutput}\n\nActive File: ${activeFile?.name || 'None'}\n\nUser Request: ${userMessage}`;
       
       let systemInstruction = '';
+      const githubInfo = githubToken ? `\n\nGitHub Integration: You have access to GitHub via the user's PAT/OAuth token. You can interact with repositories if needed.` : '';
+      
       if (mode === 'chat') {
-        systemInstruction = 'You are a helpful coding assistant in an IDE. You can see the user\'s files and terminal output. If the terminal shows an error, suggest a fix. If the fix involves editing the active file, return a JSON block with the patch: {"patch": {"fileId": "...", "content": "..."}}. If the user asks for a Minecraft build, use the mc_exec tool. You also have "Hands": you can create folders using [CREATE_FOLDER: "path"] and write files using [WRITE_FILE: "path", "content"]. You can perform multi-file actions at once.';
+        systemInstruction = 'You are a helpful coding assistant in an IDE. You can see the user\'s files and terminal output. If the terminal shows an error, suggest a fix. If the fix involves editing the active file, return a JSON block with the patch: {"patch": {"fileId": "...", "content": "..."}}. If the user asks for a Minecraft build, use the mc_exec tool. You also have "Hands": you can create folders using [CREATE_FOLDER: "path"] and write files using [WRITE_FILE: "path", "content"]. You can perform multi-file actions at once.' + githubInfo;
       } else if (mode === 'vibe') {
-        systemInstruction = 'You are a Vibe Coder. The user gives you a vibe or high-level idea, and you generate the complete code for a project. You can use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"] to build the project structure. You can also return a JSON array of files: [{"name": "index.html", "content": "..."}]';
+        systemInstruction = 'You are a Vibe Coder. The user gives you a vibe or high-level idea, and you generate the complete code for a project. You can use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"] to build the project structure. You can also return a JSON array of files: [{"name": "index.html", "content": "..."}]' + githubInfo;
       } else if (mode === 'agent') {
-        systemInstruction = 'You are an autonomous coding agent. You can write code, fix bugs, and create files. You have "Hands": use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"] for multi-file operations. You can also return a JSON array of files: [{"name": "script.js", "content": "..."}]';
+        systemInstruction = 'You are an autonomous coding agent. You can write code, fix bugs, and create files. You have "Hands": use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"] for multi-file operations. You can also return a JSON array of files: [{"name": "script.js", "content": "..."}]' + githubInfo;
       }
 
       const fetchAIResponse = async (provider: string, model: string, key: string): Promise<{ text: string, groundingMetadata?: any }> => {

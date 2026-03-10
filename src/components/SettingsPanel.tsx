@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Cpu as GroqIcon, Brain, Sparkles } from 'lucide-react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Cpu as GroqIcon, Brain, Sparkles, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SettingsPanelProps {
@@ -15,6 +15,8 @@ interface SettingsPanelProps {
   onAIProviderChange: (provider: string) => void;
   selectedModels: Record<string, string>;
   onModelChange: (provider: string, model: string) => void;
+  githubToken?: string;
+  onGithubTokenChange?: (token: string) => void;
   ollamaUrl?: string;
   onOllamaUrlChange?: (url: string) => void;
 }
@@ -32,6 +34,8 @@ export default function SettingsPanel({
   onAIProviderChange,
   selectedModels,
   onModelChange,
+  githubToken = '',
+  onGithubTokenChange,
   ollamaUrl = 'http://localhost:11434',
   onOllamaUrlChange
 }: SettingsPanelProps) {
@@ -175,6 +179,51 @@ export default function SettingsPanel({
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          {/* GitHub Integration */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Github size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">GitHub Integration</h3>
+            </div>
+            
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest flex items-center justify-between">
+                  <span>Personal Access Token (PAT)</span>
+                  <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-nexus-accent hover:underline lowercase font-normal tracking-normal flex items-center gap-1">
+                    Generate <ExternalLink size={8} />
+                  </a>
+                </label>
+                <div className="relative">
+                  <Shield size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-nexus-text-muted" />
+                  <input
+                    type="password"
+                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                    value={githubToken}
+                    onChange={(e) => onGithubTokenChange?.(e.target.value)}
+                    className="w-full bg-nexus-sidebar border border-nexus-border rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:border-nexus-accent text-white shadow-inner font-mono"
+                  />
+                </div>
+                <p className="text-[9px] text-nexus-text-muted italic leading-relaxed">
+                  Recommended for AI to read/write repositories. Use a token with <b>repo</b> and <b>gist</b> scopes.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-nexus-border/50">
+                <button
+                  onClick={() => window.location.href = '/api/auth/github/url'}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#24292e] hover:bg-[#2f363d] text-white rounded-xl text-xs font-bold transition-all shadow-md group"
+                >
+                  <Github size={16} className="group-hover:scale-110 transition-transform" />
+                  Connect with GitHub OAuth
+                </button>
+                <p className="text-[9px] text-center text-nexus-text-muted mt-2">
+                  Connect your GitHub account in seconds for easy repo management.
+                </p>
+              </div>
             </div>
           </section>
 
