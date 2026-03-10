@@ -70,7 +70,7 @@ class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasErr
 }
 
 export default function App() {
-  const isPopout = window.location.pathname === '/preview-popout';
+  const isPopout = window.location.pathname.endsWith('/preview-popout');
   const { files, addFile, updateFile, deleteFile, renameFile, openDirectory, isLoaded: isFsLoaded } = useFileSystem();
   const ide = useIDEState(files);
   const pwa = usePWA();

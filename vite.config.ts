@@ -6,7 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: process.env.NODE_ENV === 'production' ? '/Nexus-IDE/' : '/',
+    base: mode === 'production' ? '/Nexus-IDE/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

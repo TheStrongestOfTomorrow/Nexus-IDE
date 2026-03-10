@@ -8,9 +8,9 @@ if (workbox) {
 
   // Pre-cache core assets for offline use
   workbox.precaching.precacheAndRoute([
-    {url: '/', revision: '4.0.0'},
-    {url: '/index.html', revision: '4.0.0'},
-    {url: '/manifest.json', revision: '4.0.0'},
+    {url: './', revision: '4.0.0'},
+    {url: 'index.html', revision: '4.0.0'},
+    {url: 'manifest.json', revision: '4.0.0'},
   ]);
 
   // Cache-first for images and fonts
