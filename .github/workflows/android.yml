@@ -37,9 +37,7 @@ jobs:
 
       - name: Sync Capacitor
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          npx cap add android || echo "Android platform already exists"
           npx cap sync android
 
       - name: Build Android APK
