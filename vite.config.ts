@@ -6,7 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss()], build: { rollupOptions: { output: { entryFileNames: `assets/[name]-[hash]-vS.js`, chunkFileNames: `assets/[name]-[hash]-vS.js`, assetFileNames: `assets/[name]-[hash]-vS.[ext]` } } },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

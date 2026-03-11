@@ -2,7 +2,7 @@
   "name": "Nexus IDE",
   "short_name": "Nexus",
   "description": "The most powerful web-based development environment.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
   "background_color": "#1e1e1e",

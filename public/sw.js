@@ -1,7 +1,7 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 importScripts('https://cdn.jsdelivr.net/npm/idb@8/build/umd.js');
 
-const CACHE_NAME = 'nexus-ide-v4.0';
+const CACHE_NAME = 'nexus-ide-v4.3.7-stable';
 
 if (workbox) {
   console.log('Nexus 4.0 Service Worker Active');
