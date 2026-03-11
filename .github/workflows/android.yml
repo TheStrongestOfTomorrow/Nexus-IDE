@@ -2,10 +2,10 @@ name: Android Build
 on:
   push:
     branches:
-      - main
+      - stable
   pull_request:
     branches:
-      - main
+      - stable
 
 jobs:
   build:
@@ -37,7 +37,9 @@ jobs:
 
       - name: Sync Capacitor
         run: |
-          npx cap add android || echo "Android platform already exists"
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
 
       - name: Build Android APK
