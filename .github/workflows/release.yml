@@ -37,11 +37,20 @@ jobs:
           node-version: 22
           cache: 'npm'
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Build frontend
         run: npm run build
+
+      - name: Setup Valid Icons (v1 Stable)
+        run: |
+          mkdir -p src-tauri/icons
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/32x32.png -o src-tauri/icons/32x32.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/128x128.png -o src-tauri/icons/128x128.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/128x128@2x.png -o src-tauri/icons/128x128@2x.png
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/icon.icns -o src-tauri/icons/icon.icns
+          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/icon.ico -o src-tauri/icons/icon.ico
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
@@ -50,6 +59,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name || 'latest' }}
           releaseName: "Nexus IDE ${{ github.ref_name || 'Latest Build' }}"
-          releaseBody: "Automated build of Nexus IDE."
+          releaseBody: "Automated build of Nexus IDE v4.3.5"
           releaseDraft: true
           prerelease: false
+          args: --config src-tauri/tauri.conf.json

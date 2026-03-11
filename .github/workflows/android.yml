@@ -35,9 +35,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Initialize Capacitor Android
+      - name: Sync Capacitor
         run: |
-          npx cap add android || true
+          npx cap add android || echo "Android platform already exists"
           npx cap sync android
 
       - name: Build Android APK
