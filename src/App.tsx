@@ -35,7 +35,7 @@ import { cn } from './lib/utils';
 import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain, AlertCircle, X } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export default function App() {
   const isPopout = window.location.pathname === '/preview-popout';
@@ -143,14 +143,14 @@ export default function App() {
   const handleAnalyzeArchitecture = async () => {
     const apiKey = ide.apiKeys['gemini'];
     if (!apiKey) return alert('Set Gemini API key in settings.');
-    const genAI = new GoogleGenAI({ apiKey });
-    const model = genAI.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Analyze: ${files.map(f => f.name).join(', ')}. Generate Mermaid graph TD.`,
-    });
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    
     try {
-      const res = await model;
-      const match = res.text?.match(/```mermaid\s*([\s\S]*?)\s*```/);
+      const result = await model.generateContent(`Analyze the following project structure and generate a Mermaid class diagram or flowchart (TD) representing the architecture. Return only the mermaid code block.\n\nFiles: ${files.map(f => f.name).join(', ')}`);
+      const response = result.response;
+      const text = response.text();
+      const match = text.match(/```mermaid\s*([\s\S]*?)\s*```/);
       if (match) ide.setMermaidChart(match[1]);
     } catch (e) { console.error(e); }
   };
