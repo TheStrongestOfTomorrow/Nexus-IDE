@@ -298,7 +298,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-nexus-bg scroll-smooth no-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 bg-nexus-bg scroll-smooth no-scrollbar overflow-x-hidden">
         {messages.length === 0 && (
           <div className="text-center text-nexus-text-muted text-sm mt-10">
             <Bot size={32} className="mx-auto mb-2 opacity-50" />
@@ -306,15 +306,21 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
             <p className="text-xs opacity-75">Ready to assist.</p>
           </div>
         )}
-        <div className="flex flex-col gap-4 max-w-full">
+        <div className="flex flex-col gap-4 w-full">
           {messages.map((msg, i) => (
-            <div key={i} className={cn("flex w-full flex-col", msg.role === 'user' ? "items-end" : "items-start")}>
+            <div key={i} className={cn("flex w-full flex-col min-w-0", msg.role === 'user' ? "items-end" : "items-start")}>
               <div className={cn(
-                "max-w-full p-3 rounded-xl text-sm shadow-sm border overflow-hidden break-words",
-                msg.role === 'user' ? "bg-nexus-accent text-white border-nexus-accent" : "bg-nexus-sidebar text-nexus-text border-nexus-border font-mono"
+                "max-w-[95%] p-3 rounded-xl text-sm shadow-sm border overflow-hidden min-w-0 transition-all",
+                msg.role === 'user' 
+                  ? "bg-nexus-accent text-white border-nexus-accent rounded-tr-none" 
+                  : "bg-nexus-sidebar text-nexus-text border-nexus-border rounded-tl-none font-mono"
               )}>
-                <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] uppercase font-bold tracking-wider">{msg.role === 'user' ? 'You' : 'AI'}</div>
-                <div className="whitespace-pre-wrap leading-relaxed overflow-x-auto max-w-full">{msg.content}</div>
+                <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] uppercase font-bold tracking-wider">
+                  {msg.role === 'user' ? 'You' : 'AI'}
+                </div>
+                <div className="whitespace-pre-wrap leading-relaxed overflow-x-auto max-w-full break-words selection:bg-nexus-accent/30 custom-scrollbar pb-1">
+                  {msg.content}
+                </div>
               </div>
             </div>
           ))}

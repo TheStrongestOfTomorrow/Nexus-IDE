@@ -59,3 +59,16 @@
     @apply bg-nexus-sidebar text-nexus-text-muted hover:bg-nexus-bg/50;
   }
 }
+
+.break-words {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+

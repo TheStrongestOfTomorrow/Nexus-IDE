@@ -486,7 +486,10 @@ export default function App() {
 
         {/* AI Assistant Side Panel (Optional/Legacy) */}
         {ide.showAI && ide.activeActivity !== 'ai' && (
-          <div className={cn("border-l border-nexus-border bg-nexus-sidebar transition-all duration-300", ide.isAiMaximized ? "w-1/2" : "w-80")}>
+          <div className={cn(
+            "border-l border-nexus-border bg-nexus-sidebar transition-all duration-300 overflow-hidden flex flex-col min-w-0 flex-shrink-0", 
+            ide.isAiMaximized ? "w-1/2" : "w-80"
+          )}>
             <AIAssistant
               ref={aiAssistantRef}
               files={files}
