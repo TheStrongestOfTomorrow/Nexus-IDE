@@ -178,6 +178,9 @@ export default function SettingsPanel({
                               value={selectedModels[provider.id] === 'custom' ? '' : selectedModels[provider.id]}
                               onChange={(e) => onModelChange(provider.id, e.target.value)}
                               className="flex-1 bg-nexus-sidebar border border-nexus-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-nexus-accent text-white"
+                              onBlur={(e) => {
+                                if (!e.target.value) onModelChange(provider.id, providerModels[0]);
+                              }}
                               autoFocus
                             />
                           )}

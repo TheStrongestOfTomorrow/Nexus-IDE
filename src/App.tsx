@@ -301,9 +301,9 @@ export default function App() {
                 onSelectFolder={ide.setActiveFolder}
                 activeFolder={ide.activeFolder}
                 pendingAiActions={pendingAiActions}
-                onAcceptAiActions={() => {
-                  if (aiAssistantRef.current && pendingAiActions) {
-                    aiAssistantRef.current.applyChanges(pendingAiActions);
+                onAcceptAiActions={async (actions) => {
+                  if (aiAssistantRef.current) {
+                    await aiAssistantRef.current.applyChanges(actions);
                     setPendingAiActions(null);
                   }
                 }}
