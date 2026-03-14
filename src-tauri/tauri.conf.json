@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Nexus IDE",
-    "version": "4.3.5"
+    "version": "4.4.0"
   },
   "tauri": {
     "allowlist": {
@@ -16,7 +16,7 @@
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Copyright © 2024 Taz",
       "deb": {
         "depends": []
       },
@@ -29,7 +29,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.nexus.ide",
-      "longDescription": "",
+      "longDescription": "Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -37,7 +37,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "The AI-First, Browser-Based IDE.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -49,7 +49,7 @@
       "csp": null
     },
     "updater": {
-      "active": false
+      "active": true
     },
     "windows": [
       {

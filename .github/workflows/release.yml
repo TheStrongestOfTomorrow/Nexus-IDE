@@ -1,65 +1,35 @@
-name: Desktop Releases
+name: Release
+
 on:
   push:
-    branches:
-      - main
-    tags:
-      - 'v*'
-  pull_request:
     branches:
       - main
 
 jobs:
   release:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev patchelf
-
-      - name: Rust setup
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Node.js setup
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 22
-          cache: 'npm'
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build frontend
+      - name: Build application
         run: npm run build
 
-      - name: Setup Valid Icons (v1 Stable)
-        run: |
-          mkdir -p src-tauri/icons
-          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/32x32.png -o src-tauri/icons/32x32.png
-          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/128x128.png -o src-tauri/icons/128x128.png
-          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/128x128@2x.png -o src-tauri/icons/128x128@2x.png
-          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/icon.icns -o src-tauri/icons/icon.icns
-          curl -L https://raw.githubusercontent.com/tauri-apps/tauri/v1/tooling/cli/templates/app/icons/icon.ico -o src-tauri/icons/icon.ico
-
-      - name: Build Tauri app
+      - name: Build Tauri application
         uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name || 'latest' }}
-          releaseName: "Nexus IDE ${{ github.ref_name || 'Latest Build' }}"
-          releaseBody: "Automated build of Nexus IDE v4.3.5"
+          tagName: v__VERSION__ # This will be replaced with the version from package.json
+          releaseName: 'Nexus IDE v__VERSION__'
+          releaseBody: 'See the release notes for more information.'
           releaseDraft: true
           prerelease: false
-          args: --config src-tauri/tauri.conf.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

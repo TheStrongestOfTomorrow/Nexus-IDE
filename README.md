@@ -5,13 +5,35 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-4.3.0-blue" alt="Version 4.3.0" />
+  <img src="https://img.shields.io/badge/Version-4.4.0-blue" alt="Version 4.4.0" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-green" alt="Status" />
   <img src="https://img.shields.io/badge/Performance-5x_Faster-orange" alt="Performance" />
   <img src="https://img.shields.io/badge/Privacy-First-blueviolet" alt="Privacy" />
 </p>
 
 Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface. Optimized for both desktop and mobile (Termux), Nexus is the perfect tool for developers who value speed, efficiency, and privacy.
+
+---
+
+## 🚀 Nexus IDE v4.4 - The God Update
+
+Welcome to the most powerful version of Nexus IDE yet! **v4.4** introduces a suite of new features designed to make you a 10x developer.
+
+---
+
+## 🔥 Key Features of v4.4
+
+### 🤖 AI That Works for You
+
+*   **Custom Instructions:** New, fine-tuned instructions for the AI assistant in Chat and Agent modes give you more control over the AI's behavior.
+*   **Say /yes to Ship:** Are you tired of confirming every little change the AI wants to make? Just type `/yes` in the chat, and the AI will have full control to build, test, and deploy your code.
+*   **Prototyper Mode:** The new Composer/Vibe mode allows you to build entire applications from a single prompt. Just describe what you want to build, and the AI will do the rest.
+
+### 🌐 A True VS Code Experience
+
+*   **VSIX Extension Support:** Install and use your favorite VS Code extensions directly in Nexus IDE. No more compromises.
+*   **Beginner Friendly UI:** A new, simplified UI for beginners makes it easier than ever to get started with Nexus IDE. The classic UI is still available in the settings for power users.
+*   **Working Templates:** The template system has been completely overhauled. Now you can create and use templates that "actually work."
 
 ---
 

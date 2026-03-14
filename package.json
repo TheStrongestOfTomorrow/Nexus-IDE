@@ -1,7 +1,7 @@
 {
   "name": "nexus-ide",
   "private": true,
-  "version": "4.1.0",
+  "version": "4.4.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -10,7 +10,8 @@
     "deploy": "npm run build && npx gh-pages -d dist",
     "tauri": "tauri",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "capacitor:android": "npm run build && npx cap sync android && npx cap open android"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
