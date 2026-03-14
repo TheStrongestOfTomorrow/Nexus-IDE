@@ -2,7 +2,7 @@
   "name": "Nexus IDE",
   "short_name": "Nexus",
   "description": "The most powerful web-based development environment.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
   "background_color": "#1e1e1e",
@@ -26,20 +26,20 @@
       "name": "Quick-connect to Minecraft",
       "short_name": "Connect MC",
       "description": "Instantly connect to your Minecraft session",
-      "url": "/?action=connect-mc",
+      "url": "./?action=connect-mc",
       "icons": [{ "src": "https://lucide.dev/api/icons/gamepad-2?size=192", "sizes": "192x192" }]
     },
     {
       "name": "Open Last Project",
       "short_name": "Last Project",
       "description": "Open your most recent project",
-      "url": "/?action=open-last",
+      "url": "./?action=open-last",
       "icons": [{ "src": "https://lucide.dev/api/icons/folder-open?size=192", "sizes": "192x192" }]
     }
   ],
   "file_handlers": [
     {
-      "action": "/",
+      "action": "./",
       "accept": {
         "text/typescript": [".ts", ".tsx"],
         "text/javascript": [".js", ".jsx"],
@@ -53,7 +53,7 @@
   "protocol_handlers": [
     {
       "protocol": "web+nexus",
-      "url": "/?url=%s"
+      "url": "./?url=%s"
     }
   ]
 }

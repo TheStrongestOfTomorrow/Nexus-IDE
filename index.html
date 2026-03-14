@@ -4,13 +4,38 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#007acc" />
-    <link rel="manifest" href="/Nexus-IDE/manifest.json" />
+    <link rel="manifest" href="manifest.json" />
     <title>Nexus IDE</title>
+    <script>
+      // NUCLEAR CACHE BUST v4.3.7
+      (function() {
+        const VERSION = '4.3.7';
+        if (localStorage.getItem('nexus_version_hard') !== VERSION) {
+          localStorage.clear();
+          localStorage.setItem('nexus_version_hard', VERSION);
+          
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for (let registration of registrations) { registration.unregister(); }
+            });
+          }
+          
+          caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
+          });
+
+          // Redirect to a URL with a cache-busting parameter
+          const url = new URL(window.location.href);
+          url.searchParams.set('v', VERSION);
+          window.location.replace(url.href);
+        }
+      })();
+    </script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').then(reg => {
+          navigator.serviceWorker.register('sw.js').then(reg => {
             console.log('Nexus SW registered');
           }).catch(err => {
             console.log('Nexus SW registration failed', err);
@@ -18,8 +43,8 @@
         });
       }
     </script>
-    <script type="module" crossorigin src="/Nexus-IDE/assets/index-sg-v287u.js"></script>
-    <link rel="stylesheet" crossorigin href="/Nexus-IDE/assets/index-BqxuYeTw.css">
+    <script type="module" crossorigin src="/Nexus-IDE/assets/index-PyEwgIux-v437.js"></script>
+    <link rel="stylesheet" crossorigin href="/Nexus-IDE/assets/index-7UZoQdxd-v437.css">
   </head>
   <body>
     <div id="root"></div>
