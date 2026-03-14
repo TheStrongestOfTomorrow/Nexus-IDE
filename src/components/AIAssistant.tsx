@@ -27,7 +27,7 @@ interface AIAssistantProps {
   onPendingActions?: (actions: any[] | null) => void;
 }
 
-type AIMode = 'chat' | 'agent' | 'vibe';
+type AIMode = 'chat' | 'agent' | 'prototyper';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -74,7 +74,6 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
   const activeFile = files.find(f => f.id === activeFileId);
   const apiKey = apiKeys[selectedProvider];
   
-  // FIXED: Improved model resolution including custom codenames
   const selectedModel = selectedModels[selectedProvider] || 'gemini-2.0-flash';
 
   useEffect(() => {
@@ -143,8 +142,18 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
     e.preventDefault();
     if (!input.trim() || (!apiKey && selectedProvider !== 'ollama')) return;
 
-    const userMessage = input.trim();
+    let userMessage = input.trim();
     setInput('');
+
+    if (userMessage.toLowerCase() === '/yes') {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content.includes('file system actions')) {
+            const actions = JSON.parse(lastMessage.content.substring(lastMessage.content.indexOf('['), lastMessage.content.lastIndexOf(']') + 1));
+            applyChanges(actions);
+            return;
+        }
+    }
+
     const newMessages: Message[] = [...messages, { role: 'user', content: userMessage }];
     setMessages(newMessages);
     setIsLoading(true);
@@ -158,11 +167,11 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
       
       let systemInstruction = '';
       if (mode === 'chat') {
-        systemInstruction = 'You are a helpful coding assistant in an IDE. You can see the user\'s files and terminal output. If the fix involves editing, return a JSON block with the patch: {"patch": {"fileId": "...", "content": "..."}}. You have "Hands": use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"].' + githubInfo;
-      } else if (mode === 'vibe') {
-        systemInstruction = 'You are a Vibe Coder. Generate complete project code. Use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"]. You can also return a JSON array of files: [{"name": "index.html", "content": "..."}]' + githubInfo;
+        systemInstruction = 'You are a helpful coding assistant. You can see the user\'s files and terminal output.' + githubInfo;
+      } else if (mode === 'prototyper') {
+        systemInstruction = 'You are a Prototyper. Generate complete project code based on a prompt. Use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"]. You can also return a JSON array of files: [{"name": "index.html", "content": "..."}]' + githubInfo;
       } else if (mode === 'agent') {
-        systemInstruction = 'You are an autonomous coding agent. Fix bugs and build features. Use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"]. You can also return a JSON array of files: [{"name": "script.js", "content": "..."}]' + githubInfo;
+        systemInstruction = 'You are an autonomous coding agent for review-based developments. Analyze the user\'s code and provide suggestions. If the user agrees by typing /yes, implement the changes. Use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"].' + githubInfo;
       }
 
       const fetchAIResponse = async (provider: string, model: string, key: string, history: Message[]): Promise<{ text: string, groundingMetadata?: any }> => {
@@ -170,13 +179,11 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
           const genAI = new GoogleGenerativeAI(key);
           const aiModel = genAI.getGenerativeModel({ model, systemInstruction });
 
-          // Convert history to Gemini format
           const contents = history.map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.content }]
           }));
 
-          // Add file context to the latest message
           contents[contents.length - 1].parts[0].text = `Context Files:\n${contextFiles}\n\nTerminal:\n${terminalOutput}\n\nActive File: ${activeFile?.name}\n\nUser Request: ${userMessage}`;
 
           const tools: any[] = [];
@@ -187,9 +194,10 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
             text: result.response.text() || '',
             groundingMetadata: result.response.candidates?.[0]?.groundingMetadata
           };
-        } else if (provider === 'openai' || provider === 'groq' || provider === 'deepseek') {
+        } else if (provider === 'openai' || provider === 'groq' || provider === 'deepseek' || provider === 'mistral' || provider === 'meta') {
           const baseURL = provider === 'groq' ? 'https://api.groq.com/openai/v1' : 
-                          provider === 'deepseek' ? 'https://api.deepseek.com' : undefined;
+                          provider === 'deepseek' ? 'https://api.deepseek.com' : 
+                          provider === 'mistral' ? 'https://api.mistral.ai/v1' : undefined;
           
           const client = new OpenAI({ apiKey: key, baseURL, dangerouslyAllowBrowser: true });
           const messages = [
@@ -197,7 +205,6 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
             ...history.map(m => ({ role: m.role, content: m.content }))
           ];
           
-          // Inject context into last user message
           messages[messages.length - 1].content = `Context Files:\n${contextFiles}\n\nTerminal:\n${terminalOutput}\n\nUser: ${userMessage}`;
 
           const response = await client.chat.completions.create({
@@ -246,7 +253,6 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         const responseData = await fetchAIResponse(selectedProvider, selectedModel, apiKey, newMessages);
         const responseText = responseData.text;
         
-        // Handle file actions
         const folderRegex = /\[CREATE_FOLDER:\s*"([^"]+)"\]/g;
         const fileRegex = /\[WRITE_FILE:\s*"([^"]+)",\s*"([\s\S]*?)"\]/g;
         const actions: any[] = [];
@@ -256,7 +262,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
 
         if (actions.length > 0) {
           if (onPendingActions) onPendingActions(actions);
-          setMessages(prev => [...prev, { role: 'assistant', content: `I've prepared ${actions.length} file system actions. Please review them in the explorer.` }]);
+          setMessages(prev => [...prev, { role: 'assistant', content: `I've prepared the following file system actions. Review them in the explorer and type /yes to apply them. \n${JSON.stringify(actions)}` }]);
           setIsLoading(false);
           return;
         }
@@ -278,7 +284,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
       <div className="flex items-center justify-between px-4 py-2 border-b border-nexus-border bg-nexus-sidebar flex-shrink-0">
         <div className="flex items-center gap-2 overflow-hidden">
           <Sparkles size={14} className="text-nexus-accent flex-shrink-0" />
-          <span className="text-xs font-bold text-white uppercase tracking-wider truncate">Nexus AI 4.3.5</span>
+          <span className="text-xs font-bold text-white uppercase tracking-wider truncate">Nexus AI 4.4</span>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setIsSearchEnabled(!isSearchEnabled)} className={cn("p-1 rounded transition-colors", isSearchEnabled ? "bg-blue-500 text-white" : "text-nexus-text-muted hover:bg-nexus-bg")} title="Search Grounding"><Globe size={14} /></button>
@@ -291,7 +297,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
       </div>
 
       <div className="flex items-center px-2 py-1 bg-nexus-sidebar border-b border-nexus-border gap-1 flex-shrink-0">
-        {['chat', 'agent', 'vibe'].map(id => (
+        {['chat', 'agent', 'prototyper'].map(id => (
           <button key={id} onClick={() => setMode(id as AIMode)} className={cn("flex-1 py-1 rounded text-[10px] font-bold uppercase transition-all", mode === id ? "bg-nexus-bg text-white shadow-sm" : "text-nexus-text-muted hover:text-white")}>
             {id}
           </button>
@@ -302,7 +308,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         {messages.length === 0 && (
           <div className="text-center text-nexus-text-muted text-sm mt-10">
             <Bot size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="font-bold text-white mb-1">Nexus AI 4.3.5</p>
+            <p className="font-bold text-white mb-1">Nexus AI 4.4</p>
             <p className="text-xs opacity-75">Ready to assist.</p>
           </div>
         )}

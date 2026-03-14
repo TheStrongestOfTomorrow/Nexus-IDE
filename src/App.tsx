@@ -22,6 +22,7 @@ import DependencyGraph from './components/DependencyGraph';
 import TodoScanner from './components/TodoScanner';
 import SnippetManager from './components/SnippetManager';
 import ProjectInsights from './components/ProjectInsights';
+import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
 import { useIDEState } from './hooks/useIDEState';
@@ -85,7 +86,7 @@ export default function App() {
     const zip = new JSZip();
     files.forEach(file => zip.file(file.name, file.content));
     const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-4.3.6.zip');
+    saveAs(content, 'nexus-project-4.4.zip');
   };
 
   const handleClearWorkspace = () => {
@@ -97,14 +98,10 @@ export default function App() {
   };
 
   const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
-  const [githubClientId, setGithubClientId] = useState(() => localStorage.getItem('nexus_github_client_id') || '');
-  const [githubClientSecret, setGithubClientSecret] = useState(() => localStorage.getItem('nexus_github_client_secret') || '');
 
   useEffect(() => {
     localStorage.setItem('nexus_ollama_url', ollamaUrl);
-    localStorage.setItem('nexus_github_client_id', githubClientId);
-    localStorage.setItem('nexus_github_client_secret', githubClientSecret);
-  }, [ollamaUrl, githubClientId, githubClientSecret]);
+  }, [ollamaUrl]);
 
   useEffect(() => {
     const unsubscribe = ErrorHandlingService.subscribe(setErrors);
@@ -143,7 +140,7 @@ export default function App() {
 
   useEffect(() => {
     if (isFsLoaded && !ide.activeFileId && files.length > 0) {
-      ide.setActiveFileId(files[0].id);
+      ide.setActiveFileId(files[0]..id);
       ide.setOpenFileIds([files[0].id]);
     }
   }, [isFsLoaded, files, ide.activeFileId]);
@@ -213,7 +210,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none">
+      <div className={cn("flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none", ide.useBeginnerUI && "beginner-ui")}>
         <VoiceCommand 
           isListening={isVoiceListening} 
           onToggle={() => setIsVoiceListening(!isVoiceListening)} 
@@ -234,7 +231,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Zap size={18} className="text-yellow-300 fill-yellow-300" />
             <div>
-              <p className="text-sm font-bold">Nexus 4.3 Update Available</p>
+              <p className="text-sm font-bold">Nexus 4.4 Update Available</p>
               <p className="text-[10px] opacity-90">A new version is ready to install.</p>
             </div>
           </div>
@@ -456,7 +453,7 @@ export default function App() {
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                     <Zap size={64} className="opacity-10" />
-                    <p className="text-sm">Select a file to start coding in Nexus 4.3</p>
+                    <p className="text-sm">Select a file to start coding in Nexus 4.4</p>
                     <div className="flex gap-2">
                       <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
                       <span className="text-[10px]">Command Palette</span>
@@ -523,6 +520,8 @@ export default function App() {
         onApiKeyChange={ide.setApiKey}
         isTouchMode={ide.isTouchMode}
         onToggleTouchMode={ide.toggleTouchMode}
+        useBeginnerUI={ide.useBeginnerUI}
+        onToggleBeginnerUI={() => ide.setUseBeginnerUI(!ide.useBeginnerUI)}
         onClearWorkspace={handleClearWorkspace}
         onExport={exportAsZip}
         selectedAIProvider={ide.selectedAIProvider}
@@ -533,10 +532,10 @@ export default function App() {
         }}
         githubToken={ide.githubToken}
         onGithubTokenChange={ide.setGithubToken}
-        githubClientId={githubClientId}
-        onGithubClientIdChange={setGithubClientId}
-        githubClientSecret={githubClientSecret}
-        onGithubClientSecretChange={setGithubClientSecret}
+        githubClientId={ide.githubClientId}
+        onGithubClientIdChange={ide.setGithubClientId}
+        githubClientSecret={ide.githubClientSecret}
+        onGithubClientSecretChange={ide.setGithubClientSecret}
         ollamaUrl={ollamaUrl}
         onOllamaUrlChange={setOllamaUrl}
       />

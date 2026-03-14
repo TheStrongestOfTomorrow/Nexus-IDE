@@ -1,4 +1,4 @@
-# 🚀 Nexus IDE v4.3 Mega-Upgrade
+# 🚀 Nexus IDE: The AI-First, Browser-Based IDE
 
 <p align="center">
   <img src="https://lucide.dev/api/icons/zap?size=64&color=3b82f6" alt="Nexus Logo" />
@@ -11,61 +11,92 @@
   <img src="https://img.shields.io/badge/Privacy-First-blueviolet" alt="Privacy" />
 </p>
 
-Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. Optimized for both desktop and mobile (Termux), it brings the power of VS Code with a simplified, AI-first experience.
+Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface. Optimized for both desktop and mobile (Termux), Nexus is the perfect tool for developers who value speed, efficiency, and privacy.
 
 ---
 
-## 🎯 What's New in v4.3
+## ✨ Why Choose Nexus IDE?
 
-### 🎙️ Nexus Voice (New!)
-Control your IDE with your voice. Click the microphone icon in the Title Bar to start.
+*   **Blazing Fast:** 5x faster than traditional IDEs, with a lightweight footprint.
+*   **AI-Powered:** Integrated AI assistant and voice commands to supercharge your workflow.
+*   **Cross-Platform:** Use it on the web, as a native desktop app, or on your Android device.
+*   **Privacy-First:** Your code, your keys, your privacy. No unnecessary data collection.
+*   **Real-time Collaboration:** Seamlessly code with your team, no matter where you are.
+*   **Extensible and Customizable:** Tailor the IDE to your needs with custom themes, and more.
+
+---
+
+## 🔮 Key Features
+
+### 🎙️ Nexus Voice
+Control your IDE with your voice. Simply click the microphone icon in the Title Bar to get started.
 *   **"Run Code"**: Executes the current file.
 *   **"Open Settings"**: Opens the settings panel.
 *   **"Toggle Terminal"**: Shows/hides the terminal.
-*   **"Clear Workspace"**: Wiped files safely with a prompt.
+*   **"Clear Workspace"**: Safely wipes files with a confirmation prompt.
 
 ### 🧘 Zen Mode
-Focus on what matters—your code. Click the Eye icon in the Title Bar to hide all sidebars and terminals instantly.
+Focus on your code without distractions. Click the Eye icon in the Title Bar to instantly hide all sidebars and terminals.
 
 ### 🎨 Theme Studio & Visualization
-*   **Theme Studio**: Create custom color vibes for your IDE.
-*   **Dependency Graph**: Visual breakdown of your project's `package.json`.
-*   **Project Insights**: Stats on lines of code (LOC), file types, and languages.
+*   **Theme Studio**: Create your own custom color themes.
+*   **Dependency Graph**: Visualize your project's dependencies from `package.json`.
+*   **Project Insights**: Get statistics on lines of code, file types, and languages used.
 
 ### ☁️ Nexus Cloud Bridge
-Real-time collaboration now works everywhere! We've implemented a fallback signaling server so **Collaboration Bridge** works even when hosted on static platforms like GitHub Pages.
+Our real-time collaboration now works everywhere! We've implemented a fallback signaling server so the **Collaboration Bridge** works even on static platforms like GitHub Pages.
 
 ---
 
 ## 🚀 Deployment & Releases
 
+### 🌐 Web Version (GitHub Pages)
+Nexus IDE is fully compatible with GitHub Pages. AI features use direct browser-to-API calls, and collaboration is powered by the Nexus Cloud signaling bridge.
+
 ### 📱 Android Release (APK)
-Nexus IDE is fully optimized for Android. Check the [Actions tab](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/actions) to download the latest automated APK build.
+Nexus IDE is optimized for Android devices. You can download the latest automated APK build from the [Actions tab](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/actions).
 
 ### 💻 Desktop Releases (Windows, macOS, Linux)
-Powered by **Tauri**, Nexus IDE is available as a lightweight native desktop application. Downloads are available in the GitHub Releases section.
-
-### 🌐 Web Hosting (GitHub Pages)
-v4.3 is fully compatible with GitHub Pages. AI features use direct browser-to-API calls, and collaboration uses the Nexus Cloud signaling bridge.
+Powered by Tauri, Nexus IDE is also available as a lightweight native desktop application. You can find the latest releases in the [GitHub Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) section.
 
 ---
 
-## 🔧 Local Development
+## 🛠️ Getting Started (Local Development)
 
-1. **Clone and Install:**
-   ```bash
-   git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
-   cd Nexus-IDE
-   npm install
-   ```
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+    cd Nexus-IDE
+    ```
 
-2. **Configure Auth:**
-   Create a `.env` file with your `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`.
+2.  **Install Dependencies:**
+    ```bash
+    npm install
+    ```
 
-3. **Run:**
-   ```bash
-   npm run dev
-   ```
+3.  **Configure Authentication (Optional):**
+    Create a `.env` file at the root of the project and add your GitHub Client ID and Secret for full GitHub integration.
+    ```
+    VITE_GITHUB_CLIENT_ID=your_client_id
+    VITE_GITHUB_CLIENT_SECRET=your_client_secret
+    ```
+
+4.  **Run the Development Server:**
+    ```bash
+    npm run dev
+    ```
+
+---
+
+## 💖 Community & Contributing
+
+Nexus IDE is an open-source project and we welcome contributions from the community. If you'd like to get involved, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) file for more information on how to submit pull requests, report bugs, and suggest new features.
+
+---
+
+## 📄 License
+
+Nexus IDE is licensed under the [MIT License](LICENSE).
 
 ---
 

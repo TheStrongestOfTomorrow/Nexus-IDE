@@ -9,6 +9,8 @@ interface SettingsPanelProps {
   onApiKeyChange: (provider: string, key: string) => void;
   isTouchMode: boolean;
   onToggleTouchMode: () => void;
+  useBeginnerUI: boolean;
+  onToggleBeginnerUI: () => void;
   onClearWorkspace: () => void;
   onExport: () => void;
   selectedAIProvider: string;
@@ -32,6 +34,8 @@ export default function SettingsPanel({
   onApiKeyChange,
   isTouchMode,
   onToggleTouchMode,
+  useBeginnerUI,
+  onToggleBeginnerUI,
   onClearWorkspace,
   onExport,
   selectedAIProvider,
@@ -55,16 +59,25 @@ export default function SettingsPanel({
     { id: 'anthropic', name: 'Anthropic', icon: Shield },
     { id: 'groq', name: 'Groq', icon: GroqIcon },
     { id: 'deepseek', name: 'Deepseek', icon: Brain },
-    { id: 'ollama', name: 'Ollama (Local)', icon: Monitor }
+    { id: 'ollama', name: 'Ollama (Local)', icon: Monitor },
+    { id: 'mistral', name: 'Mistral AI', icon: Cpu },
+    { id: 'xai', name: 'xAI (Grok)', icon: Cpu },
+    { id: 'alibaba', name: 'Alibaba Cloud', icon: Cpu },
+    { id: 'other', name: 'Other Models', icon: Cpu },
   ];
 
   const models = {
-    gemini: ['gemini-2.5-flash', 'gemini-3.1-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-    openai: ['gpt-4o', 'gpt-4o-mini', 'o1-preview', 'o1-mini'],
-    anthropic: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
+    gemini: ['gemini-3.1-pro', 'gemini-3.1-pro-preview', 'gemini-3-pro', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-flash-image', 'gemini-2.0-pro', 'gemini-1.5-pro', 'gemini-1.5-flash', 'palm-2', 'imagen', 'chirp', 'musiclm', 'alphacode-2', 'bert'],
+    openai: ['gpt-5', 'gpt-5-turbo', 'gpt-5.1', 'gpt-5.1-codex', 'gpt-5-chat', 'gpt-4o', 'gpt-4o-2024-05-13', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'text-davinci-003', 'sora-2', 'dall-e-3', 'dall-e-2', 'whisper-1', 'codex'],
+    anthropic: ['claude-haiku-4-5-20251001', 'claude-opus-4-5-20251101', 'claude-opus-4-6', 'claude-sonnet-4-6-20260218', 'claude-3-5-sonnet-20240620', 'claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307', 'claude-2.1', 'claude-2.0', 'claude-instant-1.2'],
     groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
-    deepseek: ['deepseek-chat', 'deepseek-coder'],
-    ollama: ['llama3', 'mistral', 'codellama', 'phi3']
+    deepseek: ['DeepSeek-R1', 'DeepSeek-V3', 'DeepSeek-V3.2', 'deepseek-coder-33b', 'deepseek-math'],
+    ollama: ['llama3', 'mistral', 'codellama', 'phi3'],
+    meta: ['llama-4-maverick', 'llama-4-70b-moe', 'Llama-3-405B', 'Llama-3-70B', 'Llama-3-8B', 'Llama-2-70b', 'Llama-2-13b', 'Llama-2-7b', 'CodeLlama'],
+    mistral: ['Mistral Large 3', 'Mistral Large 2.1 (v24.11)', 'Mistral Medium 3', 'Mistral Nemo 12B', 'Devstral Small 2 (v25.12)', 'Pixtral Large (Multimodal)', 'Mistral Small Creative', 'Codestral Mamba', 'Mixtral 8x22B'],
+    xai: ['grok-4', 'grok-4-beta1', 'Grok-3 (2M context)', 'Grok-2'],
+    alibaba: ['Qwen3-235B-A22B', 'Qwen3-Max-Instruct', 'Qwen3-Next-80B', 'Qwen3-Coder', 'Qwen/Qwen2.5-72B-Instruct-Turbo', 'Qwen2.5-7B-Instruct-Turbo'],
+    other: ['Stable Diffusion XL', 'Stable Diffusion 3', 'StableLM 2', 'Command-R', 'Command-R+', 'Cohere Embed', 'Phi-3-mini', 'Turing-NLG', 'Megatron-Turing NLG 530B', 'Ernie Bot', 'Ernie 4.0', 'Midjourney v4', 'v5', 'v6', 'Runway Gen-2', 'Gen-3 Alpha', 'Gen-4', 'BLOOM']
   };
 
   return (
@@ -73,7 +86,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 4.3.5 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 4.4 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -168,13 +181,13 @@ export default function SettingsPanel({
                             {providerModels.map(model => (
                               <option key={model} value={model}>{model}</option>
                             ))}
-                            <option value="custom">Custom Codename...</option>
+                            <option value="custom">Custom Model ID...</option>
                           </select>
                           
                           {(isCustomModel || selectedModels[provider.id] === 'custom') && (
                             <input
                               type="text"
-                              placeholder="Enter codename"
+                              placeholder="Enter model id"
                               value={selectedModels[provider.id] === 'custom' ? '' : selectedModels[provider.id]}
                               onChange={(e) => onModelChange(provider.id, e.target.value)}
                               className="flex-1 bg-nexus-sidebar border border-nexus-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-nexus-accent text-white"
@@ -268,6 +281,36 @@ export default function SettingsPanel({
             </div>
           </section>
 
+          {/* UI Settings */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+                <Palette size={18} />
+                <h3 className="text-xs font-bold uppercase tracking-wider">UI Settings</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white">Beginner Friendly UI</span>
+                        <button
+                            onClick={onToggleBeginnerUI}
+                            className={cn(
+                                "w-10 h-5 rounded-full transition-all relative",
+                                useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                            )}
+                        >
+                            <div className={cn(
+                                "absolute top-0.5 w-3 h-3 rounded-full transition-all",
+                                useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                            )} />
+                        </button>
+                    </div>
+                    <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                        A simplified UI for beginners. Disable to use the classic UI.
+                    </p>
+                </div>
+            </div>
+          </section>
+
           {/* Interface & Touch */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
@@ -336,7 +379,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v4.3.5 Stable</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v4.4 Stable</span>
           </div>
           <button
             onClick={onClose}

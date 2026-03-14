@@ -15,6 +15,7 @@ export function useIDEState(files: any[]) {
   const [showSettings, setShowSettings] = useState(false);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [isTouchMode, setIsTouchMode] = useState(() => localStorage.getItem('nexus_touch_mode') === 'true');
+  const [useBeginnerUI, setUseBeginnerUI] = useState(() => localStorage.getItem('nexus_beginner_ui') === 'true');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hostedUrl, setHostedUrl] = useState<string | null>(null);
   const [diffData, setDiffData] = useState<{ original: string, modified: string, fileId: string } | null>(null);
@@ -35,29 +36,44 @@ export function useIDEState(files: any[]) {
     setIsZenMode(!isZenMode);
   }, [isZenMode]);
 
+  const toggleTouchMode = useCallback(() => {
+    setIsTouchMode(prev => !prev);
+  }, []);
+
   const [apiKeys, setApiKeys] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_api_keys');
     return saved ? JSON.parse(saved) : { gemini: '', openai: '', anthropic: '' };
   });
 
   const [githubToken, setGithubToken] = useState(() => localStorage.getItem('nexus_github_token') || '');
+  const [githubClientId, setGithubClientId] = useState(() => localStorage.getItem('nexus_github_client_id') || '');
+  const [githubClientSecret, setGithubClientSecret] = useState(() => localStorage.getItem('nexus_github_client_secret') || '');
 
   const [selectedAIProvider, setSelectedAIProvider] = useState(() => localStorage.getItem('nexus_selected_ai') || 'gemini');
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_selected_models');
     return saved ? JSON.parse(saved) : {
-      gemini: 'gemini-2.5-flash',
-      openai: 'gpt-4o',
-      anthropic: 'claude-sonnet-4-6',
+      gemini: 'gemini-3.1-pro',
+      openai: 'gpt-5',
+      anthropic: 'claude-haiku-4-5-20251001',
       ollama: 'llama3',
       groq: 'llama-3.3-70b-versatile',
-      deepseek: 'deepseek-chat'
+      deepseek: 'DeepSeek-R1',
+      meta: 'llama-4-maverick',
+      mistral: 'Mistral Large 3',
+      xai: 'grok-4',
+      alibaba: 'Qwen3-235B-A22B',
+      other: 'Stable Diffusion XL'
     };
   });
 
   useEffect(() => {
     localStorage.setItem('nexus_touch_mode', isTouchMode.toString());
   }, [isTouchMode]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_beginner_ui', useBeginnerUI.toString());
+  }, [useBeginnerUI]);
 
   useEffect(() => {
     localStorage.setItem('nexus_api_keys', JSON.stringify(apiKeys));
@@ -74,6 +90,14 @@ export function useIDEState(files: any[]) {
   useEffect(() => {
     localStorage.setItem('nexus_github_token', githubToken);
   }, [githubToken]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_github_client_id', githubClientId);
+  }, [githubClientId]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_github_client_secret', githubClientSecret);
+  }, [githubClientSecret]);
 
   const handleSelectFile = useCallback((id: string) => {
     setActiveFileId(id);
@@ -109,6 +133,8 @@ export function useIDEState(files: any[]) {
     showSettings, setShowSettings,
     activeFolder, setActiveFolder,
     isTouchMode, setIsTouchMode,
+    toggleTouchMode,
+    useBeginnerUI, setUseBeginnerUI,
     sessionId, setSessionId,
     hostedUrl, setHostedUrl,
     diffData, setDiffData,
@@ -118,6 +144,8 @@ export function useIDEState(files: any[]) {
     apiKeys, setApiKeys,
     setApiKey,
     githubToken, setGithubToken,
+    githubClientId, setGithubClientId,
+    githubClientSecret, setGithubClientSecret,
     selectedAIProvider, setSelectedAIProvider,
     selectedModels, setSelectedModels,
     handleSelectFile,
