@@ -1,20 +1,32 @@
 [package]
 name = "nexus-ide"
-version = "3.2.0"
-description = "Nexus IDE"
-authors = ["Nexus Team"]
+version = "4.4.0"
+description = "Nexus IDE - The AI-First, Browser-Based IDE"
+authors = ["TheStrongestOfTomorrow"]
 license = "MIT"
-repository = "https://github.com/your-repo/nexus-ide"
+repository = "https://github.com/TheStrongestOfTomorrow/Nexus-IDE"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.70"
 
 [build-dependencies]
-tauri-build = { version = "1.5" }
+tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5", features = ["api-all"] }
+tauri = { version = "1.6", features = ["api-all", "updater", "system-tray", "shell-open", "dialog-open", "dialog-save", "fs-all", "http-all", "notification-all", "os-all", "path-all", "process-all", "window-all"] }
+tauri-plugin-shell = "1.0"
+tauri-plugin-dialog = "1.0"
+tauri-plugin-fs = "1.0"
+tauri-plugin-http = "1.0"
 
 [features]
+default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

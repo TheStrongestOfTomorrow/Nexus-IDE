@@ -11,14 +11,65 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "all": true,
+        "scope": ["**"]
+      },
+      "shell": {
+        "all": true,
+        "execute": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "sh",
+            "cmd": "sh",
+            "args": true
+          },
+          {
+            "name": "cmd",
+            "cmd": "cmd",
+            "args": true
+          },
+          {
+            "name": "powershell",
+            "cmd": "powershell",
+            "args": true
+          }
+        ]
+      },
+      "dialog": {
+        "all": true,
+        "open": true,
+        "save": true
+      },
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["https://**", "http://**"]
+      },
+      "notification": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      },
+      "process": {
+        "all": true
+      },
+      "window": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "Copyright © 2024 Taz",
+      "copyright": "Copyright © 2024 TheStrongestOfTomorrow",
       "deb": {
-        "depends": []
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
       },
       "externalBin": [],
       "icon": [
@@ -28,28 +79,39 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.nexus.ide",
+      "identifier": "com.nexus-ide.app",
       "longDescription": "Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
         "frameworks": [],
-        "signingIdentity": null
+        "signingIdentity": null,
+        "minimumSystemVersion": "10.13"
       },
       "resources": [],
-      "shortDescription": "The AI-First, Browser-Based IDE.",
+      "shortDescription": "The AI-First, Browser-Based IDE",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "wix": {
+          "bannerPath": null,
+          "dialogImagePath": null
+        }
+      },
+      "appimage": {
+        "bundleMediaFramework": true
       }
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss: ws:; font-src 'self' data:; worker-src 'self' blob:;"
     },
     "updater": {
-      "active": true
+      "active": true,
+      "endpoints": [],
+      "dialog": true,
+      "pubkey": ""
     },
     "windows": [
       {
@@ -57,8 +119,18 @@
         "height": 800,
         "resizable": true,
         "title": "Nexus IDE",
-        "width": 1200
+        "width": 1200,
+        "minWidth": 800,
+        "minHeight": 600,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "theme": "Dark"
       }
-    ]
+    ],
+    "systemTray": {
+      "iconPath": "icons/icon.ico",
+      "iconAsTemplate": true
+    }
   }
 }

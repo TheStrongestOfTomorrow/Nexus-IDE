@@ -53,17 +53,18 @@ export function useIDEState(files: any[]) {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_selected_models');
     return saved ? JSON.parse(saved) : {
-      gemini: 'gemini-3.1-pro',
-      openai: 'gpt-5',
-      anthropic: 'claude-haiku-4-5-20251001',
-      ollama: 'llama3',
+      gemini: 'gemini-2.5-pro-preview-06-05',
+      openai: 'gpt-4o',
+      anthropic: 'claude-sonnet-4-20250514',
+      xai: 'grok-3',
+      mistral: 'mistral-large-latest',
+      deepseek: 'deepseek-chat',
+      alibaba: 'qwen-max',
       groq: 'llama-3.3-70b-versatile',
-      deepseek: 'DeepSeek-R1',
-      meta: 'llama-4-maverick',
-      mistral: 'Mistral Large 3',
-      xai: 'grok-4',
-      alibaba: 'Qwen3-235B-A22B',
-      other: 'Stable Diffusion XL'
+      cohere: 'command-r-plus-08-2024',
+      perplexity: 'sonar-pro',
+      together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+      ollama: 'llama3.2',
     };
   });
 

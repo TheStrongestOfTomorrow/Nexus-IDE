@@ -198,7 +198,7 @@ async function startServer() {
     }
   });
 
-  // AI Provider Proxies
+  // AI Provider Proxies - Unified handler for all providers
   app.post("/api/ai/:provider", async (req, res) => {
     const { provider } = req.params;
     const apiKey = req.headers.authorization?.split(" ")[1];
@@ -207,38 +207,73 @@ async function startServer() {
       return res.status(401).json({ error: "Missing API Key" });
     }
 
+    // Provider endpoints configuration
+    const providerEndpoints: Record<string, { url: string; headers: Record<string, string> }> = {
+      openai: {
+        url: "https://api.openai.com/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      anthropic: {
+        url: "https://api.anthropic.com/v1/messages",
+        headers: { 
+          "x-api-key": apiKey || '',
+          "anthropic-version": "2023-06-01",
+        }
+      },
+      xai: {
+        url: "https://api.x.ai/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      mistral: {
+        url: "https://api.mistral.ai/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      deepseek: {
+        url: "https://api.deepseek.com/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      alibaba: {
+        url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      groq: {
+        url: "https://api.groq.com/openai/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      cohere: {
+        url: "https://api.cohere.ai/v2/chat",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      perplexity: {
+        url: "https://api.perplexity.ai/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      together: {
+        url: "https://api.together.ai/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+      cerebras: {
+        url: "https://api.cerebras.ai/v1/chat/completions",
+        headers: { Authorization: `Bearer ${apiKey}` }
+      },
+    };
+
     try {
       let response;
-      if (provider === 'openai') {
-        response = await axios.post("https://api.openai.com/v1/chat/completions", req.body, {
-          headers: { Authorization: `Bearer ${apiKey}` }
-        });
-      } else if (provider === 'anthropic') {
-        response = await axios.post("https://api.anthropic.com/v1/messages", req.body, {
-          headers: { 
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json"
-          }
-        });
-      } else if (provider === 'groq') {
-        response = await axios.post("https://api.groq.com/openai/v1/chat/completions", req.body, {
-          headers: { Authorization: `Bearer ${apiKey}` }
-        });
-      } else if (provider === 'deepseek') {
-        response = await axios.post("https://api.deepseek.com/v1/chat/completions", req.body, {
-          headers: { Authorization: `Bearer ${apiKey}` }
-        });
-      } else if (provider === 'ollama') {
+      
+      if (provider === 'ollama') {
         const ollamaUrl = req.headers['x-ollama-url'] || 'http://localhost:11434';
         response = await axios.post(`${ollamaUrl}/api/chat`, req.body);
+      } else if (providerEndpoints[provider]) {
+        const { url, headers } = providerEndpoints[provider];
+        response = await axios.post(url, req.body, {
+          headers: { "Content-Type": "application/json", ...headers }
+        });
+      } else {
+        return res.status(400).json({ error: `Unsupported provider: ${provider}` });
       }
 
-      if (response) {
-        res.json(response.data);
-      } else {
-        res.status(400).json({ error: "Unsupported provider" });
-      }
+      res.json(response.data);
     } catch (error: any) {
       console.error(`AI Proxy Error (${provider}):`, error.response?.data || error.message);
       res.status(error.response?.status || 500).json(error.response?.data || { error: "AI Request failed" });

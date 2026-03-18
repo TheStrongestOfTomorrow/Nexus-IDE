@@ -56,28 +56,31 @@ export default function SettingsPanel({
   const providers = [
     { id: 'gemini', name: 'Google Gemini', icon: Zap },
     { id: 'openai', name: 'OpenAI', icon: Cpu },
-    { id: 'anthropic', name: 'Anthropic', icon: Shield },
-    { id: 'groq', name: 'Groq', icon: GroqIcon },
-    { id: 'deepseek', name: 'Deepseek', icon: Brain },
+    { id: 'anthropic', name: 'Anthropic Claude', icon: Shield },
+    { id: 'xai', name: 'xAI (Grok)', icon: Sparkles },
+    { id: 'mistral', name: 'Mistral AI', icon: Brain },
+    { id: 'deepseek', name: 'DeepSeek', icon: Brain },
+    { id: 'alibaba', name: 'Alibaba Qwen', icon: Cpu },
+    { id: 'groq', name: 'Groq (Fast)', icon: Zap },
+    { id: 'cohere', name: 'Cohere', icon: Shield },
+    { id: 'perplexity', name: 'Perplexity AI', icon: Globe },
+    { id: 'together', name: 'Together AI', icon: Cpu },
     { id: 'ollama', name: 'Ollama (Local)', icon: Monitor },
-    { id: 'mistral', name: 'Mistral AI', icon: Cpu },
-    { id: 'xai', name: 'xAI (Grok)', icon: Cpu },
-    { id: 'alibaba', name: 'Alibaba Cloud', icon: Cpu },
-    { id: 'other', name: 'Other Models', icon: Cpu },
   ];
 
-  const models = {
-    gemini: ['gemini-3.1-pro', 'gemini-3.1-pro-preview', 'gemini-3-pro', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-flash-image', 'gemini-2.0-pro', 'gemini-1.5-pro', 'gemini-1.5-flash', 'palm-2', 'imagen', 'chirp', 'musiclm', 'alphacode-2', 'bert'],
-    openai: ['gpt-5', 'gpt-5-turbo', 'gpt-5.1', 'gpt-5.1-codex', 'gpt-5-chat', 'gpt-4o', 'gpt-4o-2024-05-13', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-4-32k', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'text-davinci-003', 'sora-2', 'dall-e-3', 'dall-e-2', 'whisper-1', 'codex'],
-    anthropic: ['claude-haiku-4-5-20251001', 'claude-opus-4-5-20251101', 'claude-opus-4-6', 'claude-sonnet-4-6-20260218', 'claude-3-5-sonnet-20240620', 'claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307', 'claude-2.1', 'claude-2.0', 'claude-instant-1.2'],
-    groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'],
-    deepseek: ['DeepSeek-R1', 'DeepSeek-V3', 'DeepSeek-V3.2', 'deepseek-coder-33b', 'deepseek-math'],
-    ollama: ['llama3', 'mistral', 'codellama', 'phi3'],
-    meta: ['llama-4-maverick', 'llama-4-70b-moe', 'Llama-3-405B', 'Llama-3-70B', 'Llama-3-8B', 'Llama-2-70b', 'Llama-2-13b', 'Llama-2-7b', 'CodeLlama'],
-    mistral: ['Mistral Large 3', 'Mistral Large 2.1 (v24.11)', 'Mistral Medium 3', 'Mistral Nemo 12B', 'Devstral Small 2 (v25.12)', 'Pixtral Large (Multimodal)', 'Mistral Small Creative', 'Codestral Mamba', 'Mixtral 8x22B'],
-    xai: ['grok-4', 'grok-4-beta1', 'Grok-3 (2M context)', 'Grok-2'],
-    alibaba: ['Qwen3-235B-A22B', 'Qwen3-Max-Instruct', 'Qwen3-Next-80B', 'Qwen3-Coder', 'Qwen/Qwen2.5-72B-Instruct-Turbo', 'Qwen2.5-7B-Instruct-Turbo'],
-    other: ['Stable Diffusion XL', 'Stable Diffusion 3', 'StableLM 2', 'Command-R', 'Command-R+', 'Cohere Embed', 'Phi-3-mini', 'Turing-NLG', 'Megatron-Turing NLG 530B', 'Ernie Bot', 'Ernie 4.0', 'Midjourney v4', 'v5', 'v6', 'Runway Gen-2', 'Gen-3 Alpha', 'Gen-4', 'BLOOM']
+  const models: Record<string, string[]> = {
+    gemini: ['gemini-2.5-pro-preview-06-05', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'],
+    openai: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo', 'o1-preview', 'o1-mini', 'o3-mini'],
+    anthropic: ['claude-opus-4-20250514', 'claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'],
+    xai: ['grok-3', 'grok-3-fast', 'grok-3-mini', 'grok-2-1212', 'grok-2-vision-1212', 'grok-beta'],
+    mistral: ['mistral-large-latest', 'mistral-medium-latest', 'mistral-small-latest', 'codestral-latest', 'pixtral-large-latest', 'ministral-8b-latest'],
+    deepseek: ['deepseek-chat', 'deepseek-coder', 'deepseek-reasoner', 'deepseek-r1'],
+    alibaba: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-long', 'qwen-coder-plus', 'qwen-coder-turbo', 'qwen-vl-max'],
+    groq: ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'deepseek-r1-distill-llama-70b'],
+    cohere: ['command-r-plus-08-2024', 'command-r-08-2024', 'command', 'command-light', 'command-nightly'],
+    perplexity: ['sonar-pro', 'sonar', 'sonar-reasoning-pro', 'sonar-reasoning', 'r1-1776'],
+    together: ['meta-llama/Llama-3.3-70B-Instruct-Turbo', 'meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo', 'mistralai/Mistral-Small-24B-Instruct-2501', 'Qwen/Qwen2.5-72B-Instruct-Turbo', 'deepseek-ai/DEEPSEEK-R1'],
+    ollama: ['llama3.2', 'llama3.1', 'llama3', 'mistral', 'codellama', 'deepseek-coder-v2', 'qwen2.5-coder', 'phi4', 'gemma3'],
   };
 
   return (
