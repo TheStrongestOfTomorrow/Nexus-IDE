@@ -1,38 +1,94 @@
-# 🖥️ Nexus IDE - CLI/TUI Version
+<div align="center">
 
-<p align="center">
-  <img src="https://lucide.dev/api/icons/terminal?size=64&color=3b82f6" alt="Nexus Logo" />
-</p>
+# 🖥️ Nexus IDE - Terminal Edition
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Version-5.0.0-blue" alt="Version 5.0.0" />
-  <img src="https://img.shields.io/badge/Interface-TUI-green" alt="TUI Interface" />
-  <img src="https://img.shields.io/badge/Status-Stable-brightgreen" alt="Status" />
-  <img src="https://img.shields.io/npm/l/nexus-ide?color=blueviolet" alt="License" />
-</p>
+<img src="https://lucide.dev/api/icons/terminal-square?size=128&color=3b82f6" alt="Nexus IDE Terminal" width="128" height="128" />
 
-**Nexus IDE TUI** is a powerful terminal-based IDE that brings the full IDE experience to your command line. Perfect for SSH sessions, remote development, and developers who prefer the terminal.
+### *Code in Your Terminal. AI at Your Fingertips.*
+
+[![Version](https://img.shields.io/badge/Version-5.0.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Terminal-10b981?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+
+</div>
 
 ---
 
-## 🚀 Quick Start
+## ⚡ Quick Start
 
-### Install & Run TUI
 ```bash
-# Run directly from GitHub (recommended)
+# Run instantly from GitHub
 npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
 
 # Or clone and run
 git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
-cd Nexus-IDE
-npm install
-npx nexus
+cd Nexus-IDE && npm install && npx nexus
 ```
 
-### Run Web Mode
+---
+
+## 🌟 Features
+
+### 🎯 Full Terminal IDE
+| Feature | Description |
+|---------|-------------|
+| 📁 **File Explorer** | Navigate directories with keyboard |
+| ✏️ **Code Editor** | Edit files directly in terminal |
+| 🤖 **AI Assistant** | Chat with 12+ AI providers |
+| 💻 **Built-in Terminal** | Run commands without leaving |
+| 🔧 **Git Integration** | View status, branch info |
+
+### 🤖 AI Providers
+| Provider | Models | Type |
+|----------|--------|------|
+| OpenAI | GPT-4o, O1, O3 Mini | Cloud |
+| Anthropic | Claude Opus 4, Sonnet 4 | Cloud |
+| Google | Gemini 2.5 Pro, Flash | Cloud |
+| xAI | Grok 3, Grok 3 Fast | Cloud |
+| Mistral | Mistral Large, Codestral | Cloud |
+| DeepSeek | Coder, R1 | Cloud |
+| Groq | Llama 3.3 70B | Cloud (Free) |
+| Ollama | Llama, Mistral | Local |
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+### Navigation
+| Key | Action |
+|:---:|--------|
+| `↑` `↓` | Navigate items |
+| `Enter` | Select / Open |
+| `Tab` | Switch panels |
+| `Q` / `Esc` | Back / Quit |
+
+### File Operations
+| Key | Action |
+|:---:|--------|
+| `E` | Edit file |
+| `D` | Delete file |
+| `N` | New file |
+| `H` | Go up directory |
+
+### AI Chat
+| Key | Action |
+|:---:|--------|
+| `C` | Start chat |
+| `H` | AI help |
+
+---
+
+## 📋 Commands
+
 ```bash
-# Start web server instead
-npx nexus start
+nexus                    # Launch TUI
+nexus tui                # Same as above
+nexus start              # Start web server
+nexus ai "prompt"        # Quick AI question
+nexus run file.js        # Execute code
+nexus ls                 # List files
+nexus config             # View settings
 ```
 
 ---
@@ -41,149 +97,20 @@ npx nexus start
 
 | Version | Install | Description |
 |---------|---------|-------------|
-| **Stable** | `npx nexus-ide` | ✅ Production ready web IDE |
+| **Stable** | `npx nexus-ide` | ✅ Production ready |
 | **Beta** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **Professional** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 Office-ready with CLI+Web |
-| **CLI/TUI (This)** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal interface |
-
----
-
-## 🎮 TUI Features
-
-### Full Terminal IDE Experience
-- **File Explorer**: Navigate directories with keyboard
-- **Code Editor**: Edit files with syntax awareness
-- **AI Assistant**: Integrated AI chat panel (12+ providers)
-- **Terminal**: Built-in terminal for commands
-- **Git Integration**: View git status
-
-### 12+ AI Providers Built-In
-| Provider | Models |
-|----------|--------|
-| **OpenAI** | GPT-4o, GPT-4o Mini, O1, O3 Mini |
-| **Anthropic** | Claude Opus 4, Claude Sonnet 4, Claude 3.5 |
-| **Google Gemini** | Gemini 2.5 Pro, Gemini 2.0 Flash |
-| **xAI** | Grok 3, Grok 3 Fast, Grok 2 Vision |
-| **Mistral** | Mistral Large, Codestral, Pixtral |
-| **DeepSeek** | DeepSeek Chat, DeepSeek Coder, DeepSeek R1 |
-| **Alibaba Qwen** | Qwen Max, Qwen Coder Plus |
-| **Groq** | Llama 3.3 70B, Mixtral (Free tier) |
-| **Ollama** | Llama 3.2, Mistral, Code Llama (Local) |
-
----
-
-## 📋 Available Commands
-
-### TUI Mode (Terminal Interface)
-```bash
-nexus                  Launch TUI (default)
-nexus tui              Same as above
-nexus chat             Open AI chat directly
-```
-
-### Web Mode (Browser Interface)
-```bash
-nexus start            Start development server
-nexus start --port 8080  Custom port
-```
-
-### Quick Commands
-```bash
-nexus ai "prompt"      Ask AI a question
-nexus explain file.js  AI explains code
-nexus run file.js      Execute code
-nexus ls               List files
-nexus cat file.js      View file
-nexus edit file.js     Edit file
-nexus config           Show configuration
-```
-
----
-
-## ⌨️ Keyboard Shortcuts
-
-### Main Menu
-| Key | Action |
-|-----|--------|
-| `↑` `↓` | Navigate options |
-| `1-8` | Quick select |
-| `Enter` | Confirm |
-| `Q` / `Esc` | Quit / Go back |
-
-### File Browser
-| Key | Action |
-|-----|--------|
-| `↑` `↓` | Navigate files |
-| `Enter` | Open file/folder |
-| `E` | Edit file |
-| `D` | Delete file |
-| `N` | Create new file |
-| `H` | Go to parent folder |
-
-### AI Chat
-| Key | Action |
-|-----|--------|
-| `C` | Start chat |
-| `H` | Show AI help |
-
----
-
-## 🖼️ TUI Layout
-
-```
-╔═══════════════════════════════════════════════════════════════╗
-║                      NEXUS IDE v5.0.0                         ║
-╠═══════════════════════════════════════════════════════════════╣
-║                                                               ║
-║   Welcome to Nexus IDE TUI                                    ║
-║                                                               ║
-║   🚀 1. Start Web IDE Server                                  ║
-║   📁 2. File Browser                                          ║
-║   🤖 3. AI Assistant                                          ║
-║   ▶️ 4. Run Code                                              ║
-║   📚 5. Git Status                                            ║
-║   ⚙️ 6. Settings                                              ║
-║   ❓ 7. Help                                                  ║
-║   🚪 8. Exit                                                  ║
-║                                                               ║
-║   Use ↑↓ or 1-8 to select, Enter to confirm, Q to quit       ║
-║                                                               ║
-║   Provider: Google Gemini                                     ║
-║   Model: gemini-2.0-flash                                     ║
-╚═══════════════════════════════════════════════════════════════╝
-```
+| **Professional** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web |
+| **CLI (This)** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
 
 ---
 
 ## 🎯 Use Cases
 
-### Perfect For:
-- **SSH/Remote Development**: Full IDE over SSH
-- **Low Resource Machines**: Lightweight terminal interface
-- **Server Administration**: Edit configs and run commands
-- **WSL/Container Development**: Native terminal experience
-- **Keyboard-Centric Developers**: No mouse needed
-
-### AI-Powered Features:
-- **Code Generation**: Generate code from prompts
-- **Code Explanation**: Understand complex code
-- **Error Fixing**: Get help with bugs
-- **Multi-Provider Support**: Use your preferred AI
-
----
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-# AI Provider Keys
-NEXUS_AI_KEY          Your API key
-NEXUS_AI_PROVIDER     Provider (gemini, openai, anthropic, etc.)
-NEXUS_AI_MODEL        Model name
-```
-
-### Config File
-Settings are stored in `~/.nexus-ide/config.json`
+- 🖥️ **SSH Development** - Full IDE over SSH
+- ☁️ **Server Admin** - Edit configs remotely
+- 📱 **Low Resources** - Lightweight interface
+- ⌨️ **Keyboard Lovers** - No mouse needed
+- 🐧 **Linux/WSL** - Native terminal experience
 
 ---
 
@@ -191,24 +118,18 @@ Settings are stored in `~/.nexus-ide/config.json`
 
 | Resource | Link |
 |----------|------|
-| **GitHub Repo** | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
-| **Stable Branch** | `git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
-| **Beta Branch** | `git clone -b main https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
-| **Professional Branch** | `git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
-| **Report Issue** | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
+| GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
+| Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
+| Stable | `git clone -b stable ...` |
+| Beta | `git clone -b main ...` |
+| Professional | `git clone -b professional ...` |
 
 ---
 
-## 💖 Community & Contributing
+<div align="center">
 
-Nexus IDE is an open-source project. Contributions are welcome! Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+### Made with ❤️ by Taz
 
----
+*Terminal. Simplified.*
 
-## 📄 License
-
-Nexus IDE is licensed under the [MIT License](LICENSE).
-
----
-
-*Crafted with ❤️ for terminal lovers by Taz.*
+</div>
