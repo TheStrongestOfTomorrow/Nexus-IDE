@@ -28,13 +28,14 @@ nexus-ide
 
 ---
 
-## 🌿 Other Versions
+## 🌿 All Versions
 
 | Version | Install | Description |
 |---------|---------|-------------|
-| **Stable** | `npx nexus-ide` | ✅ Production ready |
+| **Stable** | `npx nexus-ide` | ✅ Production ready web IDE |
 | **Beta (This)** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **CLI (TUI)** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal interface |
+| **Professional** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web dual mode, office-ready |
+| **CLI/TUI** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal interface only |
 
 ---
 
@@ -180,6 +181,8 @@ npm run dev
 | **NPM Package** | https://www.npmjs.com/package/nexus-ide |
 | **GitHub Repo** | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | **Stable Branch** | `git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
+| **Beta Branch (This)** | `git clone -b main https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
+| **Professional Branch** | `git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
 | **CLI Branch** | `git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git` |
 | **Report Issue** | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
 
