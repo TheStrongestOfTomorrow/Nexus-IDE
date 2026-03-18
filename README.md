@@ -5,13 +5,41 @@
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/npm/v/nexus-ide?color=blue" alt="NPM Version" />
   <img src="https://img.shields.io/badge/Version-4.4.0-blue" alt="Version 4.4.0" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-green" alt="Status" />
-  <img src="https://img.shields.io/badge/Performance-5x_Faster-orange" alt="Performance" />
-  <img src="https://img.shields.io/badge/Privacy-First-blueviolet" alt="Privacy" />
+  <img src="https://img.shields.io/npm/l/nexus-ide?color=blueviolet" alt="License" />
 </p>
 
 Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface. Optimized for both desktop and mobile (Termux), Nexus is the perfect tool for developers who value speed, efficiency, and privacy.
+
+---
+
+## 📦 Quick Start (NPM)
+
+The fastest way to get started with Nexus IDE:
+
+```bash
+# Run instantly (no install required)
+npx nexus-ide
+
+# Or install globally
+npm install -g nexus-ide
+nexus-ide
+```
+
+That's it! Nexus IDE will start on `http://localhost:3000`
+
+### CLI Commands
+
+```bash
+npx nexus-ide              # Start development server
+npx nexus-ide build        # Build for production
+npx nexus-ide serve        # Build and serve production
+npx nexus-ide --port 8080  # Custom port
+npx nexus-ide --open       # Open browser automatically
+npx nexus-ide --help       # Show all options
+```
 
 ---
 
@@ -28,6 +56,12 @@ Welcome to the most powerful version of Nexus IDE yet! **v4.4** introduces a sui
 *   **Custom Instructions:** New, fine-tuned instructions for the AI assistant in Chat and Agent modes give you more control over the AI's behavior.
 *   **Say /yes to Ship:** Are you tired of confirming every little change the AI wants to make? Just type `/yes` in the chat, and the AI will have full control to build, test, and deploy your code.
 *   **Prototyper Mode:** The new Composer/Vibe mode allows you to build entire applications from a single prompt. Just describe what you want to build, and the AI will do the rest.
+*   **12+ AI Providers:** OpenAI, Anthropic Claude, Google Gemini, xAI (Grok), Mistral, DeepSeek, Alibaba Qwen, Groq, Cohere, Perplexity, Together AI, and Ollama (local).
+
+### 🧩 Extension System
+*   **OpenVSX Registry:** Browse and install extensions directly from OpenVSX
+*   **VSIX Support:** Upload and install local `.vsix` files
+*   **Extension Management:** Enable, disable, and uninstall extensions
 
 ### 🌐 A True VS Code Experience
 
@@ -72,6 +106,23 @@ Our real-time collaboration now works everywhere! We've implemented a fallback s
 
 ## 🚀 Deployment & Releases
 
+### 📦 NPM Package (Recommended)
+
+```bash
+# Quick start
+npx nexus-ide
+
+# Install globally
+npm install -g nexus-ide
+nexus-ide
+
+# Build for production
+npx nexus-ide build
+
+# Serve production build
+npx nexus-ide serve
+```
+
 ### 🌐 Web Version (GitHub Pages)
 Nexus IDE is fully compatible with GitHub Pages. AI features use direct browser-to-API calls, and collaboration is powered by the Nexus Cloud signaling bridge.
 
@@ -84,6 +135,19 @@ Powered by Tauri, Nexus IDE is also available as a lightweight native desktop ap
 ---
 
 ## 🛠️ Getting Started (Local Development)
+
+### Option 1: NPM (Recommended)
+
+```bash
+# Run instantly
+npx nexus-ide
+
+# Or install globally
+npm install -g nexus-ide
+nexus-ide
+```
+
+### Option 2: Clone from GitHub
 
 1.  **Clone the Repository:**
     ```bash
@@ -99,14 +163,33 @@ Powered by Tauri, Nexus IDE is also available as a lightweight native desktop ap
 3.  **Configure Authentication (Optional):**
     Create a `.env` file at the root of the project and add your GitHub Client ID and Secret for full GitHub integration.
     ```
-    VITE_GITHUB_CLIENT_ID=your_client_id
-    VITE_GITHUB_CLIENT_SECRET=your_client_secret
+    GITHUB_CLIENT_ID=your_client_id
+    GITHUB_CLIENT_SECRET=your_client_secret
     ```
 
 4.  **Run the Development Server:**
     ```bash
     npm run dev
     ```
+
+---
+
+## 🤖 Supported AI Providers
+
+| Provider | Models |
+|----------|--------|
+| **OpenAI** | GPT-4o, GPT-4o Mini, O1, O3 Mini |
+| **Anthropic** | Claude Opus 4, Claude Sonnet 4, Claude 3.5 |
+| **Google Gemini** | Gemini 2.5 Pro, Gemini 2.0 Flash |
+| **xAI** | Grok 3, Grok 3 Fast, Grok 2 Vision |
+| **Mistral** | Mistral Large, Codestral, Pixtral |
+| **DeepSeek** | DeepSeek Chat, DeepSeek Coder, DeepSeek R1 |
+| **Alibaba Qwen** | Qwen Max, Qwen Coder Plus |
+| **Groq** | Llama 3.3 70B, Mixtral (Free tier) |
+| **Cohere** | Command R+, Command R |
+| **Perplexity** | Sonar Pro, Sonar Reasoning |
+| **Together AI** | Llama 3.3, Mistral, Qwen models |
+| **Ollama** | Llama 3.2, Mistral, Code Llama (Local) |
 
 ---
 
