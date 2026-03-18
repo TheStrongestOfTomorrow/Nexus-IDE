@@ -140,7 +140,7 @@ export default function App() {
 
   useEffect(() => {
     if (isFsLoaded && !ide.activeFileId && files.length > 0) {
-      ide.setActiveFileId(files[0]..id);
+      ide.setActiveFileId(files[0].id);
       ide.setOpenFileIds([files[0].id]);
     }
   }, [isFsLoaded, files, ide.activeFileId]);
@@ -340,7 +340,7 @@ export default function App() {
             )}
             {ide.activeActivity === 'extensions' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <ExtensionsView extensions={[]} onAddExtension={() => {}} onRemoveExtension={() => {}} onToggleExtension={() => {}} />
+                <ExtensionsView />
               </div>
             )}
             {ide.activeActivity === 'collab' && (
