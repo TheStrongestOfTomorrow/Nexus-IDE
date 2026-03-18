@@ -56,14 +56,14 @@ nexus-ide
 
 ---
 
-## 🌿 All Versions
+## 🌿 All NPM Versions
 
-| Version | Install | Description |
-|---------|---------|-------------|
-| **Stable** | `npx nexus-ide` | ✅ Production ready |
+| Version | Install Command | Description |
+|---------|-----------------|-------------|
+| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready |
 | **Beta (This)** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **Professional** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web |
-| **CLI/TUI** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
+| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
 
 ---
 
@@ -119,9 +119,11 @@ Connect GitHub → Auto-deploy
 | NPM | https://www.npmjs.com/package/nexus-ide |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
-| Stable | `git clone -b stable ...` |
-| Professional | `git clone -b professional ...` |
-| CLI | `git clone -b cli ...` |
+| **Install** | |
+| Stable | `npx nexus-ide@latest` |
+| Beta | `npx nexus-ide@beta` |
+| Professional | `npx nexus-ide@pro` |
+| CLI | `npx nexus-ide@cli` |
 
 ---
 
