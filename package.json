@@ -1,15 +1,17 @@
 {
-  "name": "nexus-ide",
-  "version": "4.4.0",
-  "description": "The AI-First, Browser-Based IDE - A modern, high-performance web-based IDE with AI integration, VS Code-like experience, and support for multiple AI providers.",
+  "name": "nexus-ide-cli",
+  "version": "1.0.0",
+  "description": "Nexus IDE CLI - Full Terminal IDE Experience with AI Assistant, Code Execution, and more",
   "author": "TheStrongestOfTomorrow",
   "license": "MIT",
   "type": "module",
   "main": "server.ts",
   "bin": {
-    "nexus-ide": "./bin/nexus-ide.js"
+    "nexus": "./cli/nexus.js",
+    "nexus-ide": "./cli/nexus.js"
   },
   "files": [
+    "cli/",
     "bin/",
     "src/",
     "public/",
@@ -23,21 +25,24 @@
   ],
   "keywords": [
     "ide",
+    "cli",
+    "terminal",
     "code-editor",
     "web-ide",
     "ai",
     "monaco-editor",
     "vscode-alternative",
     "browser-ide",
-    "code-editor",
     "ai-assistant",
     "development",
     "programming",
-    "online-ide"
+    "terminal-ide",
+    "tui"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git"
+    "url": "git+https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git",
+    "directory": "cli"
   },
   "bugs": {
     "url": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues"
@@ -52,14 +57,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "serve": "npm run build && npx serve dist -p 3000",
-    "deploy": "npm run build && npx gh-pages -d dist",
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
+    "cli": "node cli/nexus.js",
+    "nexus": "node cli/nexus.js",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
-    "capacitor:android": "npm run build && npx cap sync android && npx cap open android",
-    "prepublishOnly": "npm run build"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
