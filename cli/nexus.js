@@ -2,7 +2,7 @@
 
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
- * ║                        NEXUS IDE CLI - TUI v2.0                           ║
+ * ║                        NEXUS IDE CLI - TUI v5.0                           ║
  * ║                   Terminal User Interface Edition                         ║
  * ║                                                                           ║
  * ║   A complete terminal-based IDE with AI integration, file management,     ║
