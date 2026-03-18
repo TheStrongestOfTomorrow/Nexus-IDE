@@ -56,22 +56,17 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "tsx server.ts",
-    "start": "tsx server.ts",
-    "web": "tsx server.ts",
-    "tui": "node cli/tui/index.js",
+    "start": "node bin/nexus-pro.js",
+    "pro": "node bin/nexus-pro.js",
+    "tui": "node cli/nexus.js",
     "cli": "node cli/nexus.js",
+    "web": "tsx server.ts",
+    "dev": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "npm run build && npx serve dist -p 3000",
-    "deploy": "npm run build && npx gh-pages -d dist",
-    "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit",
-    "capacitor:android": "npm run build && npx cap sync android && npx cap open android",
-    "prepublishOnly": "npm run build"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

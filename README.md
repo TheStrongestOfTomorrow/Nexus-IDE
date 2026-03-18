@@ -6,6 +6,7 @@
 
 ### *The Ultimate Office-Ready Development Environment*
 
+[![NPM Pro](https://img.shields.io/badge/NPM-@pro%20Tag-6366f1?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
 [![Version](https://img.shields.io/badge/Version-1.0.0-6366f1?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![Mode](https://img.shields.io/badge/Mode-CLI%20%2B%20Web-10b981?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
@@ -17,13 +18,78 @@
 
 ## ⚡ Quick Start
 
+### From NPM (Recommended)
 ```bash
-# Run instantly from GitHub
-npx github:TheStrongestOfTomorrow/Nexus-IDE#professional
+# Run instantly - no install needed
+npx nexus-ide@pro
 
-# Choose your mode
-# 1. Terminal (TUI) - Full IDE in your terminal
-# 2. Web - Browser-based IDE
+# Or install globally
+npm install -g nexus-ide@pro
+nexus-pro
+```
+
+### From GitHub
+```bash
+npx github:TheStrongestOfTomorrow/Nexus-IDE#professional
+```
+
+---
+
+## 🚀 How to Use
+
+### ⚠️ IMPORTANT: Do NOT use `npm run dev`
+
+The Professional edition has TWO modes. Using `npm run dev` starts ONLY the web server!
+
+### ✅ Correct Usage
+
+```bash
+# After cloning the repo
+git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install
+
+# Interactive mode selector (CHOOSE YOUR MODE)
+npm start
+# OR
+node bin/nexus-pro.js
+# OR
+npx nexus-pro
+```
+
+### 📋 Mode Selection
+
+When you run `nexus-pro`, you'll see:
+
+```
+███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗
+████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝
+██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗
+██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║
+██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║
+╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+     ★ Professional Edition ★ CLI + Web ★
+
+Choose your mode:
+
+  1. Terminal Mode (TUI)     Full IDE in your terminal
+  2. Web Mode                Browser-based IDE
+  3. Quick Commands          AI, files, config
+  4. Help                    Show all options
+  5. Exit                    Quit
+
+Your choice: _
+```
+
+### 🎯 Direct Commands
+
+```bash
+nexus-pro              # Interactive selector
+nexus-pro tui          # Terminal Mode directly
+nexus-pro web          # Web Mode directly
+nexus-pro web --port 8080  # Custom port
+nexus-pro ai "prompt"  # Quick AI question
+nexus-pro config       # View settings
 ```
 
 ---
@@ -63,18 +129,6 @@ npx github:TheStrongestOfTomorrow/Nexus-IDE#professional
 
 ---
 
-## 📋 Commands
-
-```bash
-nexus-pro              # Interactive mode selector
-nexus-pro tui          # Terminal mode
-nexus-pro web          # Web mode
-nexus-pro --port 8080  # Custom port
-nexus-pro ai "prompt"  # Quick AI question
-```
-
----
-
 ## 🤖 AI Providers
 
 | Provider | Models | Best For |
@@ -90,26 +144,14 @@ nexus-pro ai "prompt"  # Quick AI question
 
 ---
 
-## 🎯 Perfect For
+## 🌿 All NPM Versions
 
-| Use Case | Why |
-|----------|-----|
-| 💼 **Office Work** | Docs, meetings, presentations |
-| 🖥️ **Remote Dev** | SSH + TUI for servers |
-| 🤝 **Teams** | Real-time collaboration |
-| 🏢 **Enterprise** | CI/CD, Docker, Git |
-| 📚 **Education** | Teaching, workshops |
-
----
-
-## 🌿 All Versions
-
-| Version | Install Command |
-|---------|-----------------|
-| Stable | `npx nexus-ide` |
-| Beta | `npx nexus-ide@beta` |
-| Professional | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` |
-| CLI/TUI | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` |
+| Version | Install Command | Description |
+|---------|-----------------|-------------|
+| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready |
+| **Beta** | `npx nexus-ide@beta` | 🧪 Latest features |
+| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
 
 ---
 
@@ -117,11 +159,12 @@ nexus-pro ai "prompt"  # Quick AI question
 
 | Resource | URL |
 |----------|-----|
+| NPM | https://www.npmjs.com/package/nexus-ide |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
-| Stable | `git clone -b stable ...` |
-| Beta | `git clone -b main ...` |
-| CLI | `git clone -b cli ...` |
+| Stable | `npx nexus-ide@latest` |
+| Beta | `npx nexus-ide@beta` |
+| CLI | `npx nexus-ide@cli` |
 
 ---
 
