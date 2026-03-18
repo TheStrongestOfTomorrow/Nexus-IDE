@@ -1,176 +1,159 @@
-# 🚀 Nexus IDE: The AI-First, Browser-Based IDE
+# 🖥️ Nexus IDE CLI - Terminal-Based IDE
+
+> **GitHub Only Release** - Not on npm (yet!)
 
 <p align="center">
-  <img src="https://lucide.dev/api/icons/zap?size=64&color=3b82f6" alt="Nexus Logo" />
+  <img src="https://lucide.dev/api/icons/terminal?size=64&color=3b82f6" alt="Nexus CLI Logo" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/npm/v/nexus-ide?color=blue" alt="NPM Version" />
-  <img src="https://img.shields.io/badge/Version-4.4.0-blue" alt="Version 4.4.0" />
-  <img src="https://img.shields.io/badge/Status-Production_Ready-green" alt="Status" />
-  <img src="https://img.shields.io/npm/l/nexus-ide?color=blueviolet" alt="License" />
+  <img src="https://img.shields.io/badge/Version-1.0.0-blue" alt="Version" />
+  <img src="https://img.shields.io/badge/Platform-Terminal-green" alt="Platform" />
+  <img src="https://img.shields.io/badge/AI-Powered-magenta" alt="AI" />
 </p>
 
-Nexus IDE is a modern, high-performance, browser-based IDE designed for the next generation of developers. It offers a powerful, VS Code-like experience, enhanced with AI-first features and a streamlined interface. Optimized for both desktop and mobile (Termux), Nexus is the perfect tool for developers who value speed, efficiency, and privacy.
-
 ---
 
-## 📦 Quick Start (NPM)
+## 🚀 Quick Start
 
-The fastest way to get started with Nexus IDE:
+### Install from GitHub
 
 ```bash
-# Run instantly (no install required)
-npx nexus-ide
+# Run directly (recommended)
+npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
 
 # Or install globally
-npm install -g nexus-ide
-nexus-ide
+npm install -g github:TheStrongestOfTomorrow/Nexus-IDE#cli
 ```
 
-That's it! Nexus IDE will start on `http://localhost:3000`
-
-### CLI Commands
+### Start Interactive Mode
 
 ```bash
-npx nexus-ide              # Start development server
-npx nexus-ide build        # Build for production
-npx nexus-ide serve        # Build and serve production
-npx nexus-ide --port 8080  # Custom port
-npx nexus-ide --open       # Open browser automatically
-npx nexus-ide --help       # Show all options
+nexus
 ```
 
 ---
 
-## 🚀 Nexus IDE v4.4 - The God Update
+## 📖 Commands
 
-Welcome to the most powerful version of Nexus IDE yet! **v4.4** introduces a suite of new features designed to make you a 10x developer.
+### 🌐 IDE & Server
+
+| Command | Description |
+|---------|-------------|
+| `nexus` | Start interactive menu |
+| `nexus start` | Start web IDE server |
+| `nexus server` | Start web IDE server |
+| `nexus start --port 8080` | Server on custom port |
+| `nexus open` | Open IDE in browser |
+
+### 🤖 AI Assistant
+
+| Command | Description |
+|---------|-------------|
+| `nexus ai "your prompt"` | Ask AI a question |
+| `nexus chat` | Interactive AI chat |
+| `nexus explain <file>` | AI explains code |
+| `nexus refactor <file>` | AI refactors code |
+| `nexus test <file>` | AI generates tests |
+| `nexus docs <file>` | AI generates documentation |
+
+### 📁 File Operations
+
+| Command | Description |
+|---------|-------------|
+| `nexus ls [path]` | List files |
+| `nexus cat <file>` | View file content |
+| `nexus edit <file>` | Edit file in terminal |
+| `nexus create <file>` | Create new file |
+| `nexus rm <file>` | Delete file |
+| `nexus mkdir <path>` | Create directory |
+
+### ▶️ Code Execution
+
+| Command | Description |
+|---------|-------------|
+| `nexus run <file>` | Execute code file |
+| `nexus repl` | Start REPL |
+| `nexus test` | Run tests |
+
+### 📦 Project
+
+| Command | Description |
+|---------|-------------|
+| `nexus init [name]` | Initialize new project |
+| `nexus info` | Show project info |
+| `nexus deps` | Manage dependencies |
+| `nexus build` | Build project |
+
+### 🔧 Configuration
+
+| Command | Description |
+|---------|-------------|
+| `nexus config` | Show/edit configuration |
+| `nexus keys` | Manage API keys |
+| `nexus help` | Show help |
+| `nexus version` | Show version |
 
 ---
 
-## 🔥 Key Features of v4.4
+## ⚙️ Configuration
 
-### 🤖 AI That Works for You
-
-*   **Custom Instructions:** New, fine-tuned instructions for the AI assistant in Chat and Agent modes give you more control over the AI's behavior.
-*   **Say /yes to Ship:** Are you tired of confirming every little change the AI wants to make? Just type `/yes` in the chat, and the AI will have full control to build, test, and deploy your code.
-*   **Prototyper Mode:** The new Composer/Vibe mode allows you to build entire applications from a single prompt. Just describe what you want to build, and the AI will do the rest.
-*   **12+ AI Providers:** OpenAI, Anthropic Claude, Google Gemini, xAI (Grok), Mistral, DeepSeek, Alibaba Qwen, Groq, Cohere, Perplexity, Together AI, and Ollama (local).
-
-### 🧩 Extension System
-*   **OpenVSX Registry:** Browse and install extensions directly from OpenVSX
-*   **VSIX Support:** Upload and install local `.vsix` files
-*   **Extension Management:** Enable, disable, and uninstall extensions
-
-### 🌐 A True VS Code Experience
-
-*   **VSIX Extension Support:** Install and use your favorite VS Code extensions directly in Nexus IDE. No more compromises.
-*   **Beginner Friendly UI:** A new, simplified UI for beginners makes it easier than ever to get started with Nexus IDE. The classic UI is still available in the settings for power users.
-*   **Working Templates:** The template system has been completely overhauled. Now you can create and use templates that "actually work."
-
----
-
-## ✨ Why Choose Nexus IDE?
-
-*   **Blazing Fast:** 5x faster than traditional IDEs, with a lightweight footprint.
-*   **AI-Powered:** Integrated AI assistant and voice commands to supercharge your workflow.
-*   **Cross-Platform:** Use it on the web, as a native desktop app, or on your Android device.
-*   **Privacy-First:** Your code, your keys, your privacy. No unnecessary data collection.
-*   **Real-time Collaboration:** Seamlessly code with your team, no matter where you are.
-*   **Extensible and Customizable:** Tailor the IDE to your needs with custom themes, and more.
-
----
-
-## 🔮 Key Features
-
-### 🎙️ Nexus Voice
-Control your IDE with your voice. Simply click the microphone icon in the Title Bar to get started.
-*   **"Run Code"**: Executes the current file.
-*   **"Open Settings"**: Opens the settings panel.
-*   **"Toggle Terminal"**: Shows/hides the terminal.
-*   **"Clear Workspace"**: Safely wipes files with a confirmation prompt.
-
-### 🧘 Zen Mode
-Focus on your code without distractions. Click the Eye icon in the Title Bar to instantly hide all sidebars and terminals.
-
-### 🎨 Theme Studio & Visualization
-*   **Theme Studio**: Create your own custom color themes.
-*   **Dependency Graph**: Visualize your project's dependencies from `package.json`.
-*   **Project Insights**: Get statistics on lines of code, file types, and languages used.
-
-### ☁️ Nexus Cloud Bridge
-Our real-time collaboration now works everywhere! We've implemented a fallback signaling server so the **Collaboration Bridge** works even on static platforms like GitHub Pages.
-
----
-
-## 🚀 Deployment & Releases
-
-### 📦 NPM Package (Recommended)
+### Set AI Provider
 
 ```bash
-# Quick start
-npx nexus-ide
-
-# Install globally
-npm install -g nexus-ide
-nexus-ide
-
-# Build for production
-npx nexus-ide build
-
-# Serve production build
-npx nexus-ide serve
+nexus config
+# Follow the prompts
 ```
 
-### 🌐 Web Version (GitHub Pages)
-Nexus IDE is fully compatible with GitHub Pages. AI features use direct browser-to-API calls, and collaboration is powered by the Nexus Cloud signaling bridge.
+### Environment Variables
 
-### 📱 Android Release (APK)
-Nexus IDE is optimized for Android devices. You can download the latest automated APK build from the [Actions tab](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/actions).
+```bash
+export NEXUS_AI_KEY=your_api_key
+export NEXUS_AI_PROVIDER=gemini  # or openai, anthropic
+export NEXUS_AI_MODEL=gemini-2.0-flash
+```
 
-### 💻 Desktop Releases (Windows, macOS, Linux)
-Powered by Tauri, Nexus IDE is also available as a lightweight native desktop application. You can find the latest releases in the [GitHub Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) section.
+### Config File
+
+Config is stored at: `~/.nexus-ide/config.json`
+
+```json
+{
+  "apiKey": "your-api-key",
+  "provider": "gemini",
+  "model": "gemini-2.0-flash",
+  "workspace": "/path/to/project"
+}
+```
 
 ---
 
-## 🛠️ Getting Started (Local Development)
+## 🎮 Interactive Mode
 
-### Option 1: NPM (Recommended)
+Just run `nexus` without arguments:
 
-```bash
-# Run instantly
-npx nexus-ide
-
-# Or install globally
-npm install -g nexus-ide
-nexus-ide
 ```
+███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗
+████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝
+██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗
+██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║
+██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║
+╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 
-### Option 2: Clone from GitHub
+★ Terminal IDE • AI-Powered • GitHub Only ★
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
-    cd Nexus-IDE
-    ```
+What would you like to do?
 
-2.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Configure Authentication (Optional):**
-    Create a `.env` file at the root of the project and add your GitHub Client ID and Secret for full GitHub integration.
-    ```
-    GITHUB_CLIENT_ID=your_client_id
-    GITHUB_CLIENT_SECRET=your_client_secret
-    ```
-
-4.  **Run the Development Server:**
-    ```bash
-    npm run dev
-    ```
+  1. Start Web IDE Server
+  2. Open AI Chat
+  3. Browse Files
+  4. Run Code
+  5. Edit File
+  6. Project Info
+  7. Git Status
+  8. Settings
+  9. Exit
+```
 
 ---
 
@@ -178,31 +161,120 @@ nexus-ide
 
 | Provider | Models |
 |----------|--------|
-| **OpenAI** | GPT-4o, GPT-4o Mini, O1, O3 Mini |
-| **Anthropic** | Claude Opus 4, Claude Sonnet 4, Claude 3.5 |
-| **Google Gemini** | Gemini 2.5 Pro, Gemini 2.0 Flash |
-| **xAI** | Grok 3, Grok 3 Fast, Grok 2 Vision |
-| **Mistral** | Mistral Large, Codestral, Pixtral |
-| **DeepSeek** | DeepSeek Chat, DeepSeek Coder, DeepSeek R1 |
-| **Alibaba Qwen** | Qwen Max, Qwen Coder Plus |
-| **Groq** | Llama 3.3 70B, Mixtral (Free tier) |
-| **Cohere** | Command R+, Command R |
-| **Perplexity** | Sonar Pro, Sonar Reasoning |
-| **Together AI** | Llama 3.3, Mistral, Qwen models |
-| **Ollama** | Llama 3.2, Mistral, Code Llama (Local) |
+| **Google Gemini** | gemini-2.0-flash, gemini-1.5-pro |
+| **OpenAI** | gpt-4o, gpt-4o-mini, o1-preview |
+| **Anthropic** | claude-opus-4, claude-sonnet-4 |
+| **xAI** | grok-3, grok-2-vision |
+| **Mistral** | mistral-large, codestral |
+| **DeepSeek** | deepseek-chat, deepseek-coder |
+| **Groq** | llama-3.3-70b, mixtral |
+| **Ollama** | llama3.2, mistral, codellama |
 
 ---
 
-## 💖 Community & Contributing
+## 📝 Examples
 
-Nexus IDE is an open-source project and we welcome contributions from the community. If you'd like to get involved, please check out our [CONTRIBUTING.md](CONTRIBUTING.md) file for more information on how to submit pull requests, report bugs, and suggest new features.
+### Start IDE Server
+
+```bash
+nexus start --port 8080
+```
+
+### Ask AI
+
+```bash
+nexus ai "How do I center a div in CSS?"
+nexus ai "Write a function to sort an array"
+nexus ai "Debug this error: TypeError: Cannot read property 'x' of undefined"
+```
+
+### AI Chat
+
+```bash
+nexus chat
+# Interactive conversation with AI
+```
+
+### Edit File
+
+```bash
+nexus edit src/App.tsx
+# Opens in nano/vim
+```
+
+### Run Code
+
+```bash
+nexus run main.ts
+nexus run script.py
+nexus run app.js
+```
+
+### Explain Code
+
+```bash
+nexus explain complex-algorithm.ts
+```
+
+---
+
+## 🔌 Run Web IDE
+
+The CLI can also start the full web-based IDE:
+
+```bash
+nexus start
+# Open http://localhost:3000 in browser
+```
+
+---
+
+## 📦 Installation Options
+
+### Option 1: One-time Run (No Install)
+
+```bash
+npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
+```
+
+### Option 2: Global Install
+
+```bash
+npm install -g github:TheStrongestOfTomorrow/Nexus-IDE#cli
+nexus
+```
+
+### Option 3: Clone & Run
+
+```bash
+git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install
+node cli/nexus.js
+```
+
+---
+
+## 🔧 Requirements
+
+- **Node.js** >= 18.0.0
+- **npm** or **pnpm** or **yarn**
 
 ---
 
 ## 📄 License
 
-Nexus IDE is licensed under the [MIT License](LICENSE).
+MIT License - See [LICENSE](LICENSE)
 
 ---
 
-*Crafted with ❤️ for the modern developer by Taz.*
+## 🔗 Links
+
+- **Main IDE (npm):** `npx nexus-ide`
+- **CLI (GitHub only):** `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli`
+- **Repository:** [GitHub](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+- **Issues:** [Report Bug](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues)
+
+---
+
+*Crafted with ❤️ for terminal lovers by Taz*
