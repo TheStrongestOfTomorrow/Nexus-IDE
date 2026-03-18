@@ -6,9 +6,9 @@
 
 ### *Code in Your Terminal. AI at Your Fingertips.*
 
+[![NPM CLI](https://img.shields.io/badge/NPM-@cli%20Tag-3b82f6?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
 [![Version](https://img.shields.io/badge/Version-5.0.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Terminal-10b981?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 
 </div>
@@ -17,14 +17,53 @@
 
 ## ⚡ Quick Start
 
+### From NPM (Recommended)
 ```bash
-# Run instantly from GitHub
-npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
+# Run instantly - no install needed
+npx nexus-ide@cli
 
-# Or clone and run
-git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
-cd Nexus-IDE && npm install && npx nexus
+# Or install globally
+npm install -g nexus-ide@cli
+nexus
 ```
+
+### From GitHub
+```bash
+npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
+```
+
+---
+
+## 🚀 How to Use
+
+### ⚠️ IMPORTANT: Do NOT use `npm run dev`
+
+The TUI is designed to run directly. Using `npm run dev` starts the web server, NOT the terminal interface!
+
+### ✅ Correct Usage
+
+```bash
+# After cloning the repo
+git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install
+
+# Run TUI (Terminal User Interface)
+npm run tui
+# OR
+node cli/nexus.js
+# OR
+npx nexus
+```
+
+### 📋 Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `npx nexus-ide@cli` | Run TUI from npm |
+| `npm run tui` | Run TUI (after clone) |
+| `node cli/nexus.js` | Run TUI directly |
+| `nexus` | Run TUI (if installed globally) |
 
 ---
 
@@ -79,12 +118,12 @@ cd Nexus-IDE && npm install && npx nexus
 
 ---
 
-## 📋 Commands
+## 📋 CLI Commands
 
 ```bash
-nexus                    # Launch TUI
+nexus                    # Launch TUI (default)
 nexus tui                # Same as above
-nexus start              # Start web server
+nexus start              # Start web server (not TUI!)
 nexus ai "prompt"        # Quick AI question
 nexus run file.js        # Execute code
 nexus ls                 # List files
@@ -93,14 +132,14 @@ nexus config             # View settings
 
 ---
 
-## 🌿 All Versions
+## 🌿 All NPM Versions
 
-| Version | Install | Description |
-|---------|---------|-------------|
-| **Stable** | `npx nexus-ide` | ✅ Production ready |
+| Version | Install Command | Description |
+|---------|-----------------|-------------|
+| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready |
 | **Beta** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **Professional** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web |
-| **CLI (This)** | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
+| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
+| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web |
 
 ---
 
@@ -114,15 +153,34 @@ nexus config             # View settings
 
 ---
 
+## 🔧 Configuration
+
+### Set AI Provider
+```bash
+# In TUI, go to Settings (option 6)
+# Or use environment variables:
+export NEXUS_AI_PROVIDER=openai
+export NEXUS_AI_KEY=sk-...
+export NEXUS_AI_MODEL=gpt-4o
+```
+
+### Config File Location
+```
+~/.nexus-ide/config.json
+```
+
+---
+
 ## 🔗 Quick Links
 
 | Resource | Link |
 |----------|------|
+| NPM | https://www.npmjs.com/package/nexus-ide |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
-| Stable | `git clone -b stable ...` |
-| Beta | `git clone -b main ...` |
-| Professional | `git clone -b professional ...` |
+| Stable | `npx nexus-ide@latest` |
+| Beta | `npx nexus-ide@beta` |
+| Professional | `npx nexus-ide@pro` |
 
 ---
 

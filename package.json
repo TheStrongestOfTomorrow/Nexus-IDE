@@ -53,14 +53,15 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "start": "node cli/nexus.js",
+    "tui": "node cli/nexus.js",
+    "cli": "node cli/nexus.js",
+    "nexus": "node cli/nexus.js",
+    "web": "tsx server.ts",
     "dev": "tsx server.ts",
-    "start": "tsx server.ts",
     "build": "vite build",
     "preview": "vite preview",
     "serve": "npm run build && npx serve dist -p 3000",
-    "cli": "node cli/nexus.js",
-    "tui": "node cli/tui/index.js",
-    "nexus": "node cli/nexus.js",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit"
   },
