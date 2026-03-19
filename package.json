@@ -1,6 +1,6 @@
 {
   "name": "nexus-ide-cli",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Nexus IDE CLI - Full Terminal IDE Experience with TUI, AI Assistant, Code Execution, and more",
   "author": "TheStrongestOfTomorrow",
   "license": "MIT",
