@@ -7,17 +7,17 @@ export default function PomodoroTimer() {
   const [mode, setMode] = useState<'focus' | 'break'>('focus');
 
   useEffect(() => {
-    let interval: any;
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      setIsActive(false);
-      // Play sound or notification here
+    if (!isActive || timeLeft <= 0) {
+      if (timeLeft === 0) setIsActive(false);
+      return;
     }
+
+    const interval = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [isActive, timeLeft]);
+  }, [isActive]);
 
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => {

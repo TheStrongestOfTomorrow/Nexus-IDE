@@ -33,7 +33,7 @@ import { workspaceService } from './services/workspaceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, Layout, Brain, AlertCircle, X } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -185,14 +185,21 @@ export default function App() {
     if (!apiKey) return alert('Set Gemini API key in settings.');
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    
+
     try {
       const result = await model.generateContent(`Analyze the following project structure and generate a Mermaid class diagram or flowchart (TD) representing the architecture. Return only the mermaid code block.\n\nFiles: ${files.map(f => f.name).join(', ')}`);
       const response = result.response;
       const text = response.text();
       const match = text.match(/```mermaid\s*([\s\S]*?)\s*```/);
-      if (match) ide.setMermaidChart(match[1]);
-    } catch (e) { console.error(e); }
+      if (match) {
+        ide.setMermaidChart(match[1]);
+      } else {
+        alert('Analysis complete but no diagram generated. Response did not contain valid Mermaid code.');
+      }
+    } catch (error: any) {
+      console.error('Architecture analysis failed:', error);
+      alert(`Failed to analyze architecture: ${error.message}`);
+    }
   };
 
   const commands = [

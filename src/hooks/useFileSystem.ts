@@ -59,13 +59,17 @@ export function useFileSystem() {
           // Fallback to localStorage for migration
           const legacy = localStorage.getItem('nexus_files');
           if (legacy) {
-            const parsed = JSON.parse(legacy);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setFiles(parsed);
-              // Migrate to IDB
-              for (const f of parsed) {
-                await db.put('files', f);
+            try {
+              const parsed = JSON.parse(legacy);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setFiles(parsed);
+                // Migrate to IDB
+                for (const f of parsed) {
+                  await db.put('files', f);
+                }
               }
+            } catch (parseErr) {
+              console.error('Failed to parse legacy files:', parseErr);
             }
           }
         }

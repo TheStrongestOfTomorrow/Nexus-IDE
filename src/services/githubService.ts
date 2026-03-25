@@ -53,22 +53,31 @@ export const githubService = {
 
   // Helper to recursively fetch all files in a repo (simplified)
   fetchAllFiles: async (token: string, owner: string, repo: string, path: string = '') => {
-    const contents = await githubService.getRepoContents(token, owner, repo, path);
-    let files: { name: string, content: string, path: string }[] = [];
+    try {
+      const contents = await githubService.getRepoContents(token, owner, repo, path);
+      let files: { name: string, content: string, path: string }[] = [];
 
-    for (const item of contents) {
-      if (item.type === 'file') {
-        const fileData = await axios.get(item.download_url);
-        files.push({
-          name: item.name,
-          path: item.path,
-          content: typeof fileData.data === 'object' ? JSON.stringify(fileData.data, null, 2) : fileData.data
-        });
-      } else if (item.type === 'dir') {
-        const subFiles = await githubService.fetchAllFiles(token, owner, repo, item.path);
-        files = [...files, ...subFiles];
+      for (const item of contents) {
+        try {
+          if (item.type === 'file') {
+            const fileData = await axios.get(item.download_url);
+            files.push({
+              name: item.name,
+              path: item.path,
+              content: typeof fileData.data === 'object' ? JSON.stringify(fileData.data, null, 2) : fileData.data
+            });
+          } else if (item.type === 'dir') {
+            const subFiles = await githubService.fetchAllFiles(token, owner, repo, item.path);
+            files = [...files, ...subFiles];
+          }
+        } catch (itemErr) {
+          console.error(`Failed to fetch ${item.path}:`, itemErr);
+        }
       }
+      return files;
+    } catch (err) {
+      console.error('Failed to fetch repository contents:', err);
+      return [];
     }
-    return files;
   }
 };

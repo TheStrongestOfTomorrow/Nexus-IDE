@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } f
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
-import { Send, Bot, MessageSquare, Sparkles, Settings, Trash2, Terminal, Wand2, Zap, Maximize2, Minimize2, X, Play, Terminal as TerminalIcon, Globe } from 'lucide-react';
+import { Send, Bot, MessageSquare, Sparkles, Settings, Trash2, Terminal, Wand as Wand2, Zap, Maximize2, Minimize2, X, Play, Terminal as TerminalIcon, Globe } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
 import { terminalService } from '../services/terminalService';
@@ -148,9 +148,15 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
     if (userMessage.toLowerCase() === '/yes') {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content.includes('file system actions')) {
-            const actions = JSON.parse(lastMessage.content.substring(lastMessage.content.indexOf('['), lastMessage.content.lastIndexOf(']') + 1));
-            applyChanges(actions);
-            return;
+            try {
+              const jsonStr = lastMessage.content.substring(lastMessage.content.indexOf('['), lastMessage.content.lastIndexOf(']') + 1);
+              const actions = JSON.parse(jsonStr);
+              applyChanges(actions);
+              return;
+            } catch (parseErr) {
+              setMessages(prev => [...prev, { role: 'assistant', content: 'Error parsing file system actions. Please try again.' }]);
+              return;
+            }
         }
     }
 
@@ -243,11 +249,14 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
 
       if (battlegroundMode) {
         const providers = ['gemini', 'openai'].filter(p => apiKeys[p]);
-        const responses = await Promise.all(providers.map(async (p) => {
+        const responses = await Promise.allSettled(providers.map(async (p) => {
           const res = await fetchAIResponse(p, p === 'gemini' ? 'gemini-2.0-flash' : 'gpt-4o', apiKeys[p], newMessages);
           return { provider: p, text: res.text };
         }));
-        setBattleResponses(responses);
+        const successfulResponses = responses
+          .filter(r => r.status === 'fulfilled')
+          .map(r => (r as PromiseFulfilledResult<any>).value);
+        setBattleResponses(successfulResponses);
         setMessages(prev => [...prev, { role: 'assistant', content: 'Battleground results ready.' }]);
       } else {
         const responseData = await fetchAIResponse(selectedProvider, selectedModel, apiKey, newMessages);
