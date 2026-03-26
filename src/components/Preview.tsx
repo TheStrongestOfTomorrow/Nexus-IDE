@@ -350,8 +350,10 @@ ${activeFile.content.replace(/</g, '\\u003c')}
 
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
-    
-    iframeRef.current.src = url;
+
+    if (iframeRef.current) {
+      iframeRef.current.src = url;
+    }
 
     return () => URL.revokeObjectURL(url);
   }, [files, activeFileId, activeFolder, key]);
