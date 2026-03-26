@@ -83,8 +83,8 @@ The biggest update yet! Nexus IDE now includes **WebContainer** support, powered
 |---------|-----------------|-------------|
 | **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready (v4.1) |
 | **Beta (This)** | `npx nexus-ide@beta` | 🧪 Latest with WebContainer (v5.0) |
-| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web dual mode |
-| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
+| **Professional** | `npx nexus-ide-professional` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `npx nexus-ide-cli` | 🖥️ Terminal only |
 
 ---
 
