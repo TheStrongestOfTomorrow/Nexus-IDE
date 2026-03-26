@@ -1,6 +1,6 @@
 {
   "name": "nexus-ide-cli",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Nexus IDE CLI - Full Terminal IDE Experience with TUI, AI Assistant, Code Execution, and more",
   "author": "TheStrongestOfTomorrow",
   "license": "MIT",
@@ -38,7 +38,8 @@
     "development",
     "programming",
     "terminal-ide",
-    "blessed"
+    "blessed",
+    "webcontainer"
   ],
   "repository": {
     "type": "git",
