@@ -1,6 +1,6 @@
 {
   "name": "nexus-ide-professional",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Nexus IDE Professional - The ultimate office-ready IDE with both CLI (TUI) and Web modes, AI integration, collaboration features, and enterprise-grade tools.",
   "author": "TheStrongestOfTomorrow",
   "license": "MIT",
@@ -81,6 +81,7 @@
     "@types/cookie-parser": "^1.4.10",
     "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^5.0.4",
+    "@webcontainer/api": "^1.6.1",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/xterm": "^6.0.0",
     "axios": "^1.13.5",
