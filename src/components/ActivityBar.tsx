@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Box } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -23,6 +23,7 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
   ];
 
   const secondaryActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
+    { id: 'webcontainer', icon: Box, label: 'WebContainer' },
     { id: 'debug', icon: Play, label: 'Run and Debug' },
     { id: 'extensions', icon: Puzzle, label: 'Extensions' },
     { id: 'collab', icon: Users, label: 'Collaboration' },

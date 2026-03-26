@@ -19,6 +19,13 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Cross-Origin Isolation headers required for WebContainer API (SharedArrayBuffer)
+  app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    next();
+  });
+
   app.use(express.json());
   app.use(cookieParser());
 

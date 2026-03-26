@@ -22,6 +22,7 @@ import DependencyGraph from './components/DependencyGraph';
 import TodoScanner from './components/TodoScanner';
 import SnippetManager from './components/SnippetManager';
 import ProjectInsights from './components/ProjectInsights';
+import WebContainerTerminal from './components/WebContainerTerminal';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -392,6 +393,17 @@ export default function App() {
             {ide.activeActivity === 'insights' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
                 <ProjectInsights files={files} />
+              </div>
+            )}
+            {ide.activeActivity === 'webcontainer' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <WebContainerTerminal 
+                  files={files} 
+                  onFileUpdate={(path, content) => {
+                    const file = files.find(f => f.name === path);
+                    if (file) updateFile(file.id, content);
+                  }}
+                />
               </div>
             )}
           </div>
