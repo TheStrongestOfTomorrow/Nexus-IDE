@@ -1,5 +1,5 @@
 {
-  "name": "nexus-ide-professional",
+  "name": "@TheStrongestOfTomorrow/nexus-ide-professional",
   "version": "1.0.2",
   "description": "Nexus IDE Professional - The ultimate office-ready IDE with both CLI (TUI) and Web modes, AI integration, collaboration features, and enterprise-grade tools.",
   "author": "TheStrongestOfTomorrow",
@@ -52,6 +52,9 @@
     "url": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues"
   },
   "homepage": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "engines": {
     "node": ">=18.0.0"
   },

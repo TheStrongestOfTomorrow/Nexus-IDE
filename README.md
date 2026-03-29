@@ -6,8 +6,8 @@
 
 ### *The Ultimate Office-Ready Development Environment*
 
-[![NPM Pro](https://img.shields.io/badge/NPM-@pro%20Tag-6366f1?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
-[![Version](https://img.shields.io/badge/Version-1.0.0-6366f1?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Professional-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
+[![Version](https://img.shields.io/badge/Version-1.0.2-6366f1?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![Mode](https://img.shields.io/badge/Mode-CLI%20%2B%20Web-10b981?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-3b82f6?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
@@ -18,20 +18,19 @@
 
 ## ⚡ Quick Start
 
-### From NPM (Recommended)
 ```bash
-# Run instantly - no install needed
-npx nexus-ide@pro
+# Run the professional edition instantly (no install needed)
+npx github:TheStrongestOfTomorrow/Nexus-IDE#professional
 
-# Or install globally
-npm install -g nexus-ide@pro
+# Or install globally from GitHub Packages
+npm install -g @TheStrongestOfTomorrow/nexus-ide-professional
 nexus-pro
 ```
 
-### From GitHub
-```bash
-npx github:TheStrongestOfTomorrow/Nexus-IDE#professional
-```
+> **Note:** You need GitHub Packages access. If prompted, authenticate with:
+> ```
+> npm login --scope=@TheStrongestOfTomorrow --registry=https://npm.pkg.github.com
+> ```
 
 ---
 
@@ -111,7 +110,7 @@ nexus-pro config       # View settings
 ### Terminal Mode (TUI)
 ```
 ╔═══════════════════════════════════════════════╗
-║              NEXUS IDE v1.0.0                 ║
+║              NEXUS IDE v1.0.2                 ║
 ╠═══════════════════════════════════════════════╣
 ║  📁 Explorer  │  ✏️ Editor  │  🤖 AI Chat   ║
 ║               │             │               ║
@@ -144,27 +143,27 @@ nexus-pro config       # View settings
 
 ---
 
-## 🌿 All NPM Versions
+## 🌿 All Versions
 
-| Version | Install Command | Description |
-|---------|-----------------|-------------|
-| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready |
-| **Beta** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web dual mode |
-| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
+| Version | Branch | Install Command | Description |
+|---------|--------|-----------------|-------------|
+| **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
+| **Beta** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@main` | 🧪 Latest with WebContainer (v5.1) |
+| **Professional (This)** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
 
 ---
 
-## 🔗 Links
+## 🔗 Quick Links
 
-| Resource | URL |
-|----------|-----|
-| NPM | https://www.npmjs.com/package/nexus-ide |
+| Resource | Link |
+|----------|------|
+| GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
-| Stable | `npx nexus-ide@latest` |
-| Beta | `npx nexus-ide@beta` |
-| CLI | `npx nexus-ide@cli` |
+| Stable | [stable](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/stable) |
+| Beta | [main](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/main) |
+| CLI | [cli](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/cli) |
 
 ---
 
