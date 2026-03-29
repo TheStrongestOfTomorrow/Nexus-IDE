@@ -18,20 +18,46 @@
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Install & Run
+
+### Method 1 — GitHub Packages (Recommended)
 
 ```bash
-# Run the latest beta version instantly (no install needed)
+# Run instantly — no install needed
 npx github:TheStrongestOfTomorrow/Nexus-IDE
 
-# Or install globally from GitHub Packages
+# Or install globally
 npm install -g @TheStrongestOfTomorrow/nexus-ide
 nexus-ide
 ```
 
-> **Note:** You need GitHub Packages access. If prompted, authenticate with:
+> **Note:** You need GitHub Packages access. If prompted, add this to your `~/.npmrc`:
 > ```
-> npm login --scope=@TheStrongestOfTomorrow --registry=https://npm.pkg.github.com
+> @TheStrongestOfTomorrow:registry=https://npm.pkg.github.com
+> //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+> ```
+
+### Method 2 — Clone & Run Locally
+
+```bash
+# Clone the repo
+git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+
+# Install dependencies
+npm install
+
+# Start the dev server
+npm start
+```
+
+Then open **http://localhost:3000** in your browser. That's it — Nexus IDE is running locally on your machine.
+
+> **Branch-specific clones** — if you want a specific edition:
+> ```bash
+> git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git   # Stable (v4.4)
+> git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git  # Professional
+> git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git         # Terminal Edition
 > ```
 
 ---
@@ -186,6 +212,19 @@ npm install -g @TheStrongestOfTomorrow/nexus-ide
 nexus-ide
 ```
 
+### Clone & Host Locally
+```bash
+git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install
+npm start        # Dev server on localhost:3000
+npm run build    # Production build → dist/
+npm run serve    # Serve production build
+```
+
+### Android
+Download the APK from [Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) and install on your device. No Google Play needed.
+
 ### Docker
 ```bash
 docker-compose up -d
@@ -194,11 +233,6 @@ docker-compose up -d
 ### Tauri Desktop
 ```bash
 npm run tauri:build
-```
-
-### Capacitor Android
-```bash
-npm run capacitor:android
 ```
 
 ### Vercel/Railway/Render
@@ -210,6 +244,7 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
+| 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
 | GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
