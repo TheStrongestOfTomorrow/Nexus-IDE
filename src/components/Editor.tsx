@@ -114,18 +114,20 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
     });
 
     // Load themes from extensions
-    for (const ext of extensions) {
-      if (ext.enabled && ext.url.endsWith('.json')) {
-        try {
-          const response = await fetch(ext.url);
-          const themeData = await response.json();
-          monaco.editor.defineTheme(ext.name, themeData);
-          monaco.editor.setTheme(ext.name);
-        } catch (err) {
-          console.error(`Failed to load theme ${ext.name}:`, err);
+    (async () => {
+      for (const ext of extensions) {
+        if (ext.enabled && ext.url.endsWith('.json')) {
+          try {
+            const response = await fetch(ext.url);
+            const themeData = await response.json();
+            monaco.editor.defineTheme(ext.name, themeData);
+            monaco.setTheme(ext.name);
+          } catch (err) {
+            console.error(`Failed to load theme ${ext.name}:`, err);
+          }
         }
       }
-    }
+    })();
   };
   const handleRun = () => {
     if (file) {
