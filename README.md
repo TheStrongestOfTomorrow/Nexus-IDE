@@ -4,12 +4,14 @@
 
 <img src="https://lucide.dev/api/icons/terminal-square?size=128&color=3b82f6" alt="Nexus IDE Terminal" width="128" height="128" />
 
-### *Code in Your Terminal. AI at Your Fingertips.*
+### *A Complete IDE in Your Terminal — No Browser Needed*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-CLI-3b82f6?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
 [![Version](https://img.shields.io/badge/Version-5.0.2-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+
+*A fully standalone terminal IDE built with blessed.js — file explorer, code editor, AI assistant, terminal, and more. Everything runs right in your terminal. No browser. No GUI. Pure terminal.*
 
 </div>
 
@@ -18,7 +20,7 @@
 ## ⚡ Quick Start
 
 ```bash
-# Run the terminal edition instantly (no install needed)
+# Run the terminal IDE instantly (no install needed)
 npx github:TheStrongestOfTomorrow/Nexus-IDE#cli
 
 # Or install globally from GitHub Packages
@@ -37,7 +39,7 @@ nexus
 
 ### ⚠️ IMPORTANT: Do NOT use `npm run dev`
 
-The TUI is designed to run directly. Using `npm run dev` starts the web server, NOT the terminal interface!
+This is a **standalone TUI** — it runs directly in your terminal. Using `npm run dev` starts the web server, which is NOT the terminal interface!
 
 ### ✅ Correct Usage
 
@@ -47,87 +49,138 @@ git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
 cd Nexus-IDE
 npm install
 
-# Run TUI (Terminal User Interface)
+# Run the full TUI
 npm run tui
 # OR
 node cli/nexus.js
 # OR
-npx nexus
+nexus
 ```
-
-### 📋 Available Commands
-
-| Command | Description |
-|---------|-------------|
-| `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | Run TUI from GitHub |
-| `npm run tui` | Run TUI (after clone) |
-| `node cli/nexus.js` | Run TUI directly |
-| `nexus` | Run TUI (if installed globally) |
 
 ---
 
-## 🌟 Features
+## 🖥️ What It Looks Like
 
-### 🎯 Full Terminal IDE
+```
+┌─ NEXUS IDE - TUI ─────────────────────────────────────┐
+│ Files          │ Editor - main.js    │ AI Assistant    │
+│                │                     │                 │
+│ 📁 ../         │ import express from │ You:            │
+│ 📁 src/        │ 'express';          │ How do I set    │
+│ 📁 public/     │                     │ up a REST API?  │
+│ 📄 index.js    │ const app = expr    │                 │
+│ 📄 package.json│ ess();              │ AI: Here's how  │
+│ 📄 README.md   │                     │ to create a     │
+│                │ app.get('/', (req   │ basic Express   │
+│                │ , res) => {         │ server with     │
+│                │   res.send('Hel     │ routing...      │
+├────────────────┴─────────────────────┴─────────────────┤
+│ Terminal: $ npm test                                    │
+│ > nexus-ide-cli@5.0.2 test                             │
+│ All tests passed ✓                                      │
+├─────────────────────────────────────────────────────────┤
+│ [Files] [Editor] [AI] [Terminal] | main.js | Node.js   │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🌟 Full Feature List
+
+This is a **complete, standalone terminal IDE** — not a wrapper around the web version. Everything runs natively in your terminal using blessed.js.
+
+### 🎯 Core IDE
+
 | Feature | Description |
 |---------|-------------|
-| 📁 **File Explorer** | Navigate directories with keyboard |
-| ✏️ **Code Editor** | Edit files directly in terminal |
-| 🤖 **AI Assistant** | Chat with 12+ AI providers |
-| 💻 **Built-in Terminal** | Run commands without leaving |
-| 🔧 **Git Integration** | View status, branch info |
+| 📁 **File Explorer** | Full directory navigation with keyboard, go up/open dirs, create/rename/delete files |
+| ✏️ **Code Editor** | Built-in text editor with syntax-aware editing, open multiple files in tabs |
+| 📑 **Tab Support** | Open multiple files simultaneously, switch between tabs |
+| 💾 **Save / New File** | Create new files and save changes directly from the editor |
+| 📂 **Directory Navigation** | Browse any directory on your system, full path tracking |
+| 🔍 **Command Palette** | `Ctrl+K` to open command palette with quick actions |
 
-### 🤖 AI Providers
-| Provider | Models | Type |
-|----------|--------|------|
-| OpenAI | GPT-4o, O1, O3 Mini | Cloud |
-| Anthropic | Claude Opus 4, Sonnet 4 | Cloud |
-| Google | Gemini 2.5 Pro, Flash | Cloud |
-| xAI | Grok 3, Grok 3 Fast | Cloud |
-| Mistral | Mistral Large, Codestral | Cloud |
-| DeepSeek | Coder, R1 | Cloud |
-| Groq | Llama 3.3 70B | Cloud (Free) |
-| Ollama | Llama, Mistral | Local |
+### 💻 Integrated Terminal
+
+| Feature | Description |
+|---------|-------------|
+| ⌨️ **Built-in Shell** | Full terminal emulator running inside the TUI |
+| ▶️ **Code Execution** | Run `.js`, `.py`, `.sh`, `.rb`, and more directly from the editor |
+| 🔧 **Command Output** | See stdout/stderr in the terminal panel with color-coded output |
+| 🔄 **Toggle Panel** | Show/hide the terminal with `Ctrl+T` |
+
+### 🤖 AI Assistant
+
+| Feature | Description |
+|---------|-------------|
+| 💬 **In-Terminal AI Chat** | Chat with AI providers directly in the TUI without leaving |
+| 🔀 **12+ Providers** | OpenAI, Anthropic, Google, xAI, Mistral, DeepSeek, Groq, Cohere, Perplexity, Alibaba, Together, Ollama |
+| 🎯 **AI Commands** | `/help`, `/provider`, `/model`, `/clear`, `/code <prompt>`, `/explain`, `/fix` |
+| 🔄 **Provider Switching** | Switch between AI providers and models on the fly |
+| 💡 **Code Generation** | Generate code, explain files, fix errors — all from the terminal |
+
+### 🧩 Extensions
+
+| Feature | Description |
+|---------|-------------|
+| 📦 **Extension Browser** | Browse available extensions without leaving the TUI |
+| ⚡ **Quick Install** | Install and manage extensions from the extension panel |
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-### Navigation
-| Key | Action |
-|:---:|--------|
-| `↑` `↓` | Navigate items |
-| `Enter` | Select / Open |
-| `Tab` | Switch panels |
-| `Q` / `Esc` | Back / Quit |
+### Global
 
-### File Operations
 | Key | Action |
 |:---:|--------|
-| `E` | Edit file |
-| `D` | Delete file |
+| `Ctrl+K` | Open command palette |
+| `Ctrl+S` | Save current file |
+| `Ctrl+R` | Run current file |
+| `Ctrl+T` | Toggle terminal panel |
+| `Ctrl+A` | Toggle AI assistant |
+| `Ctrl+E` | Toggle extensions panel |
+| `Ctrl+?` | Show help |
+| `Ctrl+Q` | Quit |
+| `Tab` | Cycle focus: Files → Editor → AI |
+| `Esc` / `Q` | Back / Close panel / Quit |
+
+### Command Palette Actions
+
+| Key | Action |
+|:---:|--------|
 | `N` | New file |
-| `H` | Go up directory |
-
-### AI Chat
-| Key | Action |
-|:---:|--------|
-| `C` | Start chat |
-| `H` | AI help |
+| `O` | Open file |
+| `S` | Save file |
+| `W` | Close tab |
+| `F` | Find in file |
+| `R` | Run code |
+| `T` | Toggle terminal |
+| `E` | Extensions |
+| `A` | AI assistant |
+| `P` | Projects |
+| `G` | Git info |
+| `?` | Help |
+| `Q` | Quit |
 
 ---
 
-## 📋 CLI Commands
+## 🤖 AI Providers
 
-```bash
-nexus                    # Launch TUI (default)
-nexus tui                # Same as above
-nexus start              # Start web server (not TUI!)
-nexus ai "prompt"        # Quick AI question
-nexus run file.js        # Execute code
-nexus ls                 # List files
-nexus config             # View settings
-```
+| Provider | Models | Type |
+|----------|--------|------|
+| OpenAI | GPT-4o, GPT-4o Mini, O1, O3 Mini | Cloud |
+| Anthropic | Claude Opus 4, Claude Sonnet 4, Claude 3.5 | Cloud |
+| Google Gemini | Gemini 2.5 Pro, Gemini 2.0 Flash | Cloud |
+| xAI (Grok) | Grok 3, Grok 3 Fast, Grok 2 Vision | Cloud |
+| Mistral | Mistral Large, Codestral, Pixtral | Cloud |
+| DeepSeek | DeepSeek Chat, DeepSeek Coder, DeepSeek R1 | Cloud |
+| Alibaba Qwen | Qwen Max, Qwen Coder Plus | Cloud |
+| Groq | Llama 3.3 70B, Mixtral | Cloud (Free) |
+| Cohere | Command R+, Command R | Cloud |
+| Perplexity | Sonar Pro, Sonar Reasoning | Cloud |
+| Together AI | Llama 3.3, Mistral, Qwen | Cloud |
+| Ollama | Llama 3.2, Mistral, Code Llama | Local |
 
 ---
 
@@ -137,18 +190,20 @@ nexus config             # View settings
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
 | **Beta** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@main` | 🧪 Latest with WebContainer (v5.1) |
-| **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web dual mode |
-| **CLI/TUI (This)** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
+| **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 Beta features + enterprise exclusives |
+| **CLI/TUI (This)** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Full standalone terminal IDE |
 
 ---
 
 ## 🎯 Use Cases
 
-- 🖥️ **SSH Development** - Full IDE over SSH
-- ☁️ **Server Admin** - Edit configs remotely
-- 📱 **Low Resources** - Lightweight interface
-- ⌨️ **Keyboard Lovers** - No mouse needed
-- 🐧 **Linux/WSL** - Native terminal experience
+- 🖥️ **SSH Development** — Full IDE over SSH, no X11 needed
+- ☁️ **Server Admin** — Edit configs, run scripts on remote servers
+- 📱 **Low Resources** — Lightweight, runs on anything with a terminal
+- ⌨️ **Keyboard Lovers** — 100% keyboard-driven, zero mouse required
+- 🐧 **Linux/WSL** — Native terminal experience
+- 🔧 **Headless Servers** — Use the AI assistant to code on machines with no GUI
+- 🚀 **Quick Edits** — Faster than opening a full IDE for small changes
 
 ---
 
@@ -156,8 +211,7 @@ nexus config             # View settings
 
 ### Set AI Provider
 ```bash
-# In TUI, go to Settings (option 6)
-# Or use environment variables:
+# Use environment variables:
 export NEXUS_AI_PROVIDER=openai
 export NEXUS_AI_KEY=sk-...
 export NEXUS_AI_MODEL=gpt-4o
