@@ -22,6 +22,12 @@ import DependencyGraph from './components/DependencyGraph';
 import TodoScanner from './components/TodoScanner';
 import SnippetManager from './components/SnippetManager';
 import ProjectInsights from './components/ProjectInsights';
+import TeamManagement from './components/TeamManagement';
+import ProjectDashboard from './components/ProjectDashboard';
+import CodeReview from './components/CodeReview';
+import CICDPipeline from './components/CICDPipeline';
+import EnvironmentManager from './components/EnvironmentManager';
+import AuditLog from './components/AuditLog';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -385,6 +391,36 @@ export default function App() {
             {ide.activeActivity === 'insights' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
                 <ProjectInsights files={files} />
+              </div>
+            )}
+            {ide.activeActivity === 'team' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <TeamManagement />
+              </div>
+            )}
+            {ide.activeActivity === 'dashboard' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <ProjectDashboard />
+              </div>
+            )}
+            {ide.activeActivity === 'reviews' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <CodeReview />
+              </div>
+            )}
+            {ide.activeActivity === 'pipeline' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <CICDPipeline />
+              </div>
+            )}
+            {ide.activeActivity === 'environments' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <EnvironmentManager />
+              </div>
+            )}
+            {ide.activeActivity === 'audit' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <AuditLog />
               </div>
             )}
           </div>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Shield, LayoutDashboard, GitPullRequest, Workflow, Globe, Scroll } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'team' | 'dashboard' | 'reviews' | 'pipeline' | 'environments' | 'audit';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -32,6 +32,15 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'insights', icon: BarChart, label: 'Project Insights' },
     { id: 'themes', icon: Palette, label: 'Theme Studio' },
     { id: 'minecraft', icon: Gamepad2, label: 'Minecraft Bridge' },
+  ];
+
+  const enterpriseActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
+    { id: 'team', icon: Shield, label: 'Team Management' },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Project Dashboard' },
+    { id: 'reviews', icon: GitPullRequest, label: 'Code Review' },
+    { id: 'pipeline', icon: Workflow, label: 'CI/CD Pipeline' },
+    { id: 'environments', icon: Globe, label: 'Environments' },
+    { id: 'audit', icon: Scroll, label: 'Audit Log' },
   ];
 
   return (
@@ -66,7 +75,25 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
       </button>
 
       {showMore && (
-        <div className="absolute left-14 top-24 bg-nexus-sidebar border border-nexus-border rounded shadow-2xl z-[100] p-1 flex flex-col gap-1 min-w-[160px]">
+        <div className="absolute left-14 top-24 bg-nexus-sidebar border border-nexus-border rounded shadow-2xl z-[100] p-1 flex flex-col gap-1 min-w-[180px]">
+          <div className="px-3 py-1.5 text-[9px] font-bold text-nexus-text-muted uppercase tracking-widest">Enterprise</div>
+          {enterpriseActivities.map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => {
+                onActivityChange(id);
+                setShowMore(false);
+              }}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded text-xs transition-colors",
+                activeActivity === id ? "bg-nexus-accent text-white" : "text-nexus-text-muted hover:bg-nexus-bg hover:text-white"
+              )}
+            >
+              <Icon size={16} />
+              <span>{label}</span>
+            </button>
+          ))}
+          <div className="h-px bg-nexus-border mx-2 my-1" />
           {secondaryActivities.map(({ id, icon: Icon, label }) => (
             <button
               key={id}

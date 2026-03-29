@@ -122,18 +122,16 @@ Professional Edition includes **every feature** from the Beta branch (v5.1.0), p
 
 ### 💎 Enterprise-Exclusive Features
 
+These features exist **only** in the Professional Edition — they are not available in Beta, Stable, or CLI.
+
 | Feature | Description |
 |---------|-------------|
-| 🤝 **Real-Time Collaboration** | Create/join sessions, live share with other developers, host projects for team access |
-| 🕸️ **VibeGraph** | Visual project dependency mapping powered by Mermaid — see your codebase architecture at a glance |
-| 🍅 **Pomodoro Timer** | Built-in focus/break timer to manage productivity sessions right inside the IDE |
-| 📐 **Mermaid Viewer** | Render Mermaid diagrams directly in the IDE with download support |
-| 🎮 **Minecraft Script Manager** | Write, manage, and run Minecraft scripts with binary mode and live execution |
-| 🔄 **Dual Mode (CLI + Web)** | Seamlessly switch between terminal and browser interface |
-| 🧱 **Monaco Editor** | VS Code's editor engine with full language support |
-| 🖥️ **Integrated Terminal** | Full terminal with command execution |
-| 📊 **Preview Popout** | Detach preview into a separate window |
-| 🏷️ **Title Bar** | Custom frameless window title bar |
+| 🛡️ **Team Management** | Full team roster with role-based access control (Admin, Developer, Viewer), invite system, online status tracking, and activity feed |
+| 📊 **Project Dashboard** | Real-time metrics overview — total files, lines of code, AI queries, active sessions, uptime, sprint progress, and team productivity charts |
+| 🔀 **Code Review** | Built-in PR review system with status tracking (Open/Merged/Closed), diff summaries with additions/deletions per file, comment threads, and Approve/Request Changes actions |
+| ⚙️ **CI/CD Pipeline** | Live pipeline monitoring with Build → Test → Deploy stage visualization, status badges (Success/Running/Failed/Pending), build durations, trigger builds, and full build history |
+| 🌐 **Environment Manager** | Multi-environment configuration (Development, Staging, Production) with per-environment variables, deploy actions, active environment highlighting, and cross-environment comparison diffs |
+| 📋 **Audit Log** | Compliance-ready action tracking with filterable log entries, severity indicators (Info/Warning/Critical), search, date range filters, action type filters, and CSV export |
 
 ---
 
