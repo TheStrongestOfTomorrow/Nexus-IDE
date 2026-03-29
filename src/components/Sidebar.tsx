@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles, AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
@@ -12,6 +12,7 @@ interface SidebarProps {
   onDeleteFile: (id: string) => void;
   onRenameFile: (id: string, newName: string) => void;
   onExport: () => void;
+  onClearWorkspace?: () => void;
   onApplyTemplate: (template: any) => void;
   onShowDiff?: (id: string) => void;
   onOpenFolder?: () => void;
@@ -30,6 +31,7 @@ export default function Sidebar({
   onDeleteFile,
   onRenameFile,
   onExport,
+  onClearWorkspace,
   onApplyTemplate,
   onShowDiff,
   onOpenFolder,
@@ -41,6 +43,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -151,7 +154,47 @@ export default function Sidebar({
               <FolderOpen size={16} />
             </button>
           )}
+          {onClearWorkspace && files.length > 0 && (
+            <button 
+              onClick={() => setShowClearConfirm(!showClearConfirm)}
+              className={cn(
+                "p-1 rounded transition-colors",
+                showClearConfirm 
+                  ? "bg-red-500/20 text-red-400 hover:bg-red-500/30" 
+                  : "hover:bg-nexus-bg text-nexus-text-muted hover:text-red-400"
+              )}
+              title="Delete All Files"
+            >
+              <AlertTriangle size={16} />
+            </button>
+          )}
         </div>
+
+        {/* Clear Workspace Confirmation */}
+        {showClearConfirm && (
+          <div className="px-4 py-2 bg-red-500/5 border-b border-red-500/10 animate-in slide-in-from-top-2">
+            <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mb-2">
+              Delete all {files.length} file{files.length !== 1 ? 's' : ''}?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  onClearWorkspace();
+                  setShowClearConfirm(false);
+                }}
+                className="flex-1 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded text-[10px] font-bold transition-colors"
+              >
+                Yes, Delete All
+              </button>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="flex-1 py-1 bg-nexus-bg hover:bg-nexus-border text-nexus-text-muted rounded text-[10px] font-bold transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto py-2 relative">

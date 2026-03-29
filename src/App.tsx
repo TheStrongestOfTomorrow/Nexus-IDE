@@ -287,7 +287,8 @@ export default function App() {
           onToggleMinecraftScripts={() => ide.setShowMinecraftScripts(!ide.showMinecraftScripts)}
         />
 
-        {ide.showSidebar && (
+        {/* Desktop sidebar panel — hidden on mobile (mobile uses bottom sheet) */}
+        {ide.showSidebar && !ide.isTouchMode && (
           <div className="w-64 flex-shrink-0 flex flex-col border-r border-nexus-border bg-nexus-sidebar">
             {ide.activeActivity === 'explorer' && (
               <Sidebar
@@ -298,6 +299,7 @@ export default function App() {
                 onDeleteFile={deleteFile}
                 onRenameFile={renameFile}
                 onExport={exportAsZip}
+                onClearWorkspace={handleClearWorkspace}
                 onApplyTemplate={() => {}}
                 onShowDiff={(id) => {
                   const f = files.find(x => x.id === id);
@@ -410,9 +412,9 @@ export default function App() {
           </div>
         )}
 
-        <div className={cn("flex-1 flex flex-col overflow-hidden", ide.isTouchMode && "touch-mode")}>
-          {/* Error List Dashboard Overlay */}
-          {errors.length > 0 && (
+        <div className={cn("flex-1 flex flex-col overflow-hidden", ide.isTouchMode && "mobile-layout")}>
+          {/* Error List Dashboard Overlay — hidden on mobile */}
+          {!ide.isTouchMode && errors.length > 0 && (
             <div className="absolute top-12 right-4 z-50 max-w-sm space-y-2 pointer-events-none">
               {errors.slice(-3).map(err => (
                 <div key={err.id} className="p-3 bg-red-900/95 border border-red-500 rounded text-white shadow-2xl pointer-events-auto flex items-start gap-3 backdrop-blur-md animate-in slide-in-from-right-4">
@@ -435,74 +437,273 @@ export default function App() {
             </div>
           )}
 
-          <div className="h-9 bg-nexus-sidebar flex items-center overflow-x-auto no-scrollbar border-b border-nexus-border">
-            {ide.openFileIds.map(id => {
-              const file = files.find(f => f.id === id);
-              if (!file) return null;
-              return (
-                <div
-                  key={id}
-                  onClick={() => ide.setActiveFileId(id)}
-                  className={cn(
-                    "nexus-tab",
-                    ide.activeFileId === id ? "nexus-tab-active" : "nexus-tab-inactive"
-                  )}
-                >
-                  <span className="truncate flex-1">{file.name}</span>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); ide.closeFile(id); }}
-                    className="p-0.5 hover:bg-white/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Zap size={12} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="flex-1 flex overflow-hidden">
+          {/* ===== MOBILE LAYOUT ===== */}
+          {ide.isTouchMode ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 relative">
-                {activeFile ? (
-                  <Editor
-                    file={activeFile}
-                    onChange={(content) => updateFile(activeFile.id, content)}
-                    apiKeys={ide.apiKeys}
-                    onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-                  />
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
-                    <Zap size={64} className="opacity-10" />
-                    <p className="text-sm">Select a file to start coding in Nexus 5.0</p>
-                    <div className="flex gap-2">
-                      <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
-                      <span className="text-[10px]">Command Palette</span>
+              {/* Mobile Tab Bar */}
+              <div className="mobile-tab-bar flex items-center overflow-x-auto no-scrollbar border-b border-nexus-border bg-nexus-sidebar px-2 min-h-[40px]">
+                {ide.openFileIds.map(id => {
+                  const file = files.find(f => f.id === id);
+                  if (!file) return null;
+                  return (
+                    <div
+                      key={id}
+                      onClick={() => ide.setActiveFileId(id)}
+                      className={cn(
+                        "mobile-tab flex items-center gap-1.5 px-3 py-2 text-xs whitespace-nowrap flex-shrink-0",
+                        ide.activeFileId === id
+                          ? "text-white border-b-2 border-nexus-accent bg-nexus-bg/50"
+                          : "text-nexus-text-muted"
+                      )}
+                    >
+                      <span className="truncate max-w-[100px]">{file.name.split('/').pop()}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); ide.closeFile(id); }}
+                        className="p-0.5 hover:bg-white/10 rounded text-nexus-text-muted"
+                      >
+                        <X size={10} />
+                      </button>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Mobile Editor Area */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 relative">
+                  {activeFile ? (
+                    <Editor
+                      file={activeFile}
+                      onChange={(content) => updateFile(activeFile.id, content)}
+                      apiKeys={ide.apiKeys}
+                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                    />
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
+                      <Zap size={48} className="opacity-10" />
+                      <p className="text-sm">Select a file to start coding</p>
+                    </div>
+                  )}
+                </div>
+
+                {ide.showTerminal && (
+                  <div className="h-48 border-t border-nexus-border bg-nexus-bg">
+                    <Terminal
+                      files={files}
+                      onClose={() => ide.setShowTerminal(false)}
+                      onPreview={() => ide.setShowPreview(true)}
+                    />
+                  </div>
+                )}
+
+                {ide.showPreview && (
+                  <div className="h-1/2 border-t border-nexus-border bg-white">
+                    <Preview files={files} activeFileId={ide.activeFileId} />
                   </div>
                 )}
               </div>
-              
-              {ide.showTerminal && (
-                <div className="h-64 border-t border-nexus-border bg-nexus-bg">
-                  <Terminal 
-                    files={files} 
-                    onClose={() => ide.setShowTerminal(false)} 
-                    onPreview={() => ide.setShowPreview(true)} 
-                  />
+
+              {/* Mobile Bottom Navigation */}
+              <div className="mobile-bottom-nav flex items-center justify-around bg-nexus-sidebar border-t border-nexus-border min-h-[52px] px-1 safe-area-bottom">
+                <button
+                  onClick={() => {
+                    if (ide.activeActivity === 'explorer') {
+                      ide.setShowSidebar(!ide.showSidebar);
+                    } else {
+                      ide.setActiveActivity('explorer');
+                      ide.setShowSidebar(true);
+                    }
+                  }}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                    ide.showSidebar ? "text-nexus-accent" : "text-nexus-text-muted"
+                  )}
+                >
+                  <FilePlus size={18} />
+                  <span className="text-[9px] font-medium">Files</span>
+                </button>
+                <button
+                  onClick={() => ide.setShowAI(!ide.showAI)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                    ide.showAI ? "text-nexus-accent" : "text-nexus-text-muted"
+                  )}
+                >
+                  <MessageSquare size={18} />
+                  <span className="text-[9px] font-medium">AI</span>
+                </button>
+                <button
+                  onClick={() => ide.setShowTerminal(!ide.showTerminal)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                    ide.showTerminal ? "text-nexus-accent" : "text-nexus-text-muted"
+                  )}
+                >
+                  <Play size={18} />
+                  <span className="text-[9px] font-medium">Terminal</span>
+                </button>
+                <button
+                  onClick={() => ide.setShowPreview(!ide.showPreview)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors",
+                    ide.showPreview ? "text-nexus-accent" : "text-nexus-text-muted"
+                  )}
+                >
+                  <Zap size={18} />
+                  <span className="text-[9px] font-medium">Preview</span>
+                </button>
+                <button
+                  onClick={() => ide.setShowSettings(true)}
+                  className="flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg text-nexus-text-muted transition-colors"
+                >
+                  <Settings size={18} />
+                  <span className="text-[9px] font-medium">Settings</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+          /* ===== DESKTOP LAYOUT ===== */
+          <>
+            <div className="h-9 bg-nexus-sidebar flex items-center overflow-x-auto no-scrollbar border-b border-nexus-border">
+              {ide.openFileIds.map(id => {
+                const file = files.find(f => f.id === id);
+                if (!file) return null;
+                return (
+                  <div
+                    key={id}
+                    onClick={() => ide.setActiveFileId(id)}
+                    className={cn(
+                      "nexus-tab",
+                      ide.activeFileId === id ? "nexus-tab-active" : "nexus-tab-inactive"
+                    )}
+                  >
+                    <span className="truncate flex-1">{file.name}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); ide.closeFile(id); }}
+                      className="p-0.5 hover:bg-white/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Zap size={12} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 relative">
+                  {activeFile ? (
+                    <Editor
+                      file={activeFile}
+                      onChange={(content) => updateFile(activeFile.id, content)}
+                      apiKeys={ide.apiKeys}
+                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                    />
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
+                      <Zap size={64} className="opacity-10" />
+                      <p className="text-sm">Select a file to start coding in Nexus 5.0</p>
+                      <div className="flex gap-2">
+                        <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
+                        <span className="text-[10px]">Command Palette</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {ide.showTerminal && (
+                  <div className="h-64 border-t border-nexus-border bg-nexus-bg">
+                    <Terminal
+                      files={files}
+                      onClose={() => ide.setShowTerminal(false)}
+                      onPreview={() => ide.setShowPreview(true)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {ide.showPreview && (
+                <div className="w-1/3 border-l border-nexus-border bg-white">
+                  <Preview files={files} activeFileId={ide.activeFileId} />
                 </div>
               )}
             </div>
-
-            {ide.showPreview && (
-              <div className="w-1/3 border-l border-nexus-border bg-white">
-                <Preview files={files} activeFileId={ide.activeFileId} />
-              </div>
-            )}
-          </div>
+          </>
+          )}
         </div>
 
-        {/* AI Assistant Side Panel (Optional/Legacy) */}
-        {ide.showAI && ide.activeActivity !== 'ai' && (
+        {/* Mobile: Sidebar as bottom sheet overlay */}
+        {ide.isTouchMode && ide.showSidebar && (
+          <div className="mobile-sidebar-overlay" onClick={() => ide.setShowSidebar(false)}>
+            <div
+              className="mobile-sidebar-sheet bg-nexus-sidebar border-r border-nexus-border flex flex-col h-full w-[280px] max-w-[85vw] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b border-nexus-border">
+                <span className="text-xs font-bold text-white uppercase tracking-widest">Explorer</span>
+                <button onClick={() => ide.setShowSidebar(false)} className="p-1 hover:bg-nexus-bg rounded text-nexus-text-muted">
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                <Sidebar
+                  files={files}
+                  activeFileId={ide.activeFileId}
+                  onSelectFile={(id) => {
+                    ide.handleSelectFile(id);
+                    ide.setShowSidebar(false);
+                  }}
+                  onAddFile={addFile}
+                  onDeleteFile={deleteFile}
+                  onRenameFile={renameFile}
+                  onExport={exportAsZip}
+                  onClearWorkspace={handleClearWorkspace}
+                  onApplyTemplate={() => {}}
+                  onShowDiff={(id) => {
+                    const f = files.find(x => x.id === id);
+                    if (f) ide.setDiffData({ original: f.originalContent || f.content, modified: f.content, fileId: id });
+                  }}
+                  onOpenFolder={openDirectory}
+                  onSelectFolder={ide.setActiveFolder}
+                  activeFolder={ide.activeFolder}
+                  pendingAiActions={pendingAiActions}
+                  onAcceptAiActions={async (actions) => {
+                    if (aiAssistantRef.current) {
+                      await aiAssistantRef.current.applyChanges(actions);
+                      setPendingAiActions(null);
+                    }
+                  }}
+                  onRejectAiActions={() => setPendingAiActions(null)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: AI as full-screen overlay */}
+        {ide.isTouchMode && ide.showAI && (
+          <div className="fixed inset-0 z-[90] bg-nexus-bg">
+            <AIAssistant
+              ref={aiAssistantRef}
+              files={files}
+              activeFileId={ide.activeFileId}
+              onAddFile={addFile}
+              onUpdateFile={updateFile}
+              onDeleteFile={deleteFile}
+              apiKeys={ide.apiKeys}
+              selectedProvider={ide.selectedAIProvider}
+              selectedModels={ide.selectedModels}
+              githubToken={ide.githubToken}
+              onPendingActions={setPendingAiActions}
+              onToggleMaximize={() => ide.setIsAiMaximized(!ide.isAiMaximized)}
+              isMaximized={true}
+              onClose={() => ide.setShowAI(false)}
+            />
+          </div>
+        )}
+
+        {/* AI Assistant Side Panel (Desktop only — mobile uses full-screen overlay above) */}
+        {ide.showAI && !ide.isTouchMode && ide.activeActivity !== 'ai' && (
           <div className={cn(
             "border-l border-nexus-border bg-nexus-sidebar transition-all duration-300 overflow-hidden flex flex-col min-w-0 flex-shrink-0", 
             ide.isAiMaximized ? "w-1/2" : "w-80"
