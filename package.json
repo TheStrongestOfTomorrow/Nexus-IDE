@@ -1,5 +1,5 @@
 {
-  "name": "nexus-ide",
+  "name": "@TheStrongestOfTomorrow/nexus-ide",
   "version": "4.4.1",
   "description": "The AI-First, Browser-Based IDE - A modern, high-performance web-based IDE with AI integration, VS Code-like experience, and support for multiple AI providers.",
   "author": "TheStrongestOfTomorrow",
@@ -43,6 +43,9 @@
     "url": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues"
   },
   "homepage": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
