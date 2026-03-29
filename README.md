@@ -6,7 +6,7 @@
 
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
-[![NPM Beta](https://img.shields.io/badge/NPM-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
 [![Version](https://img.shields.io/badge/Version-5.1.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
@@ -21,13 +21,18 @@
 ## ⚡ Quick Start
 
 ```bash
-# Run the latest beta version instantly
-npx nexus-ide@beta
+# Run the latest beta version instantly (no install needed)
+npx github:TheStrongestOfTomorrow/Nexus-IDE
 
-# Or install globally
-npm install -g nexus-ide@beta
+# Or install globally from GitHub Packages
+npm install -g @TheStrongestOfTomorrow/nexus-ide
 nexus-ide
 ```
+
+> **Note:** You need GitHub Packages access. If prompted, authenticate with:
+> ```
+> npm login --scope=@TheStrongestOfTomorrow --registry=https://npm.pkg.github.com
+> ```
 
 ---
 
@@ -117,14 +122,14 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 
 ---
 
-## 🌿 All NPM Versions
+## 🌿 All Versions
 
-| Version | Install Command | Description |
-|---------|-----------------|-------------|
-| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready (v4.1) |
-| **Beta (This)** | `npx nexus-ide@beta` | 🧪 Latest with all features (v5.1) |
-| **Professional** | `npx nexus-ide-professional` | 💼 CLI + Web dual mode |
-| **CLI/TUI** | `npx nexus-ide-cli` | 🖥️ Terminal only |
+| Version | Branch | Install Command | Description |
+|---------|--------|-----------------|-------------|
+| **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.1) |
+| **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
 ---
 
@@ -175,9 +180,10 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 
 ## 🚀 Deployment
 
-### NPM
+### GitHub Packages
 ```bash
-npx nexus-ide@beta --port 8080
+npm install -g @TheStrongestOfTomorrow/nexus-ide
+nexus-ide
 ```
 
 ### Docker
@@ -204,10 +210,13 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
-| NPM | https://www.npmjs.com/package/nexus-ide |
+| GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
 | WebContainer Docs | https://webcontainers.io |
+| Stable Branch | [stable](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/stable) |
+| Professional | [professional](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/professional) |
+| CLI | [cli](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/cli) |
 
 ---
 
@@ -222,6 +231,8 @@ Connect GitHub → Auto-deploy
 - 🌐 **PWA Enhancements** — New shortcuts, file handlers, service worker updates
 - 🔧 **Settings Overhaul** — Clear UI mode selection, workspace info
 - ⚡ **UI Refinements** — Save button in explorer, workspace tab, version unified
+- 📦 **GitHub Packages** — Moved from npm to GitHub Packages
+- 🌿 **Branch cleanup** — Stable branch updated with final v4.x.x release
 
 ### v5.0.0
 - ✨ **WebContainer Integration** — Run Node.js in browser!
