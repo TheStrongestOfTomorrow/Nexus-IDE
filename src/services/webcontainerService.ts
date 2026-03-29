@@ -180,6 +180,16 @@ class WebContainerService {
   }
 
   /**
+   * Ensure the WebContainer is booted and ready
+   * Boots it if not already booted, returns silently if already ready
+   */
+  async ensureReady(): Promise<void> {
+    if (!this.instance) {
+      await this.boot();
+    }
+  }
+
+  /**
    * Spawn a process in the WebContainer
    */
   async spawn(command: string, args: string[] = []): Promise<number> {
@@ -200,6 +210,26 @@ class WebContainerService {
     );
 
     return process.exit;
+  }
+
+  /**
+   * Spawn a process and return it for interactive use
+   * Returns the process instance so callers can pipe stdin and handle stdout/stderr
+   */
+  async spawnInteractive(command: string, args: string[] = []): Promise<{
+    process: any;
+    exitCode: Promise<number>;
+  }> {
+    if (!this.instance) {
+      throw new Error('WebContainer not booted');
+    }
+
+    this.emitOutput(`\x1b[90m$ ${command} ${args.join(' ')}\x1b[0m\n`);
+
+    const process = await this.instance.spawn(command, args);
+    const exitCode = process.exit;
+
+    return { process, exitCode };
   }
 
   /**
