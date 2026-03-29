@@ -1,139 +1,134 @@
-import React, { useState } from 'react';
-import { Globe, Server, Rocket, Plus, Trash2, Edit3, Check, X, GitCompare, ChevronDown, ChevronRight, Shield, AlertTriangle } from 'lucide-react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Server, Plus, Trash2, Edit3, Check, X, GitCompare, ChevronDown, ChevronRight, Shield, FileText } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { FileNode } from '../hooks/useFileSystem';
+
+interface EnvironmentManagerProps {
+  files?: FileNode[];
+  onUpdateFile?: (fileId: string, content: string) => void;
+}
 
 interface EnvVariable {
   key: string;
   value: string;
 }
 
-interface Environment {
-  id: string;
-  name: string;
-  status: 'active' | 'healthy' | 'warning' | 'inactive';
-  icon: React.ReactNode;
-  color: string;
+interface ParsedEnvFile {
+  fileId: string;
+  fileName: string;
   variables: EnvVariable[];
-  lastDeploy: string;
 }
 
-export default function EnvironmentManager() {
-  const [environments, setEnvironments] = useState<Environment[]>([
-    {
-      id: '1',
-      name: 'Development',
-      status: 'active',
-      icon: <Server size={14} />,
-      color: 'text-emerald-400',
-      variables: [
-        { key: 'NODE_ENV', value: 'development' },
-        { key: 'API_URL', value: 'http://localhost:3001' },
-        { key: 'DATABASE_URL', value: 'sqlite://dev.db' },
-        { key: 'REDIS_URL', value: 'redis://localhost:6379' },
-        { key: 'DEBUG', value: 'true' },
-        { key: 'LOG_LEVEL', value: 'debug' },
-      ],
-      lastDeploy: '5 min ago',
-    },
-    {
-      id: '2',
-      name: 'Staging',
-      status: 'healthy',
-      icon: <Shield size={14} />,
-      color: 'text-amber-400',
-      variables: [
-        { key: 'NODE_ENV', value: 'staging' },
-        { key: 'API_URL', value: 'https://staging-api.nexus.dev' },
-        { key: 'DATABASE_URL', value: 'postgresql://staging-db' },
-        { key: 'REDIS_URL', value: 'redis://staging-redis:6379' },
-        { key: 'DEBUG', value: 'false' },
-        { key: 'LOG_LEVEL', value: 'info' },
-      ],
-      lastDeploy: '2 hrs ago',
-    },
-    {
-      id: '3',
-      name: 'Production',
-      status: 'healthy',
-      icon: <Globe size={14} />,
-      color: 'text-violet-400',
-      variables: [
-        { key: 'NODE_ENV', value: 'production' },
-        { key: 'API_URL', value: 'https://api.nexus.dev' },
-        { key: 'DATABASE_URL', value: 'postgresql://prod-db-cluster' },
-        { key: 'REDIS_URL', value: 'redis://prod-redis-cluster:6379' },
-        { key: 'DEBUG', value: 'false' },
-        { key: 'LOG_LEVEL', value: 'warn' },
-      ],
-      lastDeploy: '1 day ago',
-    },
-  ]);
+const ENV_FILE_PATTERNS = [
+  '.env',
+  '.env.local',
+  '.env.production',
+  '.env.staging',
+  '.env.development',
+];
 
-  const [activeEnv, setActiveEnv] = useState<string>('1');
-  const [expandedEnv, setExpandedEnv] = useState<string | null>('1');
+const ENV_TEMPLATE = `# Environment Variables
+# Add your environment variables below
+# Example: KEY=value
+
+APP_NAME=Nexus-IDE
+APP_VERSION=1.0.0
+`;
+
+function parseEnvContent(content: string): EnvVariable[] {
+  const vars: EnvVariable[] = [];
+  content.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) return;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let value = trimmed.slice(eqIdx + 1).trim();
+    // Remove surrounding quotes
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (key) {
+      vars.push({ key, value });
+    }
+  });
+  return vars;
+}
+
+function serializeEnvVariables(variables: EnvVariable[], existingContent: string): string {
+  // Rebuild content: keep comments, update/add variables
+  const varMap = new Map(variables.map(v => [v.key, v.value]));
+  const usedKeys = new Set<string>();
+  const lines = existingContent.split('\n').map(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return line;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) return line;
+    const key = trimmed.slice(0, eqIdx).trim();
+    if (key && varMap.has(key)) {
+      usedKeys.add(key);
+      return `${key}=${varMap.get(key)}`;
+    }
+    return line;
+  });
+
+  // Append any new keys
+  varMap.forEach((value, key) => {
+    if (!usedKeys.has(key)) {
+      lines.push(`${key}=${value}`);
+    }
+  });
+
+  return lines.join('\n');
+}
+
+export default function EnvironmentManager({ files = [], onUpdateFile }: EnvironmentManagerProps) {
+  const [expandedFileId, setExpandedFileId] = useState<string | null>(null);
   const [showComparison, setShowComparison] = useState(false);
-  const [compareFrom, setCompareFrom] = useState('1');
-  const [compareTo, setCompareTo] = useState('3');
+  const [compareFromFileId, setCompareFromFileId] = useState<string>('');
+  const [compareToFileId, setCompareToFileId] = useState<string>('');
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [showAddVar, setShowAddVar] = useState(false);
+  const [showAddVar, setShowAddVar] = useState<string | null>(null);
   const [newKey, setNewKey] = useState('');
   const [newValue, setNewValue] = useState('');
 
-  const statusConfig: Record<string, { color: string; bgColor: string; borderColor: string }> = {
-    active: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/20', borderColor: 'border-emerald-500/30' },
-    healthy: { color: 'text-emerald-400', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/20' },
-    warning: { color: 'text-amber-400', bgColor: 'bg-amber-500/20', borderColor: 'border-amber-500/30' },
-    inactive: { color: 'text-gray-400', bgColor: 'bg-gray-500/20', borderColor: 'border-gray-500/30' },
-  };
+  // Find .env files and parse them
+  const parsedEnvFiles = useMemo((): ParsedEnvFile[] => {
+    return files
+      .filter(f => {
+        const name = f.name.toLowerCase();
+        return ENV_FILE_PATTERNS.some(p => name === p || name.endsWith('/' + p));
+      })
+      .map(f => ({
+        fileId: f.id,
+        fileName: f.name,
+        variables: parseEnvContent(f.content),
+      }));
+  }, [files]);
 
-  const activeEnvironment = environments.find(e => e.id === activeEnv);
+  // Find which env files are missing
+  const missingEnvFiles = useMemo(() => {
+    const foundNames = new Set(parsedEnvFiles.map(f => f.fileName.toLowerCase()));
+    return ENV_FILE_PATTERNS.filter(p => !foundNames.has(p));
+  }, [parsedEnvFiles]);
 
-  const handleAddVar = () => {
-    if (!newKey.trim() || !activeEnv) return;
-    setEnvironments(prev => prev.map(env =>
-      env.id === activeEnv
-        ? { ...env, variables: [...env.variables, { key: newKey, value: newValue }] }
-        : env
-    ));
-    setNewKey('');
-    setNewValue('');
-    setShowAddVar(false);
-  };
+  // File lookup helper
+  const getFileById = useCallback((id: string) => files.find(f => f.id === id), [files]);
 
-  const handleDeleteVar = (key: string) => {
-    setEnvironments(prev => prev.map(env =>
-      env.id === activeEnv
-        ? { ...env, variables: env.variables.filter(v => v.key !== key) }
-        : env
-    ));
-  };
-
-  const handleEditVar = (key: string, value: string) => {
-    setEnvironments(prev => prev.map(env =>
-      env.id === activeEnv
-        ? {
-            ...env,
-            variables: env.variables.map(v =>
-              v.key === key ? { ...v, value } : v
-            ),
-          }
-        : env
-    ));
-    setEditingKey(null);
-  };
-
-  const getDiffVars = () => {
-    const fromEnv = environments.find(e => e.id === compareFrom);
-    const toEnv = environments.find(e => e.id === compareTo);
-    if (!fromEnv || !toEnv) return [];
+  // Cross-env comparison
+  const diffVars = useMemo(() => {
+    if (!showComparison || !compareFromFileId || !compareToFileId) return [];
+    const fromFile = parsedEnvFiles.find(f => f.fileId === compareFromFileId);
+    const toFile = parsedEnvFiles.find(f => f.fileId === compareToFileId);
+    if (!fromFile || !toFile) return [];
 
     const diffs: { key: string; fromVal: string | null; toVal: string | null; type: 'changed' | 'added' | 'removed' }[] = [];
+    const allKeys = new Set([...fromFile.variables.map(v => v.key), ...toFile.variables.map(v => v.key)]);
 
-    const allKeys = new Set([...fromEnv.variables.map(v => v.key), ...toEnv.variables.map(v => v.key)]);
     allKeys.forEach(key => {
-      const fromVar = fromEnv.variables.find(v => v.key === key);
-      const toVar = toEnv.variables.find(v => v.key === key);
+      const fromVar = fromFile.variables.find(v => v.key === key);
+      const toVar = toFile.variables.find(v => v.key === key);
       if (!fromVar) {
         diffs.push({ key, fromVal: null, toVal: toVar?.value ?? '', type: 'added' });
       } else if (!toVar) {
@@ -144,7 +139,56 @@ export default function EnvironmentManager() {
     });
 
     return diffs;
+  }, [showComparison, compareFromFileId, compareToFileId, parsedEnvFiles]);
+
+  const activeParsed = parsedEnvFiles.find(f => f.fileId === expandedFileId);
+
+  const handleAddVar = () => {
+    if (!newKey.trim() || !expandedFileId || !onUpdateFile) return;
+    const file = getFileById(expandedFileId);
+    if (!file) return;
+
+    const current = parseEnvContent(file.content);
+    if (current.some(v => v.key === newKey.trim())) return;
+    current.push({ key: newKey.trim(), value: newValue });
+    const newContent = serializeEnvVariables(current, file.content);
+    onUpdateFile(expandedFileId, newContent);
+    setNewKey('');
+    setNewValue('');
+    setShowAddVar(null);
   };
+
+  const handleDeleteVar = (key: string) => {
+    if (!expandedFileId || !onUpdateFile) return;
+    const file = getFileById(expandedFileId);
+    if (!file) return;
+
+    const current = parseEnvContent(file.content).filter(v => v.key !== key);
+    const newContent = serializeEnvVariables(current, file.content);
+    onUpdateFile(expandedFileId, newContent);
+    setEditingKey(null);
+  };
+
+  const handleEditVar = (key: string) => {
+    if (!expandedFileId || !onUpdateFile) return;
+    const file = getFileById(expandedFileId);
+    if (!file) return;
+
+    const current = parseEnvContent(file.content);
+    const updated = current.map(v => v.key === key ? { ...v, value: editValue } : v);
+    const newContent = serializeEnvVariables(updated, file.content);
+    onUpdateFile(expandedFileId, newContent);
+    setEditingKey(null);
+  };
+
+  const handleCreateEnv = (fileName: string) => {
+    if (!onUpdateFile) return;
+    // We need to add a new file — since we can't create files from here,
+    // show a helpful message
+    alert(`To create ${fileName}, use the file explorer to create a new file and paste the following template:\n\n${ENV_TEMPLATE}`);
+  };
+
+  const canEdit = !!onUpdateFile;
 
   return (
     <div className="flex flex-col h-full bg-nexus-sidebar">
@@ -154,50 +198,85 @@ export default function EnvironmentManager() {
           Environments
         </h2>
 
-        <div className="grid grid-cols-3 gap-1.5">
-          {environments.map(env => (
+        {/* Found env files tabs */}
+        <div className="grid grid-cols-3 gap-1.5 mb-2">
+          {parsedEnvFiles.map(env => (
             <button
-              key={env.id}
-              onClick={() => { setActiveEnv(env.id); setExpandedEnv(env.id); }}
+              key={env.fileId}
+              onClick={() => { setExpandedFileId(expandedFileId === env.fileId ? null : env.fileId); setShowAddVar(null); setEditingKey(null); }}
               className={cn(
                 'p-2 rounded-lg border text-center transition-all',
-                activeEnv === env.id
+                expandedFileId === env.fileId
                   ? 'border-nexus-accent/50 bg-nexus-accent/10'
                   : 'border-nexus-border bg-nexus-bg hover:border-nexus-accent/30'
               )}
             >
-              <div className={cn('text-sm mb-0.5', env.color)}>{env.icon}</div>
-              <div className="text-[9px] font-bold text-white uppercase">{env.name}</div>
-              <div className={cn('text-[8px] font-bold uppercase', statusConfig[env.status].color)}>
-                {env.status}
+              <div className="text-sm mb-0.5 text-emerald-400">
+                <FileText size={14} className="mx-auto" />
               </div>
+              <div className="text-[8px] font-bold text-white uppercase truncate">{env.fileName.replace('.env', '') || '.env'}</div>
+              <div className="text-[8px] text-nexus-text-muted">{env.variables.length} vars</div>
             </button>
           ))}
         </div>
+
+        {/* Missing files */}
+        {missingEnvFiles.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {missingEnvFiles.map(name => (
+              <button
+                key={name}
+                onClick={() => handleCreateEnv(name)}
+                className="flex items-center gap-1 px-2 py-1 rounded-md border border-dashed border-nexus-border text-[8px] text-nexus-text-muted hover:text-white hover:border-nexus-accent/50 transition-colors"
+              >
+                <Plus size={8} />
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
-        {/* Environment Config */}
-        {activeEnvironment && (
+        {parsedEnvFiles.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 space-y-3">
+            <div className="w-16 h-16 bg-nexus-bg rounded-2xl flex items-center justify-center border border-nexus-border shadow-xl">
+              <Shield size={32} className="text-nexus-text-muted" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-xs font-bold text-white">No .env Files Found</p>
+              <p className="text-[10px] text-nexus-text-muted leading-relaxed max-w-[200px]">
+                Create a .env, .env.local, .env.production, .env.staging, or .env.development file to manage your environment variables here.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Active env file variables */}
+        {activeParsed && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest flex items-center gap-2">
                 <Shield size={12} className="text-nexus-accent" />
-                {activeEnvironment.name} Config
+                {activeParsed.fileName}
               </h3>
-              <div className="flex items-center gap-1">
-                <span className="text-[9px] text-nexus-text-muted">Deployed: {activeEnvironment.lastDeploy}</span>
-              </div>
+              {!canEdit && (
+                <span className="text-[8px] text-amber-400 font-bold uppercase">Read-only</span>
+              )}
             </div>
 
-            {/* Variables Table */}
             <div className="bg-nexus-bg rounded-xl border border-nexus-border overflow-hidden shadow-sm">
               <div className="grid grid-cols-[1fr_1fr_auto] gap-0 text-[9px] font-bold text-nexus-text-muted uppercase tracking-wider border-b border-nexus-border">
                 <div className="p-2.5">Key</div>
                 <div className="p-2.5">Value</div>
                 <div className="p-2.5 text-right">Actions</div>
               </div>
-              {activeEnvironment.variables.map(variable => (
+              {activeParsed.variables.length === 0 && (
+                <div className="p-4 text-center text-[10px] text-nexus-text-muted italic opacity-50">
+                  No variables defined
+                </div>
+              )}
+              {activeParsed.variables.map(variable => (
                 <div key={variable.key} className="grid grid-cols-[1fr_1fr_auto] gap-0 border-b border-nexus-border last:border-none hover:bg-nexus-sidebar transition-colors">
                   <div className="p-2.5">
                     <span className="text-[10px] text-nexus-accent font-mono font-bold">{variable.key}</span>
@@ -213,7 +292,7 @@ export default function EnvironmentManager() {
                           autoFocus
                         />
                         <button
-                          onClick={() => handleEditVar(variable.key, editValue)}
+                          onClick={() => handleEditVar(variable.key)}
                           className="p-1 text-emerald-400 hover:text-emerald-300"
                         >
                           <Check size={12} />
@@ -226,11 +305,11 @@ export default function EnvironmentManager() {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-[10px] text-nexus-text-muted font-mono truncate block">{variable.value}</span>
+                      <span className="text-[10px] text-nexus-text-muted font-mono truncate block">{variable.value || '(empty)'}</span>
                     )}
                   </div>
                   <div className="p-2.5 flex items-center justify-end gap-1">
-                    {editingKey !== variable.key && (
+                    {editingKey !== variable.key && canEdit && (
                       <>
                         <button
                           onClick={() => { setEditingKey(variable.key); setEditValue(variable.value); }}
@@ -252,21 +331,19 @@ export default function EnvironmentManager() {
             </div>
 
             {/* Add Variable */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowAddVar(!showAddVar)}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-nexus-bg hover:bg-nexus-bg/80 text-white rounded-lg text-[10px] font-bold transition-all border border-nexus-border uppercase tracking-widest"
-              >
-                <Plus size={12} />
-                Add Variable
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition-all shadow-lg shadow-emerald-900/20 uppercase tracking-widest">
-                <Rocket size={12} />
-                Deploy to {activeEnvironment.name}
-              </button>
-            </div>
+            {canEdit && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAddVar(showAddVar === 'active' ? null : 'active')}
+                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-nexus-bg hover:bg-nexus-bg/80 text-white rounded-lg text-[10px] font-bold transition-all border border-nexus-border uppercase tracking-widest"
+                >
+                  <Plus size={12} />
+                  Add Variable
+                </button>
+              </div>
+            )}
 
-            {showAddVar && (
+            {showAddVar === 'active' && canEdit && (
               <div className="p-3 bg-nexus-bg rounded-xl border border-nexus-border space-y-2 shadow-sm">
                 <div className="grid grid-cols-2 gap-2">
                   <input
@@ -286,14 +363,15 @@ export default function EnvironmentManager() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setShowAddVar(false)}
+                    onClick={() => setShowAddVar(null)}
                     className="flex-1 text-[10px] text-nexus-text-muted hover:text-white transition-colors uppercase font-bold"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleAddVar}
-                    className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-nexus-accent hover:bg-nexus-accent/80 text-white rounded-lg text-[10px] font-bold transition-all uppercase tracking-widest"
+                    disabled={!newKey.trim()}
+                    className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-nexus-accent hover:bg-nexus-accent/80 text-white rounded-lg text-[10px] font-bold transition-all uppercase tracking-widest disabled:opacity-50"
                   >
                     <Plus size={10} />
                     Add
@@ -304,79 +382,113 @@ export default function EnvironmentManager() {
           </div>
         )}
 
-        {/* Environment Comparison */}
-        <div className="space-y-3">
-          <button
-            onClick={() => setShowComparison(!showComparison)}
-            className="flex items-center gap-2 text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest w-full"
-          >
-            <GitCompare size={12} className="text-nexus-accent" />
-            Environment Comparison
-            {showComparison ? <ChevronDown size={12} className="ml-auto" /> : <ChevronRight size={12} className="ml-auto" />}
-          </button>
+        {/* Cross-env Comparison */}
+        {parsedEnvFiles.length >= 2 && (
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowComparison(!showComparison)}
+              className="flex items-center gap-2 text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest w-full"
+            >
+              <GitCompare size={12} className="text-nexus-accent" />
+              Cross-Environment Comparison
+              {showComparison ? <ChevronDown size={12} className="ml-auto" /> : <ChevronRight size={12} className="ml-auto" />}
+            </button>
 
-          {showComparison && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={compareFrom}
-                  onChange={e => setCompareFrom(e.target.value)}
-                  className="bg-nexus-bg border border-nexus-border rounded-lg px-3 py-1.5 text-[10px] text-white outline-none focus:border-nexus-accent"
-                >
-                  {environments.map(env => (
-                    <option key={env.id} value={env.id}>{env.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={compareTo}
-                  onChange={e => setCompareTo(e.target.value)}
-                  className="bg-nexus-bg border border-nexus-border rounded-lg px-3 py-1.5 text-[10px] text-white outline-none focus:border-nexus-accent"
-                >
-                  {environments.map(env => (
-                    <option key={env.id} value={env.id}>{env.name}</option>
-                  ))}
-                </select>
-              </div>
+            {showComparison && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={compareFromFileId}
+                    onChange={e => setCompareFromFileId(e.target.value)}
+                    className="bg-nexus-bg border border-nexus-border rounded-lg px-3 py-1.5 text-[10px] text-white outline-none focus:border-nexus-accent"
+                  >
+                    <option value="">Select file...</option>
+                    {parsedEnvFiles.map(env => (
+                      <option key={env.fileId} value={env.fileId}>{env.fileName}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={compareToFileId}
+                    onChange={e => setCompareToFileId(e.target.value)}
+                    className="bg-nexus-bg border border-nexus-border rounded-lg px-3 py-1.5 text-[10px] text-white outline-none focus:border-nexus-accent"
+                  >
+                    <option value="">Select file...</option>
+                    {parsedEnvFiles.map(env => (
+                      <option key={env.fileId} value={env.fileId}>{env.fileName}</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="bg-nexus-bg rounded-xl border border-nexus-border overflow-hidden shadow-sm">
-                {getDiffVars().length > 0 ? (
-                  getDiffVars().map(diff => (
-                    <div key={diff.key} className="p-2.5 border-b border-nexus-border last:border-none">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] text-nexus-accent font-mono font-bold">{diff.key}</span>
-                        {diff.type === 'changed' && (
-                          <span className="text-[9px] text-amber-400 font-bold uppercase bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30">changed</span>
-                        )}
-                        {diff.type === 'added' && (
-                          <span className="text-[9px] text-emerald-400 font-bold uppercase bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">added</span>
-                        )}
-                        {diff.type === 'removed' && (
-                          <span className="text-[9px] text-red-400 font-bold uppercase bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30">removed</span>
-                        )}
+                {compareFromFileId && compareToFileId && (
+                  <div className="bg-nexus-bg rounded-xl border border-nexus-border overflow-hidden shadow-sm">
+                    {diffVars.length > 0 ? (
+                      diffVars.map(diff => (
+                        <div key={diff.key} className="p-2.5 border-b border-nexus-border last:border-none">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] text-nexus-accent font-mono font-bold">{diff.key}</span>
+                            {diff.type === 'changed' && (
+                              <span className="text-[9px] text-amber-400 font-bold uppercase bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30">changed</span>
+                            )}
+                            {diff.type === 'added' && (
+                              <span className="text-[9px] text-emerald-400 font-bold uppercase bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/30">added</span>
+                            )}
+                            {diff.type === 'removed' && (
+                              <span className="text-[9px] text-red-400 font-bold uppercase bg-red-500/20 px-1.5 py-0.5 rounded border border-red-500/30">removed</span>
+                            )}
+                          </div>
+                          {diff.type !== 'added' && (
+                            <div className="flex items-center gap-2 text-[9px]">
+                              <span className="text-nexus-text-muted w-16 shrink-0 truncate">{parsedEnvFiles.find(e => e.fileId === compareFromFileId)?.fileName}:</span>
+                              <span className="text-red-400 font-mono line-through">{diff.fromVal}</span>
+                            </div>
+                          )}
+                          {diff.type !== 'removed' && (
+                            <div className="flex items-center gap-2 text-[9px]">
+                              <span className="text-nexus-text-muted w-16 shrink-0 truncate">{parsedEnvFiles.find(e => e.fileId === compareToFileId)?.fileName}:</span>
+                              <span className="text-emerald-400 font-mono">{diff.toVal}</span>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-[10px] text-nexus-text-muted italic opacity-50">
+                        No differences found
                       </div>
-                      {diff.type !== 'added' && (
-                        <div className="flex items-center gap-2 text-[9px]">
-                          <span className="text-nexus-text-muted w-14 shrink-0">{environments.find(e => e.id === compareFrom)?.name}:</span>
-                          <span className="text-red-400 font-mono line-through">{diff.fromVal}</span>
-                        </div>
-                      )}
-                      {diff.type !== 'removed' && (
-                        <div className="flex items-center gap-2 text-[9px]">
-                          <span className="text-nexus-text-muted w-14 shrink-0">{environments.find(e => e.id === compareTo)?.name}:</span>
-                          <span className="text-emerald-400 font-mono">{diff.toVal}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-[10px] text-nexus-text-muted italic opacity-50">
-                    No differences found
+                    )}
                   </div>
                 )}
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Summary of all env files */}
+        {parsedEnvFiles.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">All Environment Files</h3>
+            <div className="space-y-1.5">
+              {parsedEnvFiles.map(env => (
+                <button
+                  key={env.fileId}
+                  onClick={() => setExpandedFileId(env.fileId)}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all',
+                    expandedFileId === env.fileId
+                      ? 'border-nexus-accent/50 bg-nexus-accent/10'
+                      : 'border-nexus-border bg-nexus-bg hover:border-nexus-accent/30'
+                  )}
+                >
+                  <FileText size={14} className="text-nexus-accent shrink-0" />
+                  <div className="flex-1 min-w-0 text-left">
+                    <div className="text-[10px] font-bold text-white truncate">{env.fileName}</div>
+                    <div className="text-[9px] text-nexus-text-muted">{env.variables.length} variable{env.variables.length !== 1 ? 's' : ''}</div>
+                  </div>
+                  {expandedFileId === env.fileId ? <ChevronDown size={12} className="text-nexus-text-muted" /> : <ChevronRight size={12} className="text-nexus-text-muted" />}
+                </button>
+              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-nexus-border bg-nexus-bg">

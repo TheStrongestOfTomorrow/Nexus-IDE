@@ -400,22 +400,22 @@ export default function App() {
             )}
             {ide.activeActivity === 'dashboard' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <ProjectDashboard />
+                <ProjectDashboard files={files} />
               </div>
             )}
             {ide.activeActivity === 'reviews' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <CodeReview />
+                <CodeReview githubToken={ide.githubToken} />
               </div>
             )}
             {ide.activeActivity === 'pipeline' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <CICDPipeline />
+                <CICDPipeline githubToken={ide.githubToken} />
               </div>
             )}
             {ide.activeActivity === 'environments' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <EnvironmentManager />
+                <EnvironmentManager files={files} onUpdateFile={(id, content) => updateFile(id, content)} />
               </div>
             )}
             {ide.activeActivity === 'audit' && (
