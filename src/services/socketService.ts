@@ -63,10 +63,14 @@ class SocketService {
       this.socket.onclose = () => {
         console.log('Disconnected from Nexus WebSocket');
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // exponential backoff, max 30s
+          console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
           setTimeout(() => {
             this.reconnectAttempts++;
             this.connect();
-          }, 2000);
+          }, delay);
+        } else {
+          console.error('Max reconnect attempts reached. WebSocket connection failed permanently.');
         }
       };
     } catch (err) {

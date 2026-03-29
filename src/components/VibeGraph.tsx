@@ -82,13 +82,14 @@ export default function VibeGraph({ files, onClose, onSelectFile }: VibeGraphPro
       
       // Expose click handler to window for mermaid
       (window as any).handleNodeClick = (id: string) => {
-        if (onSelectFile) onSelectFile(id);
+        onSelectFile?.(id);
       };
 
       return () => {
         delete (window as any).handleNodeClick;
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [graphDefinition]);
 
   return (

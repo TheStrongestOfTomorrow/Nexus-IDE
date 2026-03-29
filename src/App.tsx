@@ -87,7 +87,7 @@ export default function App() {
     const zip = new JSZip();
     files.forEach(file => zip.file(file.name, file.content));
     const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-4.4.zip');
+    saveAs(content, 'nexus-project-5.0.zip');
   };
 
   const handleClearWorkspace = () => {
@@ -144,7 +144,8 @@ export default function App() {
       ide.setActiveFileId(files[0].id);
       ide.setOpenFileIds([files[0].id]);
     }
-  }, [isFsLoaded, files, ide.activeFileId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFsLoaded, files.length, ide.activeFileId]);
 
   // PWA: Launch Handler API
   useEffect(() => {
@@ -239,7 +240,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Zap size={18} className="text-yellow-300 fill-yellow-300" />
             <div>
-              <p className="text-sm font-bold">Nexus 4.4 Update Available</p>
+              <p className="text-sm font-bold">Nexus 5.0 Update Available</p>
               <p className="text-[10px] opacity-90">A new version is ready to install.</p>
             </div>
           </div>
@@ -472,7 +473,7 @@ export default function App() {
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                     <Zap size={64} className="opacity-10" />
-                    <p className="text-sm">Select a file to start coding in Nexus 4.4</p>
+                    <p className="text-sm">Select a file to start coding in Nexus 5.0</p>
                     <div className="flex gap-2">
                       <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
                       <span className="text-[10px]">Command Palette</span>

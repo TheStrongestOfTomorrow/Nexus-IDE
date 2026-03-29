@@ -13,7 +13,7 @@ export default function SnippetManager() {
     const saved = localStorage.getItem('nexus_snippets');
     return saved ? JSON.parse(saved) : [
       { id: '1', name: 'React Component', language: 'typescript', code: 'export default function Component() {\n  return <div>Hello</div>;\n}' },
-      { id: '2', name: 'Console Log', language: 'javascript', code: 'console.log("DEBUG:", );' }
+      { id: '2', name: 'Console Log', language: 'javascript', code: 'console.log("DEBUG:", variable);' }
     ];
   });
   const [isAdding, setIsAdding] = useState(false);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Cpu as GroqIcon, Brain, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SettingsPanelProps {
@@ -89,7 +89,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 4.4 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.0 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -382,7 +382,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v4.4 Stable</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.0 Stable</span>
           </div>
           <button
             onClick={onClose}

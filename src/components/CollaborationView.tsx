@@ -170,7 +170,7 @@ export default function CollaborationView({
 
       <div className="p-4 border-t border-nexus-border bg-nexus-bg">
         <p className="text-[10px] text-nexus-text-muted leading-relaxed italic text-center font-bold tracking-wider">
-          NEXUS 4.0 COLLABORATION ENGINE
+          NEXUS 5.0 COLLABORATION ENGINE
         </p>
       </div>
     </div>

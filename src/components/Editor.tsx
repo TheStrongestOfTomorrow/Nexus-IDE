@@ -114,7 +114,7 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
     });
 
     // Load themes from extensions
-    extensions.forEach(async (ext) => {
+    for (const ext of extensions) {
       if (ext.enabled && ext.url.endsWith('.json')) {
         try {
           const response = await fetch(ext.url);
@@ -125,7 +125,7 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
           console.error(`Failed to load theme ${ext.name}:`, err);
         }
       }
-    });
+    }
   };
   const handleRun = () => {
     if (file) {
@@ -143,7 +143,7 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
     return (
       <div className="flex-1 flex items-center justify-center bg-nexus-bg text-nexus-text-muted">
         <div className="text-center">
-          <h2 className="text-2xl font-light mb-2">Nexus IDE 4.1</h2>
+          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.0</h2>
           <p className="text-xs">Select a file to start editing</p>
         </div>
       </div>

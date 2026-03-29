@@ -7,27 +7,37 @@
     <link rel="manifest" href="manifest.json" />
     <title>Nexus IDE</title>
     <script>
-      // NUCLEAR CACHE BUST v4.3.7
+      // Targeted cache migration (preserves user data)
       (function() {
-        const VERSION = '4.3.7';
-        if (localStorage.getItem('nexus_version_hard') !== VERSION) {
-          localStorage.clear();
+        const VERSION = '5.0.0';
+        const CACHE_KEYS_TO_CLEAR = ['nexus_version_hard'];
+        const stored = localStorage.getItem('nexus_version_hard');
+
+        if (stored !== VERSION) {
+          // Only clear known IDE cache keys, NOT user settings/keys/data
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+              CACHE_KEYS_TO_CLEAR.includes(key) ||
+              key.startsWith('nexus_cached_') ||
+              key.startsWith('nexus_tmp_')
+            )) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
           localStorage.setItem('nexus_version_hard', VERSION);
-          
+
+          // Clear old service workers and caches safely
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
               for (let registration of registrations) { registration.unregister(); }
             });
           }
-          
           caches.keys().then(names => {
             for (let name of names) caches.delete(name);
           });
-
-          // Redirect to a URL with a cache-busting parameter
-          const url = new URL(window.location.href);
-          url.searchParams.set('v', VERSION);
-          window.location.replace(url.href);
         }
       })();
     </script>

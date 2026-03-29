@@ -79,7 +79,7 @@ socketService.subscribe((msg) => {
 
   const handleAddScript = () => {
     const newScript: MinecraftScript = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       name: 'New Script',
       code: '// Write your Minecraft automation here\n',
       enabled: false

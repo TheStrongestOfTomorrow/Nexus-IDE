@@ -29,7 +29,7 @@ class ErrorHandlingService {
 
   captureError(error: any, code: string = 'UNKNOWN'): NexusError {
     const nexusError: NexusError = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       type: 'error',
       title: error?.name || 'Error',
       message: error?.message || String(error),
@@ -48,7 +48,7 @@ class ErrorHandlingService {
 
   captureWarning(message: string, code: string = 'WARNING', context?: Record<string, any>): NexusError {
     const warning: NexusError = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       type: 'warning',
       title: 'Warning',
       message,
@@ -65,7 +65,7 @@ class ErrorHandlingService {
 
   captureInfo(message: string, code: string = 'INFO'): NexusError {
     const info: NexusError = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Math.random().toString(36).substring(2, 11),
       type: 'info',
       title: 'Information',
       message,

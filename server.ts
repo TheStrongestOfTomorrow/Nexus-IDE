@@ -61,12 +61,15 @@ async function startServer() {
 
       const { access_token } = response.data;
 
+      // Escape token for safe interpolation in script tag
+      const safeToken = access_token.replace(/'/g, "\\'").replace(/</g, '\\x3c').replace(/>/g, '\\x3e');
+
       res.send(`
         <html>
           <body>
             <script>
               if (window.opener) {
-                window.opener.postMessage({ type: 'GITHUB_AUTH_SUCCESS', token: '${access_token}' }, '*');
+                window.opener.postMessage({ type: 'GITHUB_AUTH_SUCCESS', token: '${safeToken}' }, window.location.origin);
                 window.close();
               } else {
                 window.location.href = '/';

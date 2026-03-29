@@ -109,12 +109,17 @@ export function useIDEState(files: any[]) {
   }, [openFileIds]);
 
   const closeFile = useCallback((id: string) => {
-    const newOpenFiles = openFileIds.filter(fid => fid !== id);
-    setOpenFileIds(newOpenFiles);
-    if (activeFileId === id) {
-      setActiveFileId(newOpenFiles[newOpenFiles.length - 1] || null);
-    }
-  }, [openFileIds, activeFileId]);
+    setOpenFileIds(prev => {
+      const newOpenFiles = prev.filter(fid => fid !== id);
+      setActiveFileId(currentActiveId => {
+        if (currentActiveId === id) {
+          return newOpenFiles[newOpenFiles.length - 1] || null;
+        }
+        return currentActiveId;
+      });
+      return newOpenFiles;
+    });
+  }, []);
 
   const setApiKey = useCallback((provider: string, key: string) => {
     setApiKeys(prev => ({ ...prev, [provider]: key }));
