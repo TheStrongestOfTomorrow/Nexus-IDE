@@ -1,13 +1,13 @@
 <div align="center">
 
-# 🚀 Nexus IDE
+# 🚀 Nexus IDE — Stable
 
-<img src="https://lucide.dev/api/icons/zap?size=128&color=f59e0b" alt="Nexus IDE" width="128" height="128" />
+<img src="https://lucide.dev/api/icons/zap?size=128&color=10b981" alt="Nexus IDE" width="128" height="128" />
 
 ### *The AI-First, Browser-Based IDE*
 
-[![NPM Beta](https://img.shields.io/badge/NPM-Beta-f59e0b?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
-[![Version](https://img.shields.io/badge/Version-4.4.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Stable-10b981?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
+[![Version](https://img.shields.io/badge/Version-4.4.1-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 
@@ -20,50 +20,24 @@
 ## ⚡ Quick Start
 
 ```bash
-# Run beta version instantly
-npx nexus-ide@beta
+# Run stable version instantly (no install needed)
+npx github:TheStrongestOfTomorrow/Nexus-IDE@stable
 
-# Or install globally
-npm install -g nexus-ide@beta
+# Or install globally from GitHub Packages
+npm install -g @TheStrongestOfTomorrow/nexus-ide
 nexus-ide
 ```
 
 ---
 
-## 🌟 What's New in v4.4
+## 🌿 All Versions
 
-### 🤖 AI Superpowers
-| Feature | Description |
-|---------|-------------|
-| **12+ Providers** | OpenAI, Claude, Gemini, Grok, DeepSeek, Ollama... |
-| **Custom Instructions** | Fine-tune AI behavior |
-| **/yes Mode** | AI builds, tests, deploys automatically |
-| **Prototyper Mode** | Build entire apps from one prompt |
-
-### 🧩 Extensions
-| Feature | Description |
-|---------|-------------|
-| **OpenVSX Registry** | Browse & install extensions |
-| **VSIX Support** | Upload local extensions |
-| **Full Management** | Enable, disable, uninstall |
-
-### 🎨 Experience
-| Feature | Description |
-|---------|-------------|
-| **VS Code Feel** | Familiar interface |
-| **Beginner UI** | Simplified for newcomers |
-| **Working Templates** | Pre-configured setups |
-
----
-
-## 🌿 All NPM Versions
-
-| Version | Install Command | Description |
-|---------|-----------------|-------------|
-| **Stable** | `npx nexus-ide` or `npx nexus-ide@latest` | ✅ Production ready |
-| **Beta (This)** | `npx nexus-ide@beta` | 🧪 Latest features |
-| **Professional** | `npx nexus-ide@pro` | 💼 CLI + Web dual mode |
-| **CLI/TUI** | `npx nexus-ide@cli` | 🖥️ Terminal only |
+| Version | Branch | Install Command | Description |
+|---------|--------|-----------------|-------------|
+| **Stable (This)** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
+| **Beta** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@main` | 🧪 Latest with WebContainer (v5.1) |
+| **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
+| **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
 ---
 
@@ -86,29 +60,38 @@ nexus-ide
 
 | Feature | Description |
 |---------|-------------|
+| 🤖 **12+ AI Providers** | OpenAI, Claude, Gemini, Grok, DeepSeek, Ollama... |
+| 🧩 **Extensions** | OpenVSX marketplace, VSIX support |
 | 🎙️ **Voice Control** | Control IDE with speech |
 | 🧘 **Zen Mode** | Distraction-free coding |
 | 🎨 **Theme Studio** | Create custom themes |
 | 📊 **Dependency Graph** | Visualize project deps |
 | ☁️ **Cloud Bridge** | Real-time collaboration |
 | 📱 **Mobile Ready** | Android (Termux) support |
+| 🎮 **Minecraft Bridge** | Connect to Minecraft |
 
 ---
 
 ## 🚀 Deployment
 
-### NPM
+### Run Locally
 ```bash
-npx nexus-ide@beta --port 8080
+# Clone the stable branch
+git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install
+npm start
 ```
 
 ### Docker
 ```bash
+git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
 docker-compose up -d
 ```
 
 ### Vercel/Railway/Render
-Connect GitHub → Auto-deploy
+Connect GitHub → Auto-deploy (select `stable` branch)
 
 ---
 
@@ -116,14 +99,33 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
-| NPM | https://www.npmjs.com/package/nexus-ide |
+| GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
-| **Install** | |
-| Stable | `npx nexus-ide@latest` |
-| Beta | `npx nexus-ide@beta` |
-| Professional | `npx nexus-ide@pro` |
-| CLI | `npx nexus-ide@cli` |
+| Beta Branch | [main](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/main) |
+| Professional | [professional](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/professional) |
+| CLI | [cli](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/cli) |
+
+---
+
+## 📝 Changelog
+
+### v4.4.1 (Stable)
+- 🐛 Bug fixes and stability improvements
+- 🤖 AI provider optimizations
+- 📱 Mobile UI improvements
+
+### v4.4.0
+- 12+ AI providers
+- Extensions marketplace
+- Voice control
+- Theme studio
+
+### v4.1.0
+- Stable release
+- Core IDE features
+- AI assistant
+- File management
 
 ---
 
@@ -132,5 +134,7 @@ Connect GitHub → Auto-deploy
 ### Made with ❤️ by Taz
 
 *The Future of IDE Development*
+
+**v4.4.1 — Stable**
 
 </div>
