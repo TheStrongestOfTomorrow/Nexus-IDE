@@ -4,13 +4,14 @@
 
 <img src="https://lucide.dev/api/icons/briefcase?size=128&color=6366f1" alt="Nexus IDE Professional" width="128" height="128" />
 
-### *The Ultimate Office-Ready Development Environment*
+### *The Enterprise-Grade IDE — Everything from Beta, Plus More*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Professional-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
 [![Version](https://img.shields.io/badge/Version-1.0.2-6366f1?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
-[![Mode](https://img.shields.io/badge/Mode-CLI%20%2B%20Web-10b981?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-3b82f6?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+
+*A full-featured, professional-grade IDE with all beta features, real-time collaboration, project visualization, productivity tools, and enterprise-exclusive capabilities.*
 
 </div>
 
@@ -93,15 +94,46 @@ nexus-pro config       # View settings
 
 ---
 
-## 🌟 Why Professional?
+## 🔥 Everything from Beta + Enterprise Exclusives
+
+Professional Edition includes **every feature** from the Beta branch (v5.1.0), plus powerful enterprise-only additions:
+
+### ✅ All Beta Features Included
 
 | Feature | Description |
 |---------|-------------|
-| 🔄 **Dual Mode** | Switch between CLI & Web instantly |
-| 🤖 **12+ AI Providers** | OpenAI, Claude, Gemini, Grok, Ollama... |
-| 🤝 **Collaboration** | Real-time editing, live share |
-| 💼 **Office Tools** | Docs, spreadsheets, presentations |
-| 🔒 **Enterprise Ready** | CI/CD, Docker, Git integration |
+| 🌐 **WebContainer** | Run Node.js entirely in your browser |
+| 💾 **Workspace Saves** | Save/load workspaces to IndexedDB with auto-save |
+| 🎨 **Beginner UI** | Simplified interface with tabbed navigation |
+| 📱 **Mobile UI** | Touch-optimized mobile experience |
+| 🤖 **12+ AI Providers** | OpenAI, Claude, Gemini, Grok, DeepSeek, Ollama... |
+| 🧘 **Zen Mode** | Distraction-free coding |
+| 🎨 **Theme Studio** | Create custom themes |
+| 📊 **Dependency Graph** | Visualize project dependencies |
+| 📦 **Extensions** | OpenVSX marketplace |
+| 🔍 **Search** | Full project search |
+| 🐛 **Debug** | Run and debug tools |
+| 📝 **Snippets** | Code snippet manager |
+| ✅ **Todo Scanner** | Find TODOs in code |
+| 📈 **Project Insights** | Code statistics |
+| 🔀 **Diff Editor** | Compare file changes |
+| ⌨️ **Command Palette** | Ctrl+Shift+P power |
+| 🎙️ **Voice Control** | Control IDE with speech |
+
+### 💎 Enterprise-Exclusive Features
+
+| Feature | Description |
+|---------|-------------|
+| 🤝 **Real-Time Collaboration** | Create/join sessions, live share with other developers, host projects for team access |
+| 🕸️ **VibeGraph** | Visual project dependency mapping powered by Mermaid — see your codebase architecture at a glance |
+| 🍅 **Pomodoro Timer** | Built-in focus/break timer to manage productivity sessions right inside the IDE |
+| 📐 **Mermaid Viewer** | Render Mermaid diagrams directly in the IDE with download support |
+| 🎮 **Minecraft Script Manager** | Write, manage, and run Minecraft scripts with binary mode and live execution |
+| 🔄 **Dual Mode (CLI + Web)** | Seamlessly switch between terminal and browser interface |
+| 🧱 **Monaco Editor** | VS Code's editor engine with full language support |
+| 🖥️ **Integrated Terminal** | Full terminal with command execution |
+| 📊 **Preview Popout** | Detach preview into a separate window |
+| 🏷️ **Title Bar** | Custom frameless window title bar |
 
 ---
 
@@ -122,9 +154,15 @@ nexus-pro config       # View settings
 
 ### Web Mode
 - Monaco Editor (VS Code engine)
-- Real-time collaboration
+- Real-time collaboration with live sessions
+- VibeGraph project visualization
+- Mermaid diagram rendering
+- Pomodoro productivity timer
+- Minecraft script management
 - Extension marketplace
-- Mobile-friendly
+- Mobile-friendly responsive layout
+- Workspace save/load system
+- Beginner-friendly UI mode
 
 ---
 
@@ -132,14 +170,18 @@ nexus-pro config       # View settings
 
 | Provider | Models | Best For |
 |----------|--------|----------|
-| OpenAI | GPT-4o, O1, O3 | General |
+| OpenAI | GPT-4o, O1, O3 Mini | General |
 | Anthropic | Claude Opus 4, Sonnet 4 | Reasoning |
 | Google | Gemini 2.5 Pro, Flash | Fast |
 | xAI | Grok 3, Grok Fast | Real-time |
 | Mistral | Codestral, Large | Coding |
 | DeepSeek | Coder, R1 | Code gen |
 | Groq | Llama 3.3 70B | Speed (Free) |
-| Ollama | Llama, Mistral | Local |
+| Cohere | Command R+ | Enterprise |
+| Perplexity | Sonar Pro | Research |
+| Alibaba | Qwen Max, Coder | Multilingual |
+| Together | Llama 3.3, Qwen 2.5 | Open Source |
+| Ollama | Llama, Mistral, DeepSeek | Local |
 
 ---
 
@@ -149,8 +191,8 @@ nexus-pro config       # View settings
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
 | **Beta** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@main` | 🧪 Latest with WebContainer (v5.1) |
-| **Professional (This)** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 CLI + Web dual mode |
-| **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Terminal only |
+| **Professional (This)** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#professional` | 💼 Beta features + enterprise exclusives |
+| **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE#cli` | 🖥️ Full standalone terminal IDE |
 
 ---
 
