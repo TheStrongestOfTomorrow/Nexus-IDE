@@ -25,6 +25,7 @@ import ProjectInsights from './components/ProjectInsights';
 import WebContainerTerminal from './components/WebContainerTerminal';
 import WorkspacePanel from './components/WorkspacePanel';
 import BeginnerUILayout, { BeginnerFilePanel, BeginnerToolsPanel } from './components/BeginnerUILayout';
+import VSCodeLayout from './components/VSCodeLayout';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -299,6 +300,186 @@ export default function App() {
 
   const activeFile = files.find(f => f.id === ide.activeFileId) || null;
 
+  // === VS CODE UI RENDER ===
+  if (ide.uiMode === 'vscode' && !ide.isTouchMode) {
+    // Build sidebar content for VSCode layout based on current activity
+    const vscodeSidebarContent = (
+      <div className="flex flex-col h-full w-full overflow-hidden bg-[#252526]">
+        <div className="flex items-center justify-between px-4 py-2 text-[11px] font-semibold text-[#bbbbbb] uppercase tracking-wider">
+          <span>{ide.activeActivity === 'explorer' ? 'Open Editors' : ide.activeActivity === 'search' ? 'Search' : ide.activeActivity === 'git' ? 'Source Control' : ide.activeActivity === 'ai' ? 'AI Assistant' : ide.activeActivity}</span>
+        </div>
+        <div className="flex-1 overflow-y-auto text-[12px] text-[#cccccc]">
+          {ide.activeActivity === 'explorer' && (
+            <Sidebar
+              files={files}
+              activeFileId={ide.activeFileId}
+              onSelectFile={ide.handleSelectFile}
+              onAddFile={addFile}
+              onDeleteFile={deleteFile}
+              onRenameFile={renameFile}
+              onExport={exportAsZip}
+              onClearWorkspace={handleClearWorkspace}
+              onSaveWorkspace={() => handleSaveWorkspace()}
+              onShowWorkspace={() => {}}
+              onApplyTemplate={() => {}}
+              onShowDiff={(id) => {
+                const f = files.find(x => x.id === id);
+                if (f) ide.setDiffData({ original: f.originalContent || f.content, modified: f.content, fileId: id });
+              }}
+              onOpenFolder={openDirectory}
+              onSelectFolder={ide.setActiveFolder}
+              activeFolder={ide.activeFolder}
+              pendingAiActions={pendingAiActions}
+              onAcceptAiActions={async (actions) => {
+                if (aiAssistantRef.current) {
+                  await aiAssistantRef.current.applyChanges(actions);
+                  setPendingAiActions(null);
+                }
+              }}
+              onRejectAiActions={() => setPendingAiActions(null)}
+            />
+          )}
+          {ide.activeActivity === 'search' && <SearchView files={files} onSelectFile={ide.handleSelectFile} />}
+          {ide.activeActivity === 'git' && <GithubView files={files} onImportFiles={() => {}} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} />}
+          {ide.activeActivity === 'debug' && <DebugView activeFile={activeFile} onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)} />}
+          {ide.activeActivity === 'extensions' && <ExtensionsView />}
+          {ide.activeActivity === 'ai' && (
+            <AIAssistant
+              ref={aiAssistantRef}
+              files={files}
+              activeFileId={ide.activeFileId}
+              onAddFile={addFile}
+              onUpdateFile={updateFile}
+              onDeleteFile={deleteFile}
+              apiKeys={ide.apiKeys}
+              selectedProvider={ide.selectedAIProvider}
+              selectedModels={ide.selectedModels}
+              githubToken={ide.githubToken}
+              onPendingActions={setPendingAiActions}
+              isMaximized={true}
+              onToggleMaximize={() => ide.setIsAiMaximized(!ide.isAiMaximized)}
+            />
+          )}
+        </div>
+      </div>
+    );
+
+    const vscodeEditorContent = activeFile ? (
+      <Editor
+        file={activeFile}
+        onChange={(content) => updateFile(activeFile.id, content)}
+        apiKeys={ide.apiKeys}
+        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+      />
+    ) : null;
+
+    const vscodeBottomContent = (
+      <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
+    );
+
+    return (
+      <ErrorBoundary>
+        <VSCodeLayout
+          files={files}
+          activeFileId={ide.activeFileId}
+          openFileIds={ide.openFileIds}
+          onHandleSelectFile={ide.handleSelectFile}
+          onCloseFile={ide.closeFile}
+          onAddFile={addFile}
+          onUpdateFile={updateFile}
+          onDeleteFile={deleteFile}
+          onRenameFile={renameFile}
+          onOpenFolder={openDirectory}
+          onExport={exportAsZip}
+          onClearWorkspace={handleClearWorkspace}
+          onSaveWorkspace={() => handleSaveWorkspace()}
+          apiKeys={ide.apiKeys}
+          selectedAIProvider={ide.selectedAIProvider}
+          selectedModels={ide.selectedModels}
+          githubToken={ide.githubToken}
+          aiAssistantRef={aiAssistantRef}
+          onPendingActions={setPendingAiActions}
+          showTerminal={ide.showTerminal}
+          onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+          showPreview={ide.showPreview}
+          onTogglePreview={() => ide.setShowPreview(!ide.showPreview)}
+          showAI={ide.showAI}
+          onToggleAI={() => ide.setShowAI(!ide.showAI)}
+          onShowSettings={() => ide.setShowSettings(true)}
+          diffData={ide.diffData}
+          onSetDiffData={ide.setDiffData}
+          sessionId={ide.sessionId}
+          isCommandPaletteOpen={ide.isCommandPaletteOpen}
+          onSetIsCommandPaletteOpen={ide.setIsCommandPaletteOpen}
+          sidebarContent={vscodeSidebarContent}
+          editorContent={vscodeEditorContent}
+          bottomPanelContent={vscodeBottomContent}
+          extraComponents={
+            <>
+              <VoiceCommand isListening={isVoiceListening} onToggle={() => setIsVoiceListening(!isVoiceListening)} onCommand={handleVoiceCommand} />
+              <CommandPalette isOpen={ide.isCommandPaletteOpen} onClose={() => ide.setIsCommandPaletteOpen(false)} commands={commands} />
+              {ide.diffData && (
+                <DiffEditor
+                  original={ide.diffData.original}
+                  modified={ide.diffData.modified}
+                  language={files.find(f => f.id === ide.diffData?.fileId)?.language}
+                  onClose={() => ide.setDiffData(null)}
+                  onApply={() => {
+                    if (ide.diffData) {
+                      updateFile(ide.diffData.fileId, ide.diffData.modified, true);
+                      ide.setDiffData(null);
+                    }
+                  }}
+                />
+              )}
+              <SettingsPanel
+                isOpen={ide.showSettings}
+                onClose={() => ide.setShowSettings(false)}
+                apiKeys={ide.apiKeys}
+                onApiKeyChange={ide.setApiKey}
+                isTouchMode={ide.isTouchMode}
+                onToggleTouchMode={ide.toggleTouchMode}
+                uiMode={ide.uiMode}
+                onUiModeChange={ide.setUiMode}
+                onClearWorkspace={handleClearWorkspace}
+                onExport={exportAsZip}
+                selectedAIProvider={ide.selectedAIProvider}
+                onAIProviderChange={ide.setSelectedAIProvider}
+                selectedModels={ide.selectedModels}
+                onModelChange={(provider, model) => {
+                  ide.setSelectedModels(prev => ({ ...prev, [provider]: model }));
+                }}
+                githubToken={ide.githubToken}
+                onGithubTokenChange={ide.setGithubToken}
+                githubClientId={ide.githubClientId}
+                onGithubClientIdChange={ide.setGithubClientId}
+                githubClientSecret={ide.githubClientSecret}
+                onGithubClientSecretChange={ide.setGithubClientSecret}
+                ollamaUrl={ollamaUrl}
+                onOllamaUrlChange={setOllamaUrl}
+              />
+              {pwa.showUpdatePrompt && (
+                <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-nexus-accent text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
+                  <div className="flex items-center gap-2">
+                    <Zap size={18} className="text-yellow-300 fill-yellow-300" />
+                    <div>
+                      <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
+                      <p className="text-[10px] opacity-90">A new version is ready to install.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => pwa.setShowUpdatePrompt(false)} className="px-3 py-1 text-xs hover:bg-white/10 rounded">Later</button>
+                    <button onClick={pwa.handleUpdateApp} className="px-3 py-1 text-xs bg-white text-nexus-accent font-bold rounded shadow-sm hover:bg-blue-50">Update Now</button>
+                  </div>
+                </div>
+              )}
+            </>
+          }
+        />
+      </ErrorBoundary>
+    );
+  }
+
   // === BEGINNER UI RENDER ===
   if (ide.useBeginnerUI && !ide.isTouchMode) {
     return (
@@ -539,8 +720,8 @@ export default function App() {
             onApiKeyChange={ide.setApiKey}
             isTouchMode={ide.isTouchMode}
             onToggleTouchMode={ide.toggleTouchMode}
-            useBeginnerUI={ide.useBeginnerUI}
-            onToggleBeginnerUI={() => ide.setUseBeginnerUI(!ide.useBeginnerUI)}
+            uiMode={ide.uiMode}
+            onUiModeChange={ide.setUiMode}
             onClearWorkspace={handleClearWorkspace}
             onExport={exportAsZip}
             selectedAIProvider={ide.selectedAIProvider}
@@ -1107,8 +1288,8 @@ export default function App() {
         onApiKeyChange={ide.setApiKey}
         isTouchMode={ide.isTouchMode}
         onToggleTouchMode={ide.toggleTouchMode}
-        useBeginnerUI={ide.useBeginnerUI}
-        onToggleBeginnerUI={() => ide.setUseBeginnerUI(!ide.useBeginnerUI)}
+        uiMode={ide.uiMode}
+        onUiModeChange={ide.setUiMode}
         onClearWorkspace={handleClearWorkspace}
         onExport={exportAsZip}
         selectedAIProvider={ide.selectedAIProvider}

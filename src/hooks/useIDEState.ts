@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ActivityType } from '../components/ActivityBar';
 
+export type UIMode = 'legacy' | 'beginner' | 'vscode';
+
 export function useIDEState(files: any[]) {
   const [activeFileId, setActiveFileId] = useState<string | null>(files[0]?.id || null);
   const [openFileIds, setOpenFileIds] = useState<string[]>(files[0] ? [files[0].id] : []);
@@ -15,13 +17,25 @@ export function useIDEState(files: any[]) {
   const [showSettings, setShowSettings] = useState(false);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [isTouchMode, setIsTouchMode] = useState(() => localStorage.getItem('nexus_touch_mode') === 'true');
-  const [useBeginnerUI, setUseBeginnerUI] = useState(() => localStorage.getItem('nexus_beginner_ui') === 'true');
+  const [uiMode, setUiMode] = useState<UIMode>(() => {
+    // Backward compatibility: if old key exists, migrate it
+    const oldBeginnerUI = localStorage.getItem('nexus_beginner_ui');
+    if (oldBeginnerUI === 'true') {
+      localStorage.removeItem('nexus_beginner_ui');
+      localStorage.setItem('nexus_ui_mode', 'beginner');
+      return 'beginner';
+    }
+    return (localStorage.getItem('nexus_ui_mode') as UIMode) || 'legacy';
+  });
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hostedUrl, setHostedUrl] = useState<string | null>(null);
   const [diffData, setDiffData] = useState<{ original: string, modified: string, fileId: string } | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [mermaidChart, setMermaidChart] = useState<string | null>(null);
   const [isZenMode, setIsZenMode] = useState(false);
+
+  // Computed boolean for backward compatibility
+  const useBeginnerUI = uiMode === 'beginner';
 
   const toggleZenMode = useCallback(() => {
     if (!isZenMode) {
@@ -73,8 +87,8 @@ export function useIDEState(files: any[]) {
   }, [isTouchMode]);
 
   useEffect(() => {
-    localStorage.setItem('nexus_beginner_ui', useBeginnerUI.toString());
-  }, [useBeginnerUI]);
+    localStorage.setItem('nexus_ui_mode', uiMode);
+  }, [uiMode]);
 
   useEffect(() => {
     localStorage.setItem('nexus_api_keys', JSON.stringify(apiKeys));
@@ -109,17 +123,12 @@ export function useIDEState(files: any[]) {
   }, [openFileIds]);
 
   const closeFile = useCallback((id: string) => {
-    setOpenFileIds(prev => {
-      const newOpenFiles = prev.filter(fid => fid !== id);
-      setActiveFileId(currentActiveId => {
-        if (currentActiveId === id) {
-          return newOpenFiles[newOpenFiles.length - 1] || null;
-        }
-        return currentActiveId;
-      });
-      return newOpenFiles;
-    });
-  }, []);
+    const newOpenFiles = openFileIds.filter(fid => fid !== id);
+    setOpenFileIds(newOpenFiles);
+    if (activeFileId === id) {
+      setActiveFileId(newOpenFiles[newOpenFiles.length - 1] || null);
+    }
+  }, [openFileIds, activeFileId]);
 
   const setApiKey = useCallback((provider: string, key: string) => {
     setApiKeys(prev => ({ ...prev, [provider]: key }));
@@ -140,7 +149,8 @@ export function useIDEState(files: any[]) {
     activeFolder, setActiveFolder,
     isTouchMode, setIsTouchMode,
     toggleTouchMode,
-    useBeginnerUI, setUseBeginnerUI,
+    uiMode, setUiMode,
+    useBeginnerUI,
     sessionId, setSessionId,
     hostedUrl, setHostedUrl,
     diffData, setDiffData,

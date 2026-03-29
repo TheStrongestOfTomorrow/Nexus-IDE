@@ -2,6 +2,8 @@ import React from 'react';
 import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+type UIMode = 'legacy' | 'beginner' | 'vscode';
+
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,8 +11,8 @@ interface SettingsPanelProps {
   onApiKeyChange: (provider: string, key: string) => void;
   isTouchMode: boolean;
   onToggleTouchMode: () => void;
-  useBeginnerUI: boolean;
-  onToggleBeginnerUI: () => void;
+  uiMode: UIMode;
+  onUiModeChange: (mode: UIMode) => void;
   onClearWorkspace: () => void;
   onExport: () => void;
   selectedAIProvider: string;
@@ -34,8 +36,8 @@ export default function SettingsPanel({
   onApiKeyChange,
   isTouchMode,
   onToggleTouchMode,
-  useBeginnerUI,
-  onToggleBeginnerUI,
+  uiMode,
+  onUiModeChange,
   onClearWorkspace,
   onExport,
   selectedAIProvider,
@@ -83,6 +85,33 @@ export default function SettingsPanel({
     ollama: ['llama3.2', 'llama3.1', 'llama3', 'mistral', 'codellama', 'deepseek-coder-v2', 'qwen2.5-coder', 'phi4', 'gemma3'],
   };
 
+  const uiModeOptions: { mode: UIMode; icon: typeof RotateCcw; title: string; description: string; activeBorderColor: string; activeIconBg: string }[] = [
+    {
+      mode: 'legacy',
+      icon: RotateCcw,
+      title: 'Legacy UI',
+      description: 'The original Nexus IDE interface with the dark activity bar, compact sidebar panels, and power-user shortcuts. All beta features including VibeGraph, Minecraft Bridge, WebContainer, AI Assistant, and more are fully accessible.',
+      activeBorderColor: 'border-l-nexus-accent',
+      activeIconBg: 'bg-nexus-accent text-white',
+    },
+    {
+      mode: 'beginner',
+      icon: Sparkles,
+      title: 'Beginner Friendly UI',
+      description: 'A clean, tabbed interface with labeled navigation, contextual hints, and guided workflows. Features are organized into tabs: Files, Code, AI, Run, Tools, and Workspace. Switch to Legacy anytime from settings.',
+      activeBorderColor: 'border-l-nexus-accent',
+      activeIconBg: 'bg-nexus-accent text-white',
+    },
+    {
+      mode: 'vscode',
+      icon: Monitor,
+      title: 'VS Code Style UI',
+      description: 'A full VS Code-inspired layout with the blue activity bar, file tab strip, integrated terminal panel, blue status bar, and VS Code keyboard shortcuts. Every Nexus feature is available in a familiar VS Code environment.',
+      activeBorderColor: 'border-l-blue-500',
+      activeIconBg: 'bg-blue-500 text-white',
+    },
+  ];
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-nexus-sidebar border border-nexus-border shadow-2xl rounded-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
@@ -105,75 +134,39 @@ export default function SettingsPanel({
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {/* Beginner UI Toggle */}
-              <div className={cn(
-                "p-4 rounded-xl border-2 transition-all cursor-pointer",
-                useBeginnerUI
-                  ? "bg-nexus-accent/5 border-nexus-accent shadow-lg shadow-nexus-accent/5"
-                  : "bg-nexus-bg border-nexus-border hover:border-nexus-accent/30"
-              )} onClick={onToggleBeginnerUI}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center",
-                      useBeginnerUI ? "bg-nexus-accent text-white" : "bg-white/5 text-nexus-text-muted"
-                    )}>
-                      <Sparkles size={16} />
+              {uiModeOptions.map(({ mode, icon: Icon, title, description, activeBorderColor, activeIconBg }) => {
+                const isActive = uiMode === mode;
+                return (
+                  <div
+                    key={mode}
+                    className={cn(
+                      "p-4 rounded-xl border border-l-4 transition-all cursor-pointer",
+                      isActive
+                        ? cn("bg-nexus-accent/5 border-nexus-accent shadow-lg shadow-nexus-accent/5", activeBorderColor)
+                        : "bg-nexus-bg border-nexus-border hover:border-nexus-accent/30 border-l-nexus-border"
+                    )}
+                    onClick={() => onUiModeChange(mode)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                          isActive ? activeIconBg : "bg-white/5 text-nexus-text-muted"
+                        )}>
+                          <Icon size={16} />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold text-white">{title}</span>
+                          {isActive && <span className="ml-2 text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold uppercase">Active</span>}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-xs font-bold text-white">Beginner Friendly UI</span>
-                      {useBeginnerUI && <span className="ml-2 text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold uppercase">Active</span>}
-                    </div>
+                    <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                      {description}
+                    </p>
                   </div>
-                  <div className={cn(
-                    "w-10 h-5 rounded-full transition-all relative",
-                    useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
-                  )}>
-                    <div className={cn(
-                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
-                      useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
-                    )} />
-                  </div>
-                </div>
-                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                  A clean, organized interface with labeled navigation tabs, contextual hints, and guided workflows. All features are accessible through logical categories — Files, Code, AI, Run, Tools, and Workspace. Perfect if you're new to Nexus IDE or prefer a simpler layout.
-                </p>
-              </div>
-
-              {/* Legacy UI Toggle */}
-              <div className={cn(
-                "p-4 rounded-xl border-2 transition-all cursor-pointer",
-                !useBeginnerUI
-                  ? "bg-nexus-accent/5 border-nexus-accent shadow-lg shadow-nexus-accent/5"
-                  : "bg-nexus-bg border-nexus-border hover:border-nexus-accent/30"
-              )} onClick={onToggleBeginnerUI}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center",
-                      !useBeginnerUI ? "bg-nexus-accent text-white" : "bg-white/5 text-nexus-text-muted"
-                    )}>
-                      <RotateCcw size={16} />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-white">Legacy UI</span>
-                      {!useBeginnerUI && <span className="ml-2 text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold uppercase">Active</span>}
-                    </div>
-                  </div>
-                  <div className={cn(
-                    "w-10 h-5 rounded-full transition-all relative",
-                    !useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
-                  )}>
-                    <div className={cn(
-                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
-                      !useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
-                    )} />
-                  </div>
-                </div>
-                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                  The classic VS Code-inspired interface with the activity bar, compact sidebar panels, and power-user shortcuts. Best if you're experienced with code editors and want maximum screen real estate for your editor.
-                </p>
-              </div>
+                );
+              })}
             </div>
           </section>
 
@@ -388,7 +381,7 @@ export default function SettingsPanel({
                   </button>
                 </div>
                 <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                  Enables a mobile-optimized UI with bottom navigation, slide-out explorer, and touch-friendly controls.
+                  Enables a mobile-optimized UI with bottom navigation, slide-out explorer, and touch-friendly controls. Auto-activates on mobile devices regardless of your chosen interface mode.
                 </p>
               </div>
 
