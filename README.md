@@ -7,7 +7,7 @@
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.1.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.1.5-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
@@ -15,6 +15,25 @@
 *A modern, high-performance IDE with AI integration, VS Code-like experience, workspace persistence, and the power to run Node.js entirely in your browser.*
 
 </div>
+
+---
+
+## 🖥️ Coming Soon — Real Linux in Your Browser
+
+We're working on something huge. **v86 emulation** will let you run a **real Alpine Linux distro** entirely inside Nexus IDE — no server, no VM, just your browser.
+
+| Capability | Details |
+|-----------|--------|
+| **Full Linux Terminal** | Real `bash`, `apt`, `git`, `python`, `node` — not simulated |
+| **v86 x86 Emulator** | WebAssembly-based x86 emulator runs actual Linux binaries |
+| **IndexedDB Persistence** | Your Linux filesystem survives page refreshes and browser restarts |
+| **Portable** | Works on any device with a browser — even on a 2GB laptop on a plane |
+| **noVNC Ready** | Install noVNC to get a full GUI desktop in another tab |
+| **Wine Compatible** | Run Windows .exe binaries through Wine inside the emulated Linux |
+| **Offline Ready** | Works completely offline — pair with Airplane Mode for true isolation |
+| **musl + glibc** | Alpine's musl by default, install glibc compat for any package |
+
+> 🚧 *This is an active development goal for the next beta release. Stay tuned.*
 
 ---
 
@@ -67,6 +86,45 @@ Then open **http://localhost:3000** in your browser. That's it — Nexus IDE is 
 > # CLI / Terminal Edition
 > git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run tui
 > ```
+
+---
+
+## 🔥 What's New in v5.1.5
+
+A focused update bringing two developer-experience essentials: **Airplane Mode** for offline work and **Session Persistence** so you never lose your place.
+
+### ✈️ Airplane Mode (NEW!)
+
+Going offline? Nexus IDE now intelligently detects when you lose connectivity and adapts automatically. Internet-reliant features are gracefully locked, while everything else continues working normally.
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Detection** | Detects offline via `navigator.onLine` + active ping checks every 30s |
+| **Manual Toggle** | Click the ✈️ icon in the title bar to enable/disable airplane mode |
+| **Partial Lock** | Only internet features are locked — editor, terminal, and files still work |
+| **Full Lock Mode** | Optional: lock all internet features until you manually re-enable |
+| **Status Banner** | Dismissable banner shows affected features and what still works |
+| **Status Bar Indicator** | Online/offline indicator with airplane icon in the status bar |
+| **Voice Control** | Say "airplane" to toggle via voice commands |
+| **Settings Control** | Full airplane mode and full lock controls in Settings panel |
+
+**Locked when offline:** Real-time Collaboration, Minecraft Bridge, Cloud AI Providers, GitHub Push, Auto-Update Check
+
+**Still works offline:** Code Editor, File Manager, Terminal (WebContainer), Settings, Workspace (IndexedDB), Extensions (installed), AI (Local/Ollama)
+
+### 💾 Session Persistence (NEW!)
+
+Your entire IDE session is now saved to IndexedDB every 30 seconds. Refresh your browser, close and reopen the tab — Nexus IDE picks up exactly where you left off.
+
+| Feature | Description |
+|---------|-------------|
+| **Full State Save** | Open tabs, active file, panel visibility, UI mode — all saved |
+| **30s Auto-Save** | Session snapshots saved automatically every 30 seconds |
+| **Boot Restore** | Automatically restores your last session on page load |
+| **Terminal History** | Command history persisted across sessions in IndexedDB |
+| **Settings Remembered** | AI provider, model selections, and all settings preserved |
+| **Manual Controls** | Save, restore, and clear session from Settings panel |
+| **Timestamp Display** | See exactly when your last session was saved |
 
 ---
 
@@ -161,7 +219,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.1) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.1.5) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -253,6 +311,7 @@ Connect GitHub → Auto-deploy
 | Resource | Link |
 |----------|------|
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
+| ✈️ **v5.1.5** | Airplane Mode + Session Persistence (this branch) |
 | GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
@@ -265,7 +324,20 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.1.0 (Current - Beta)
+### v5.1.5 (Current - Beta)
+- ✈️ **Airplane Mode** — Auto-detect offline, partial lock on internet features only
+- 📡 **Active Ping Check** — 30-second connectivity verification (not just navigator.onLine)
+- ✈️ **Manual Toggle** — Click airplane icon in title bar or use voice commands
+- 🔒 **Full Lock Mode** — Optional stricter lockdown of all internet features
+- 📢 **Status Banner** — Dismissable banner with affected/available features list
+- 💾 **Session Persistence** — Full IDE state saved to IndexedDB every 30 seconds
+- 🔄 **Boot Restore** — Automatically restore last session on page load
+- 📜 **Terminal History** — Command history saved across sessions
+- ⚙️ **Settings Integration** — Airplane Mode + Session Persistence controls in Settings
+- 🎨 **3 UI Modes** — Airplane mode banner works in all UI modes (Legacy, Beginner, VS Code)
+- 📝 **README Update** — v86 Linux emulation teaser section added
+
+### v5.1.0
 - 💾 **Workspace Save System** — Save/load workspaces to IndexedDB with auto-save
 - 🎨 **Beginner-Friendly UI** — New simplified interface with tabbed navigation
 - 📱 **Mobile UI Improvements** — Better touch targets and responsive layout
@@ -305,6 +377,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.1.0 — Workspace Edition**
+**v5.1.5 — Airplane Mode + Session Persistence**
 
 </div>

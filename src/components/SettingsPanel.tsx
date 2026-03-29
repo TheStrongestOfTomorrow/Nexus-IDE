@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw } from 'lucide-react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw, Plane, WifiOff, Save, RotateCw, Database, Lock } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 type UIMode = 'legacy' | 'beginner' | 'vscode';
@@ -27,6 +27,13 @@ interface SettingsPanelProps {
   onGithubClientSecretChange?: (secret: string) => void;
   ollamaUrl?: string;
   onOllamaUrlChange?: (url: string) => void;
+  isOffline?: boolean;
+  isFullLock?: boolean;
+  airplaneModeEnabled?: boolean;
+  onToggleAirplaneMode?: () => void;
+  onToggleFullLock?: () => void;
+  lastOnlineCheck?: string;
+  sessionSavedAt?: string;
 }
 
 export default function SettingsPanel({
@@ -51,7 +58,14 @@ export default function SettingsPanel({
   githubClientSecret = '',
   onGithubClientSecretChange,
   ollamaUrl = 'http://localhost:11434',
-  onOllamaUrlChange
+  onOllamaUrlChange,
+  isOffline = false,
+  isFullLock = false,
+  airplaneModeEnabled = false,
+  onToggleAirplaneMode,
+  onToggleFullLock,
+  lastOnlineCheck,
+  sessionSavedAt,
 }: SettingsPanelProps) {
   if (!isOpen) return null;
 
@@ -118,7 +132,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.1 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.1.5 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -397,7 +411,148 @@ export default function SettingsPanel({
             </div>
           </section>
 
-          {/* Workspace Management */}
+          {/* Airplane Mode */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Plane size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Airplane Mode</h3>
+              <span className={cn(
+                "ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold uppercase",
+                isOffline ? "bg-amber-500/20 text-amber-400" : "bg-emerald-500/20 text-emerald-400"
+              )}>
+                {isOffline ? 'Offline' : 'Online'}
+              </span>
+            </div>
+            
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <WifiOff size={14} className="text-blue-400" />
+                    Airplane Mode
+                  </div>
+                  <p className="text-[10px] text-nexus-text-muted mt-1 leading-relaxed">
+                    Disables all internet-reliant features. Editor, terminal, and local files still work offline.
+                  </p>
+                </div>
+                <button
+                  onClick={onToggleAirplaneMode}
+                  disabled={!isOffline && !airplaneModeEnabled}
+                  className={cn(
+                    "w-10 h-5 rounded-full transition-all relative",
+                    airplaneModeEnabled ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                    airplaneModeEnabled ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                  )} />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                    <Lock size={14} className="text-amber-400" />
+                    Full Lock
+                  </div>
+                  <p className="text-[10px] text-nexus-text-muted mt-1 leading-relaxed">
+                    When offline: internet features are locked and cannot be opened until connection is restored.
+                  </p>
+                </div>
+                <button
+                  onClick={onToggleFullLock}
+                  className={cn(
+                    "w-10 h-5 rounded-full transition-all relative",
+                    isFullLock ? "bg-amber-500" : "bg-nexus-sidebar border border-nexus-border"
+                  )}
+                >
+                  <div className={cn(
+                    "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                    isFullLock ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                  )} />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Feature Status</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { name: 'Code Editor', online: true },
+                    { name: 'File Manager', online: true },
+                    { name: 'Terminal', online: true },
+                    { name: 'AI (Local)', online: true },
+                    { name: 'Collaboration', online: false },
+                    { name: 'Minecraft Bridge', online: false },
+                    { name: 'Cloud AI', online: false },
+                    { name: 'GitHub Push', online: false },
+                  ].map(({ name, online }) => (
+                    <div key={name} className="flex items-center gap-2 text-[10px]">
+                      <div className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        isOffline && !online ? "bg-red-400" : "bg-emerald-400"
+                      )} />
+                      <span className={isOffline && !online ? "text-red-400/70" : "text-nexus-text-muted"}>
+                        {name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {lastOnlineCheck && (
+                <div className="text-[9px] text-nexus-text-muted flex items-center gap-1">
+                  <RotateCw size={9} />
+                  Last checked: {lastOnlineCheck}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Session Persistence */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Database size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Session Persistence</h3>
+            </div>
+            
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-3">
+              <div className="flex items-start gap-3">
+                <Save size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-white">Auto-Save Enabled</p>
+                  <p className="text-[10px] text-nexus-text-muted leading-relaxed mt-1">
+                    Your entire IDE session is automatically saved to IndexedDB every 30 seconds. This includes:
+                  </p>
+                  <ul className="text-[10px] text-nexus-text-muted mt-1 ml-3 space-y-0.5 list-disc">
+                    <li>Open files, tabs, and active editor state</li>
+                    <li>Panel layout (terminal, AI, sidebar, preview)</li>
+                    <li>UI mode and settings</li>
+                    <li>AI provider and model selections</li>
+                    <li>Terminal command history</li>
+                  </ul>
+                </div>
+              </div>
+
+              {sessionSavedAt && (
+                <div className="p-2 bg-nexus-sidebar rounded-lg flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] text-nexus-text-muted">
+                    Last session saved: {sessionSavedAt}
+                  </span>
+                </div>
+              )}
+
+              <div className="p-2 bg-amber-900/10 rounded-lg border border-amber-500/10 flex items-start gap-2">
+                <WifiOff size={12} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-[9px] text-amber-400/80 leading-relaxed">
+                  Session data is stored in your browser's IndexedDB. Clearing browser data will delete your saved session.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Workspace & Data */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
               <HardDrive size={18} />
@@ -425,7 +580,7 @@ export default function SettingsPanel({
                 <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Auto-Save</span>
               </div>
               <p className="text-[9px] text-nexus-text-muted leading-relaxed">
-                Your workspace is automatically saved to IndexedDB every 60 seconds. Access saved workspaces from the Workspaces tab in the sidebar or via the Beginner UI.
+                Your workspace is automatically saved to IndexedDB every 30 seconds. Your full IDE session (tabs, panels, settings) is also persisted automatically. Access saved workspaces from the Workspaces tab in the sidebar or via the Beginner UI.
               </p>
             </div>
           </section>
@@ -434,7 +589,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.1.0</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.1.5</span>
           </div>
           <button
             onClick={onClose}

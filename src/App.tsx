@@ -26,6 +26,7 @@ import WebContainerTerminal from './components/WebContainerTerminal';
 import WorkspacePanel from './components/WorkspacePanel';
 import BeginnerUILayout, { BeginnerFilePanel, BeginnerToolsPanel } from './components/BeginnerUILayout';
 import VSCodeLayout from './components/VSCodeLayout';
+import AirplaneModeBanner from './components/AirplaneModeBanner';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -34,6 +35,8 @@ import { usePWA } from './hooks/usePWA';
 import { nexusChannel } from './hooks/useWindow';
 import { socketService } from './services/socketService';
 import { workspaceService } from './services/workspaceService';
+import { airplaneModeService } from './services/airplaneModeService';
+import sessionPersistenceService from './services/sessionPersistenceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
@@ -80,7 +83,14 @@ export default function App() {
   const { files, addFile, updateFile, deleteFile, renameFile, openDirectory, isLoaded: isFsLoaded } = useFileSystem();
   const ide = useIDEState(files);
   const pwa = usePWA();
-  
+
+  // Airplane Mode state
+  const [isOffline, setIsOffline] = useState(airplaneModeService.isOffline);
+  const [isFullLock, setIsFullLock] = useState(() => localStorage.getItem('nexus_full_lock') === 'true');
+  const [airplaneModeEnabled, setAirplaneModeEnabled] = useState(false);
+  const [sessionSavedAt, setSessionSavedAt] = useState<string | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
   const aiAssistantRef = useRef<any>(null);
   const [pendingAiActions, setPendingAiActions] = useState<any[] | null>(null);
   const [errors, setErrors] = useState<any[]>([]);
@@ -165,19 +175,104 @@ export default function App() {
     }
   }, [files, addFile, deleteFile, ide]);
 
-  // Auto-save every 60 seconds
+  // Auto-save every 30 seconds — workspace + full session state
   useEffect(() => {
     autoSaveIntervalRef.current = setInterval(() => {
       if (files.length > 0) {
         handleSaveWorkspace();
         setLastAutoSave(Date.now());
+        // Save full session state
+        sessionPersistenceService.saveSession({
+          activeFileId: ide.activeFileId,
+          openFileIds: ide.openFileIds,
+          activeActivity: ide.activeActivity as string,
+          showSidebar: ide.showSidebar,
+          showAI: ide.showAI,
+          showTerminal: ide.showTerminal,
+          showPreview: ide.showPreview,
+          showSettings: ide.showSettings,
+          showVibeGraph: ide.showVibeGraph,
+          showMinecraftScripts: ide.showMinecraftScripts,
+          isZenMode: ide.isZenMode,
+          uiMode: ide.uiMode,
+          selectedAIProvider: ide.selectedAIProvider,
+          selectedModels: ide.selectedModels,
+          timestamp: Date.now(),
+          version: '5.1.5',
+          sessionId: ide.sessionId,
+        }).then(() => {
+          setSessionSavedAt(sessionPersistenceService.formatTimestamp(Date.now()));
+        }).catch(() => {});
       }
-    }, 60000);
+    }, 30000);
 
     return () => {
       if (autoSaveIntervalRef.current) clearInterval(autoSaveIntervalRef.current);
     };
-  }, [files, handleSaveWorkspace]);
+  }, [files, handleSaveWorkspace, ide]);
+
+  // Airplane Mode — listen for online/offline changes
+  useEffect(() => {
+    const unsub = airplaneModeService.subscribe((status) => {
+      setIsOffline(status === 'offline');
+      setBannerDismissed(false); // Show banner again on status change
+    });
+    return unsub;
+  }, []);
+
+  // Full Lock persistence
+  useEffect(() => {
+    localStorage.setItem('nexus_full_lock', isFullLock.toString());
+  }, [isFullLock]);
+
+  const handleToggleAirplaneMode = useCallback(() => {
+    const newMode = !airplaneModeEnabled;
+    setAirplaneModeEnabled(newMode);
+    if (newMode) {
+      airplaneModeService.setManualOverride(true);
+    } else {
+      airplaneModeService.setManualOverride(false);
+    }
+  }, [airplaneModeEnabled]);
+
+  const handleToggleFullLock = useCallback(() => {
+    setIsFullLock(prev => !prev);
+  }, []);
+
+  // Airplane mode manual toggle persistence
+  useEffect(() => {
+    localStorage.setItem('nexus_airplane_mode', airplaneModeEnabled.toString());
+  }, [airplaneModeEnabled]);
+
+  // Restore session on boot
+  useEffect(() => {
+    if (!isFsLoaded) return;
+    sessionPersistenceService.restoreSession().then((session) => {
+      if (!session) return;
+      // Restore session state
+      if (session.openFileIds && session.openFileIds.length > 0) {
+        const validIds = session.openFileIds.filter(id => files.some(f => f.id === id));
+        if (validIds.length > 0) {
+          ide.setOpenFileIds(validIds);
+          if (session.activeFileId && validIds.includes(session.activeFileId)) {
+            ide.setActiveFileId(session.activeFileId);
+          } else {
+            ide.setActiveFileId(validIds[validIds.length - 1]);
+          }
+        }
+      }
+      if (session.activeActivity) ide.setActiveActivity(session.activeActivity as any);
+      if (session.showSidebar !== undefined) ide.setShowSidebar(session.showSidebar);
+      if (session.showTerminal !== undefined) ide.setShowTerminal(session.showTerminal);
+      if (session.showPreview !== undefined) ide.setShowPreview(session.showPreview);
+      if (session.showAI !== undefined) ide.setShowAI(session.showAI);
+      if (session.isZenMode !== undefined) ide.toggleZenMode();
+      // Set last save time
+      if (session.timestamp) {
+        setSessionSavedAt(sessionPersistenceService.formatTimestamp(session.timestamp));
+      }
+    }).catch(() => {});
+  }, [isFsLoaded, files.length]);
 
   const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
 
@@ -218,6 +313,8 @@ export default function App() {
       handleSaveWorkspace();
     } else if (command.includes("analyze")) {
       handleAnalyzeArchitecture();
+    } else if (command.includes("airplane")) {
+      handleToggleAirplaneMode();
     }
   };
 
@@ -379,6 +476,11 @@ export default function App() {
 
     return (
       <ErrorBoundary>
+        <AirplaneModeBanner
+          isOffline={isOffline}
+          isFullLock={isFullLock}
+          onDismiss={() => setBannerDismissed(true)}
+        />
         <VSCodeLayout
           files={files}
           activeFileId={ide.activeFileId}
@@ -457,6 +559,12 @@ export default function App() {
                 onGithubClientSecretChange={ide.setGithubClientSecret}
                 ollamaUrl={ollamaUrl}
                 onOllamaUrlChange={setOllamaUrl}
+                isOffline={isOffline}
+                isFullLock={isFullLock}
+                airplaneModeEnabled={airplaneModeEnabled}
+                onToggleAirplaneMode={handleToggleAirplaneMode}
+                onToggleFullLock={handleToggleFullLock}
+                sessionSavedAt={sessionSavedAt}
               />
               {pwa.showUpdatePrompt && (
                 <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-nexus-accent text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
@@ -484,6 +592,11 @@ export default function App() {
   if (ide.useBeginnerUI && !ide.isTouchMode) {
     return (
       <ErrorBoundary>
+        <AirplaneModeBanner
+          isOffline={isOffline}
+          isFullLock={isFullLock}
+          onDismiss={() => setBannerDismissed(true)}
+        />
         <div className="beginner-mode-transition flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none beginner-ui">
           <VoiceCommand 
             isListening={isVoiceListening} 
@@ -738,6 +851,12 @@ export default function App() {
             onGithubClientSecretChange={ide.setGithubClientSecret}
             ollamaUrl={ollamaUrl}
             onOllamaUrlChange={setOllamaUrl}
+            isOffline={isOffline}
+            isFullLock={isFullLock}
+            airplaneModeEnabled={airplaneModeEnabled}
+            onToggleAirplaneMode={handleToggleAirplaneMode}
+            onToggleFullLock={handleToggleFullLock}
+            sessionSavedAt={sessionSavedAt}
           />
 
           {/* Command Palette */}
@@ -754,6 +873,11 @@ export default function App() {
   // === LEGACY / MOBILE UI RENDER ===
   return (
     <ErrorBoundary>
+      <AirplaneModeBanner
+        isOffline={isOffline}
+        isFullLock={isFullLock}
+        onDismiss={() => setBannerDismissed(true)}
+      />
       <div className={cn("flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none", ide.useBeginnerUI && "beginner-ui")}>
         <VoiceCommand 
           isListening={isVoiceListening} 
@@ -768,6 +892,8 @@ export default function App() {
         onToggleVoice={() => setIsVoiceListening(!isVoiceListening)}
         onToggleZenMode={ide.toggleZenMode}
         isZenMode={ide.isZenMode}
+        isOffline={isOffline}
+        onToggleAirplaneMode={handleToggleAirplaneMode}
       />
       
       {pwa.showUpdatePrompt && (
@@ -1278,6 +1404,7 @@ export default function App() {
       <StatusBar 
         activeFile={activeFile} 
         files={files}
+        isOffline={isOffline}
         vibeProgress={vibeProgress || undefined}
       />
 
@@ -1306,6 +1433,12 @@ export default function App() {
         onGithubClientSecretChange={ide.setGithubClientSecret}
         ollamaUrl={ollamaUrl}
         onOllamaUrlChange={setOllamaUrl}
+        isOffline={isOffline}
+        isFullLock={isFullLock}
+        airplaneModeEnabled={airplaneModeEnabled}
+        onToggleAirplaneMode={handleToggleAirplaneMode}
+        onToggleFullLock={handleToggleFullLock}
+        sessionSavedAt={sessionSavedAt}
       />
 
     </div>

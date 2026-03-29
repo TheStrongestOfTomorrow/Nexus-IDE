@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Zap, Command, Globe, Settings, User, Mic, Eye, EyeOff } from 'lucide-react';
+import { Search, ChevronRight, Zap, Command, Globe, Settings, User, Mic, Eye, EyeOff, Plane } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { FileNode } from '../hooks/useFileSystem';
 
@@ -10,9 +10,11 @@ interface TitleBarProps {
   onToggleVoice?: () => void;
   onToggleZenMode?: () => void;
   isZenMode?: boolean;
+  isOffline?: boolean;
+  onToggleAirplaneMode?: () => void;
 }
 
-export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoice, onToggleZenMode, isZenMode }: TitleBarProps) {
+export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoice, onToggleZenMode, isZenMode, isOffline, onToggleAirplaneMode }: TitleBarProps) {
   const [isWCOSupported, setIsWCOSupported] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -51,7 +53,7 @@ export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoi
         {/* App Icon & Name */}
         <div className="flex items-center gap-2 mr-4">
           <Zap size={14} className="text-nexus-accent" />
-          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 5.0</span>
+          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 5.1.5</span>
         </div>
 
         {/* Breadcrumbs */}
@@ -109,6 +111,20 @@ export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoi
               title="Toggle Zen Mode"
             >
               {isZenMode ? <EyeOff size={14} className="text-nexus-accent" /> : <Eye size={14} />}
+            </button>
+          )}
+          {onToggleAirplaneMode && (
+            <button 
+              onClick={onToggleAirplaneMode}
+              className={cn(
+                "p-1 rounded transition-colors",
+                isOffline 
+                  ? "bg-amber-500/20 text-amber-400 hover:bg-amber-500/30" 
+                  : "hover:bg-[#333] text-gray-500 hover:text-gray-300"
+              )}
+              title={isOffline ? 'Exit Airplane Mode' : 'Enable Airplane Mode'}
+            >
+              <Plane size={14} />
             </button>
           )}
           <button className="p-1 hover:bg-[#333] rounded text-gray-500 hover:text-gray-300 transition-colors">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles, FileText } from 'lucide-react';
+import { Wifi, WifiOff, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles, FileText, Plane } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
 import PomodoroTimer from './PomodoroTimer';
@@ -7,6 +7,7 @@ import PomodoroTimer from './PomodoroTimer';
 interface StatusBarProps {
   activeFile: FileNode | null;
   files?: FileNode[];
+  isOffline?: boolean;
   onScanProject?: () => void;
   onPreinstallOffline?: () => void;
   isPreinstalling?: boolean;
@@ -17,6 +18,7 @@ interface StatusBarProps {
 export default function StatusBar({ 
   activeFile, 
   files = [],
+  isOffline = false,
   onScanProject, 
   onPreinstallOffline, 
   isPreinstalling, 
@@ -40,9 +42,26 @@ export default function StatusBar({
   return (
     <div className="h-6 bg-nexus-accent text-white flex items-center justify-between px-3 text-[11px] flex-shrink-0 select-none">
       <div className="flex items-center h-full">
-        <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors">
-          <Wifi size={12} />
-          <span>Online</span>
+        <div className={cn(
+          "flex items-center gap-1 px-2 h-full cursor-pointer transition-colors",
+          isOffline
+            ? "bg-amber-500/30 text-amber-200"
+            : "hover:bg-white/10"
+        )}>
+          {isOffline ? (
+            <>
+              <WifiOff size={12} />
+              <span className="flex items-center gap-1">
+                Offline
+                <Plane size={9} />
+              </span>
+            </>
+          ) : (
+            <>
+              <Wifi size={12} />
+              <span>Online</span>
+            </>
+          )}
         </div>
         {isPwaInstalled && (
           <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors text-emerald-300">
@@ -103,7 +122,7 @@ export default function StatusBar({
         )}
         <div className="px-2 hover:bg-white/10 h-full flex items-center cursor-pointer">
           <CheckCircle2 size={12} className="mr-1" />
-          Ready
+          {isOffline ? 'Offline Mode' : 'Ready'}
         </div>
       </div>
     </div>
