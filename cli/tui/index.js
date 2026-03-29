@@ -92,7 +92,12 @@ const state = {
   extensionsVisible: false,
   helpVisible: false,
   serverRunning: false,
-  serverPort: 3000
+  serverPort: 3000,
+  alwaysMode: false,
+  githubCommit: false,
+  githubToken: process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '',
+  githubRepo: 'TheStrongestOfTomorrow/Nexus-IDE',
+  attachments: []
 };
 
 // Header bar
@@ -109,7 +114,7 @@ const header = blessed.box({
 ██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║
 ██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║
 ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-{/cyan-fg}{/bold}{/center}{|}{right}{yellow-fg}v5.0.0 TUI{/yellow-fg}{/right}`,
+{/cyan-fg}{/bold}{/center}{|}{right}{yellow-fg}v5.1.0 TUI{/yellow-fg}{/right}`,
   style: {
     fg: theme.text,
     bg: theme.bg
@@ -297,11 +302,18 @@ Model: {yellow-fg}` + aiProviders[0].models[0] + `{/yellow-fg}
   /code - Code mode
   /explain - Explain code
   /fix - Fix errors
+  /attach <path> - Attach a text file to chat
+  /image <path> - Attach an image to chat
+  /detach - Remove all attachments
+  /always - Toggle always-apply mode
+  /commit - Toggle GitHub auto-commit
 
 {bold}Shortcuts:{/bold}
-  Ctrl+A - Toggle AI
+  Ctrl+A - Toggle AI panel
   Ctrl+P - Change provider
   Ctrl+M - Change model
+  Ctrl+O - Toggle always mode
+  Ctrl+G - Toggle commit mode
 
 Type a message to chat...`
 });
@@ -374,7 +386,7 @@ const statusBar = blessed.box({
   width: '100%',
   height: 3,
   tags: true,
-  content: `{left} {cyan-fg}Ctrl+?{/cyan-fg} Help  {cyan-fg}Ctrl+K{/cyan-fg} Commands  {cyan-fg}Ctrl+S{/cyan-fg} Save  {cyan-fg}Ctrl+R{/cyan-fg} Run  {cyan-fg}Ctrl+Q{/cyan-fg} Quit {/left}{right}{green-fg}Ready{/green-fg} {/right}`,
+  content: `{left} {cyan-fg}Ctrl+?{/cyan-fg} Help  {cyan-fg}Ctrl+K{/cyan-fg} Commands  {cyan-fg}Ctrl+S{/cyan-fg} Save  {cyan-fg}Ctrl+R{/cyan-fg} Run  {cyan-fg}Ctrl+Q{/cyan-fg} Quit  {green-fg}Always:{/green-fg} OFF  {purple-fg}Commit:{/purple-fg} OFF  {cyan-fg}Attach:{/cyan-fg} 0 {/left}{right}{green-fg}Ready{/green-fg} {/right}`,
   style: {
     fg: theme.text,
     bg: theme.panel,
@@ -444,10 +456,16 @@ const helpModal = blessed.box({
   {green-fg}Ctrl+A{/green-fg}     Toggle AI Panel
   {green-fg}Ctrl+Shift+P{/green-fg}  Change AI Provider
   {green-fg}Ctrl+Shift+M{/green-fg}  Change AI Model
+  {green-fg}Ctrl+O{/green-fg}     Toggle Always-Apply Mode
+  {green-fg}Ctrl+G{/green-fg}     Toggle GitHub Auto-Commit
   {green-fg}/ask{/green-fg}       Ask AI a question
   {green-fg}/code{/green-fg}      Generate code
   {green-fg}/explain{/green-fg}   Explain code
   {green-fg}/fix{/green-fg}       Fix errors
+  {green-fg}/attach{/green-fg}    Attach file to chat
+  {green-fg}/image{/green-fg}     Attach image to chat
+  {green-fg}/always{/green-fg}    Toggle always-apply
+  {green-fg}/commit{/green-fg}    Toggle auto-commit
 
 {bold}{yellow-fg}RUN & DEBUG{/yellow-fg}{/bold}
   {green-fg}F5{/green-fg}         Start Debugging
@@ -813,6 +831,157 @@ function executeTerminalCommand(cmd) {
   });
 }
 
+function updateStatusBar() {
+  const alwaysTag = state.alwaysMode ? '{green-fg}ON{/green-fg}' : '{red-fg}OFF{/red-fg}';
+  const commitTag = state.githubCommit ? '{green-fg}ON{/green-fg}' : '{red-fg}OFF{/red-fg}';
+  const attachCount = state.attachments.length;
+  statusBar.setContent(
+    `{left} {cyan-fg}Ctrl+?{/cyan-fg} Help  {cyan-fg}Ctrl+K{/cyan-fg} Commands  {cyan-fg}Ctrl+S{/cyan-fg} Save  {cyan-fg}Ctrl+R{/cyan-fg} Run  {cyan-fg}Ctrl+Q{/cyan-fg} Quit  {green-fg}Always:{/green-fg} ${alwaysTag}  {purple-fg}Commit:{/purple-fg} ${commitTag}  {cyan-fg}Attach:{/cyan-fg} ${attachCount} {/left}{right}{green-fg}Ready{/green-fg} {/right}`
+  );
+  screen.render();
+}
+
+function toggleAlwaysMode() {
+  state.alwaysMode = !state.alwaysMode;
+  terminalOutput.log(`{bold}{yellow-fg}Always-Apply Mode: ${state.alwaysMode ? 'ON' : 'OFF'}{/yellow-fg}{/bold}`);
+  if (state.alwaysMode) {
+    terminalOutput.log(`{green-fg}AI file actions will be applied automatically.{/green-fg}`);
+  } else {
+    terminalOutput.log(`{text-dim}Type /yes to apply AI file actions.{/text-dim}`);
+  }
+  updateStatusBar();
+}
+
+function toggleGithubCommit() {
+  state.githubCommit = !state.githubCommit;
+  terminalOutput.log(`{bold}{purple-fg}GitHub Auto-Commit: ${state.githubCommit ? 'ON' : 'OFF'}{/purple-fg}{/bold}`);
+  if (state.githubCommit) {
+    if (!state.githubToken) {
+      terminalOutput.log(`{yellow-fg}Warning: No GITHUB_TOKEN or GH_TOKEN env var set.{/yellow-fg}`);
+      terminalOutput.log(`{text-dim}Set it with: export GITHUB_TOKEN=ghp_xxx{/text-dim}`);
+    } else {
+      terminalOutput.log(`{green-fg}Changes will auto-commit to ${state.githubRepo}{/green-fg}`);
+    }
+  }
+  updateStatusBar();
+}
+
+function attachFileToChat(filePath) {
+  const resolvedPath = filePath.startsWith('/') ? filePath : join(state.currentDir, filePath);
+  try {
+    const content = readFileSync(resolvedPath, 'utf-8');
+    const stat = statSync(resolvedPath);
+    state.attachments.push({
+      name: basename(resolvedPath),
+      path: resolvedPath,
+      content: content.substring(0, 10000),
+      type: 'file',
+      size: stat.size
+    });
+    terminalOutput.log(`{green-fg}Attached: ${basename(resolvedPath)} (${(stat.size / 1024).toFixed(1)}KB){/green-fg}`);
+    updateStatusBar();
+  } catch (err) {
+    terminalOutput.log(`{red-fg}Error attaching file: ${err.message}{/red-fg}`);
+  }
+}
+
+function attachImageToChat(filePath) {
+  const resolvedPath = filePath.startsWith('/') ? filePath : join(state.currentDir, filePath);
+  try {
+    const content = readFileSync(resolvedPath);
+    const stat = statSync(resolvedPath);
+    const ext = extname(resolvedPath).toLowerCase();
+    const mimeMap = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.bmp': 'image/bmp' };
+    const mimeType = mimeMap[ext] || 'image/png';
+    const base64 = content.toString('base64');
+    state.attachments.push({
+      name: basename(resolvedPath),
+      path: resolvedPath,
+      base64,
+      mimeType,
+      type: 'image',
+      size: stat.size
+    });
+    terminalOutput.log(`{green-fg}Attached image: ${basename(resolvedPath)} (${(stat.size / 1024).toFixed(1)}KB, ${mimeType}){/green-fg}`);
+    updateStatusBar();
+  } catch (err) {
+    terminalOutput.log(`{red-fg}Error attaching image: ${err.message}{/red-fg}`);
+  }
+}
+
+function clearAttachments() {
+  state.attachments = [];
+  terminalOutput.log(`{yellow-fg}All attachments cleared.{/yellow-fg}`);
+  updateStatusBar();
+}
+
+async function commitToGitHub(changeSummary) {
+  if (!state.githubToken || !state.githubRepo) {
+    terminalOutput.log(`{red-fg}Cannot commit: No GitHub token or repo configured.{/red-fg}`);
+    return;
+  }
+  try {
+    terminalOutput.log(`{yellow-fg}Committing to GitHub...{/yellow-fg}`);
+
+    const headers = {
+      'Authorization': `Bearer ${state.githubToken}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    const mainRes = await fetch(`https://api.github.com/repos/${state.githubRepo}/git/refs/heads/main`, { headers });
+    if (!mainRes.ok) throw new Error(`Failed to get main ref: ${mainRes.status}`);
+    const mainData = await mainRes.json();
+    const latestSha = mainData.object.sha;
+
+    // Collect files from current directory (simple: just the open files)
+    const blobs = [];
+    if (state.currentFile) {
+      const fileContent = editor.getValue();
+      const blobRes = await fetch(`https://api.github.com/repos/${state.githubRepo}/git/blobs`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ content: fileContent, encoding: 'utf-8' })
+      });
+      if (!blobRes.ok) throw new Error(`Failed to create blob`);
+      const blob = await blobRes.json();
+      blobs.push({ path: basename(state.currentFile), sha: blob.sha, mode: '100644', type: 'blob' });
+    }
+
+    if (blobs.length === 0) {
+      terminalOutput.log(`{yellow-fg}No files to commit.{/yellow-fg}`);
+      return;
+    }
+
+    const treeRes = await fetch(`https://api.github.com/repos/${state.githubRepo}/git/trees`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ base_tree: latestSha, tree: blobs })
+    });
+    if (!treeRes.ok) throw new Error(`Failed to create tree`);
+    const treeData = await treeRes.json();
+
+    const commitRes = await fetch(`https://api.github.com/repos/${state.githubRepo}/git/commits`, {
+      method: 'POST', headers,
+      body: JSON.stringify({
+        message: `\uD83E\uDD16 Nexus AI: ${changeSummary}\n\nApplied via Nexus IDE TUI (v5.1.0)`,
+        tree: treeData.sha,
+        parents: [latestSha]
+      })
+    });
+    if (!commitRes.ok) throw new Error(`Failed to create commit`);
+    const commitData = await commitRes.json();
+
+    const updateRes = await fetch(`https://api.github.com/repos/${state.githubRepo}/git/refs/heads/main`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ sha: commitData.sha })
+    });
+    if (!updateRes.ok) throw new Error(`Failed to update ref`);
+
+    terminalOutput.log(`{green-fg}Committed to GitHub: ${commitData.sha.substring(0, 7)}{/green-fg}`);
+  } catch (err) {
+    terminalOutput.log(`{red-fg}GitHub commit failed: ${err.message}{/red-fg}`);
+  }
+}
+
 function quit() {
   screen.destroy();
   process.exit(0);
@@ -870,39 +1039,123 @@ commandList.on('select', (item, index) => {
   }
 });
 
-aiInput.on('submit', (value) => {
+aiInput.on('submit', async (value) => {
   if (!value.trim()) return;
   
   // Process AI command
   aiChat.setContent(aiChat.getContent() + `\n\n{cyan-fg}You:{/cyan-fg} ${value}`);
   
-  // Simulate AI response (in production, this would call actual AI API)
-  setTimeout(() => {
-    let response = '';
-    if (value.startsWith('/')) {
-      const cmd = value.toLowerCase();
-      if (cmd === '/help') {
-        response = `{green-fg}Available commands:{/green-fg}
+  // Build attachment context
+  let attachContext = '';
+  if (state.attachments.length > 0) {
+    attachContext = '\n\n📎 Attached Files:';
+    for (const att of state.attachments) {
+      if (att.type === 'file') {
+        attachContext += `\n  File: ${att.name} (${(att.size/1024).toFixed(1)}KB)\n  Content:\n${att.content.substring(0, 3000)}`;
+      } else {
+        attachContext += `\n  Image: ${att.name} (${(att.size/1024).toFixed(1)}KB, ${att.mimeType}) [base64]`;
+      }
+    }
+  }
+
+  // Process slash commands
+  if (value.startsWith('/')) {
+    const parts = value.trim().split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const arg = parts.slice(1).join(' ');
+
+    if (cmd === '/help') {
+      const helpText = `{green-fg}Available commands:{/green-fg}
 /help - Show this help
 /provider - List AI providers
 /model - List models
 /clear - Clear chat
 /code <prompt> - Generate code
 /explain - Explain current file
-/fix - Fix errors in current file`;
-      } else if (cmd === '/provider') {
-        response = `{green-fg}Available providers:{/green-fg}\n` + 
-          aiProviders.map((p, i) => `${i === state.currentAIProvider ? '→ ' : '  '}${p.name}`).join('\n');
-      } else if (cmd === '/clear') {
-        aiChat.setContent(`{bold}{cyan-fg}AI Assistant Ready{/cyan-fg}{/bold}\n\nChat cleared.`);
-        aiInput.clearValue();
-        screen.render();
-        return;
-      } else {
-        response = `{yellow-fg}Processing: ${value}{/yellow-fg}`;
+/fix - Fix errors in current file
+/attach <path> - Attach a text file to chat
+/image <path> - Attach an image to chat
+/detach - Remove all attachments
+/always - Toggle always-apply mode
+/commit - Toggle GitHub auto-commit
+/yes - Apply pending file actions
+
+{bold}Keyboard Shortcuts:{/bold}
+  Ctrl+O - Toggle always mode
+  Ctrl+G - Toggle commit mode`;
+      aiChat.setContent(aiChat.getContent() + `\n\n${helpText}`);
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/always') {
+      toggleAlwaysMode();
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/commit') {
+      toggleGithubCommit();
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/attach' && arg) {
+      attachFileToChat(arg);
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/image' && arg) {
+      attachImageToChat(arg);
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/detach') {
+      clearAttachments();
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/provider') {
+      const response = `{green-fg}Available providers:{/green-fg}\n` + 
+        aiProviders.map((p, i) => `${i === state.currentAIProvider ? '→ ' : '  '}${p.name}`).join('\n');
+      aiChat.setContent(aiChat.getContent() + `\n\n${response}`);
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/clear') {
+      aiChat.setContent(`{bold}{cyan-fg}AI Assistant Ready{/cyan-fg}{/bold}\n\nChat cleared.`);
+      clearAttachments();
+      aiInput.clearValue();
+      screen.render();
+      return;
+    } else if (cmd === '/yes') {
+      // Apply pending actions manually
+      aiChat.setContent(aiChat.getContent() + `\n\n{green-fg}Actions applied.{/green-fg}`);
+      if (state.githubCommit) {
+        await commitToGitHub('Manual /yes approval');
       }
-    } else {
-      response = `{purple-fg}AI:{/purple-fg} I received your message: "${value}"\n\nIn production, I would process this with ${aiProviders[state.currentAIProvider].name} (${aiProviders[state.currentAIProvider].models[state.currentModel]}).`;
+      aiInput.clearValue();
+      screen.render();
+      return;
+    }
+  }
+
+  // Simulate AI response (in production, this would call actual AI API)
+  setTimeout(async () => {
+    let response = '';
+    if (value.startsWith('/') && !['/help','/provider','/clear','/always','/commit','/attach','/image','/detach','/yes'].includes(value.trim().toLowerCase().split(/\s+/)[0])) {
+      response = `{yellow-fg}Processing: ${value}{/yellow-fg}`;
+    } else if (!value.startsWith('/')) {
+      response = `{purple-fg}AI:{/purple-fg} I received your message: "${value}"`;
+      if (attachContext) {
+        response += `\n\n{cyan-fg}${state.attachments.length} file(s) attached to context.{/cyan-fg}`;
+      }
+      response += `\n\nIn production, I would process this with ${aiProviders[state.currentAIProvider].name} (${aiProviders[state.currentAIProvider].models[state.currentModel]}).`;
+      
+      // If always mode, auto-apply
+      if (state.alwaysMode) {
+        response += `\n\n{green-fg}[Always Mode] File actions would be auto-applied.{/green-fg}`;
+        if (state.githubCommit) {
+          await commitToGitHub('Auto-apply (always mode)');
+        }
+      }
     }
     
     aiChat.setContent(aiChat.getContent() + `\n\n${response}`);
@@ -946,6 +1199,8 @@ screen.key(['C-a'], () => toggleAI());
 screen.key(['C-e'], () => showExtensions());
 screen.key(['C-?'], () => showHelp());
 screen.key(['C-q'], () => quit());
+screen.key(['C-o'], () => toggleAlwaysMode());
+screen.key(['C-g'], () => toggleGithubCommit());
 
 // Focus handling
 screen.key(['tab'], () => {
