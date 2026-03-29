@@ -1,12 +1,14 @@
 {
   "name": "Nexus IDE",
   "short_name": "Nexus",
-  "description": "The most powerful web-based development environment.",
+  "description": "The AI-First, Browser-Based IDE with WebContainer power.",
   "start_url": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay"],
-  "background_color": "#1e1e1e",
+  "background_color": "#0a0a0a",
   "theme_color": "#007acc",
+  "orientation": "any",
+  "scope": "./",
   "icons": [
     {
       "src": "https://lucide.dev/api/icons/zap?size=192&color=3b82f6",
@@ -23,6 +25,13 @@
   ],
   "shortcuts": [
     {
+      "name": "New File",
+      "short_name": "New File",
+      "description": "Create a new file in Nexus IDE",
+      "url": "./?action=new-file",
+      "icons": [{ "src": "https://lucide.dev/api/icons/file-plus?size=192", "sizes": "192x192" }]
+    },
+    {
       "name": "Quick-connect to Minecraft",
       "short_name": "Connect MC",
       "description": "Instantly connect to your Minecraft session",
@@ -35,6 +44,20 @@
       "description": "Open your most recent project",
       "url": "./?action=open-last",
       "icons": [{ "src": "https://lucide.dev/api/icons/folder-open?size=192", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI Assistant",
+      "short_name": "AI Chat",
+      "description": "Open the AI coding assistant",
+      "url": "./?action=open-ai",
+      "icons": [{ "src": "https://lucide.dev/api/icons/message-square?size=192", "sizes": "192x192" }]
+    },
+    {
+      "name": "Saved Workspaces",
+      "short_name": "Workspaces",
+      "description": "View and manage your saved workspaces",
+      "url": "./?action=open-workspaces",
+      "icons": [{ "src": "https://lucide.dev/api/icons/hard-drive?size=192", "sizes": "192x192" }]
     }
   ],
   "file_handlers": [
@@ -43,7 +66,10 @@
       "accept": {
         "text/typescript": [".ts", ".tsx"],
         "text/javascript": [".js", ".jsx"],
-        "application/json": [".json"]
+        "application/json": [".json"],
+        "text/html": [".html", ".htm"],
+        "text/css": [".css"],
+        "text/plain": [".txt", ".md"]
       }
     }
   ],
@@ -55,5 +81,6 @@
       "protocol": "web+nexus",
       "url": "./?url=%s"
     }
-  ]
+  ],
+  "categories": ["developer tools", "productivity", "utilities"]
 }

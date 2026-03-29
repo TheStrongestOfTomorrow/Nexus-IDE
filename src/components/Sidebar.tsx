@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles, AlertTriangle } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles, AlertTriangle, Save, HardDrive } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
@@ -13,6 +13,8 @@ interface SidebarProps {
   onRenameFile: (id: string, newName: string) => void;
   onExport: () => void;
   onClearWorkspace?: () => void;
+  onSaveWorkspace?: () => void;
+  onShowWorkspace?: () => void;
   onApplyTemplate: (template: any) => void;
   onShowDiff?: (id: string) => void;
   onOpenFolder?: () => void;
@@ -32,6 +34,8 @@ export default function Sidebar({
   onRenameFile,
   onExport,
   onClearWorkspace,
+  onSaveWorkspace,
+  onShowWorkspace,
   onApplyTemplate,
   onShowDiff,
   onOpenFolder,
@@ -138,6 +142,15 @@ export default function Sidebar({
           >
             <FilePlus size={16} />
           </button>
+          {onSaveWorkspace && (
+            <button 
+              onClick={onSaveWorkspace}
+              className="p-1 hover:bg-nexus-bg rounded transition-colors text-emerald-400"
+              title="Save Workspace"
+            >
+              <Save size={16} />
+            </button>
+          )}
           <button 
             onClick={onExport}
             className="p-1 hover:bg-nexus-bg rounded transition-colors"
@@ -152,6 +165,15 @@ export default function Sidebar({
               title="Open Local Folder"
             >
               <FolderOpen size={16} />
+            </button>
+          )}
+          {onShowWorkspace && (
+            <button 
+              onClick={onShowWorkspace}
+              className="p-1 hover:bg-nexus-bg rounded transition-colors text-nexus-accent"
+              title="Saved Workspaces"
+            >
+              <HardDrive size={16} />
             </button>
           )}
           {onClearWorkspace && files.length > 0 && (

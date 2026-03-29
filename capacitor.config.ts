@@ -5,7 +5,27 @@ const config: CapacitorConfig = {
   appName: 'Nexus IDE',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    cleartext: true
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#0a0a0a',
+      showSpinner: true,
+      spinnerColor: '#007acc'
+    },
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#0a0a0a'
+    },
+    Keyboard: {
+      resize: 'none',
+      resizeOnFullScreen: true
+    }
+  },
+  android: {
+    backgroundColor: '#0a0a0a'
   }
 };
 

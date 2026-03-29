@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
 import Preview from './components/Preview';
@@ -23,6 +23,8 @@ import TodoScanner from './components/TodoScanner';
 import SnippetManager from './components/SnippetManager';
 import ProjectInsights from './components/ProjectInsights';
 import WebContainerTerminal from './components/WebContainerTerminal';
+import WorkspacePanel from './components/WorkspacePanel';
+import BeginnerUILayout, { BeginnerFilePanel, BeginnerToolsPanel } from './components/BeginnerUILayout';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -34,10 +36,11 @@ import { workspaceService } from './services/workspaceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import workspaceSaveService from './services/workspaceSaveService';
 
 // Simple Error Boundary Component
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: any}> {
@@ -83,11 +86,23 @@ export default function App() {
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [vibeProgress, setVibeProgress] = useState<{ active: boolean, percent: number, message: string } | null>(null);
 
+  // Workspace state
+  const [showWorkspacePanel, setShowWorkspacePanel] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<number>(0);
+  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
+    () => localStorage.getItem('nexus_current_workspace_id')
+  );
+  const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Beginner UI state
+  const [beginnerActivity, setBeginnerActivity] = useState<string>('files');
+  const [beginnerTool, setBeginnerTool] = useState<string>('search');
+
   const exportAsZip = async () => {
     const zip = new JSZip();
     files.forEach(file => zip.file(file.name, file.content));
     const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-5.0.zip');
+    saveAs(content, 'nexus-project-5.1.zip');
   };
 
   const handleClearWorkspace = () => {
@@ -95,8 +110,73 @@ export default function App() {
       files.forEach(f => deleteFile(f.id));
       ide.setOpenFileIds([]);
       ide.setActiveFileId(null);
+      setCurrentWorkspaceId(null);
+      localStorage.removeItem('nexus_current_workspace_id');
     }
   };
+
+  // === Workspace Save/Load/Auto-Save ===
+  const handleSaveWorkspace = useCallback(async (name?: string) => {
+    if (files.length === 0) return;
+    
+    try {
+      const snapshot = workspaceSaveService.createSnapshot(
+        files.map(f => ({ name: f.name, content: f.content, language: f.language })),
+        { 
+          projectName: name || `Project ${new Date().toLocaleDateString()}`,
+          createdAt: currentWorkspaceId ? undefined : Date.now()
+        }
+      );
+
+      if (currentWorkspaceId) {
+        const existing = await workspaceSaveService.loadWorkspaceFromIDB(currentWorkspaceId);
+        if (existing) {
+          existing.files = snapshot.files;
+          existing.metadata.fileCount = snapshot.files.length;
+          existing.timestamp = Date.now();
+          existing.metadata.updatedAt = Date.now();
+          await workspaceSaveService.saveWorkspaceToIDB(existing);
+          return;
+        }
+      }
+
+      const id = await workspaceSaveService.saveWorkspaceToIDB(snapshot);
+      setCurrentWorkspaceId(id);
+      localStorage.setItem('nexus_current_workspace_id', id);
+    } catch (err) {
+      console.error('Workspace save failed:', err);
+    }
+  }, [files, currentWorkspaceId]);
+
+  const handleLoadWorkspace = useCallback(async (workspaceFiles: Array<{ name: string; content: string }>, name: string) => {
+    // Clear current files
+    files.forEach(f => deleteFile(f.id));
+    ide.setOpenFileIds([]);
+    ide.setActiveFileId(null);
+
+    // Load new files
+    for (const file of workspaceFiles) {
+      const newFile = addFile(file.name, file.content);
+      if (workspaceFiles.indexOf(file) === 0) {
+        ide.setActiveFileId(newFile.id);
+        ide.setOpenFileIds([newFile.id]);
+      }
+    }
+  }, [files, addFile, deleteFile, ide]);
+
+  // Auto-save every 60 seconds
+  useEffect(() => {
+    autoSaveIntervalRef.current = setInterval(() => {
+      if (files.length > 0) {
+        handleSaveWorkspace();
+        setLastAutoSave(Date.now());
+      }
+    }, 60000);
+
+    return () => {
+      if (autoSaveIntervalRef.current) clearInterval(autoSaveIntervalRef.current);
+    };
+  }, [files, handleSaveWorkspace]);
 
   const [ollamaUrl, setOllamaUrl] = useState(() => localStorage.getItem('nexus_ollama_url') || 'http://localhost:11434');
 
@@ -113,7 +193,6 @@ export default function App() {
     console.log("Voice Command:", command);
     
     if (command.includes("run code") || command.includes("run application")) {
-      // Trigger run via socket
       const activeFile = files.find(f => f.id === ide.activeFileId);
       if (activeFile) {
         socketService.send({
@@ -134,6 +213,8 @@ export default function App() {
       ide.setShowSidebar(!ide.showSidebar);
     } else if (command.includes("clear workspace")) {
       handleClearWorkspace();
+    } else if (command.includes("save workspace")) {
+      handleSaveWorkspace();
     } else if (command.includes("analyze")) {
       handleAnalyzeArchitecture();
     }
@@ -207,6 +288,7 @@ export default function App() {
   const commands = [
     { id: 'new-file', label: 'New File', icon: FilePlus, category: 'File', action: () => ide.setActiveActivity('explorer') },
     { id: 'open-folder', label: 'Open Local Folder', icon: FolderOpen, category: 'File', action: openDirectory },
+    { id: 'save-workspace', label: 'Save Workspace', icon: Save, category: 'Workspace', action: () => handleSaveWorkspace() },
     { id: 'toggle-ai', label: 'Toggle AI Assistant', icon: MessageSquare, category: 'View', action: () => ide.setShowAI(!ide.showAI) },
     { id: 'toggle-terminal', label: 'Toggle Terminal', icon: Play, category: 'View', action: () => ide.setShowTerminal(!ide.showTerminal) },
     { id: 'settings', label: 'Open Settings', icon: Settings, category: 'App', action: () => ide.setShowSettings(true) },
@@ -217,6 +299,278 @@ export default function App() {
 
   const activeFile = files.find(f => f.id === ide.activeFileId) || null;
 
+  // === BEGINNER UI RENDER ===
+  if (ide.useBeginnerUI && !ide.isTouchMode) {
+    return (
+      <ErrorBoundary>
+        <div className="beginner-mode-transition flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none beginner-ui">
+          <VoiceCommand 
+            isListening={isVoiceListening} 
+            onToggle={() => setIsVoiceListening(!isVoiceListening)} 
+            onCommand={handleVoiceCommand}
+          />
+
+          <BeginnerUILayout
+            activeActivity={beginnerActivity as any}
+            onActivityChange={setBeginnerActivity}
+            fileCount={files.length}
+            activeFileName={activeFile?.name}
+            onSaveWorkspace={() => handleSaveWorkspace()}
+            onOpenSettings={() => ide.setShowSettings(true)}
+          >
+            {/* Files Panel */}
+            {beginnerActivity === 'files' && (
+              <div className="flex-1 flex overflow-hidden">
+                <div className="w-72 border-r border-nexus-border flex-shrink-0 overflow-hidden">
+                  <BeginnerFilePanel
+                    files={files}
+                    activeFileId={ide.activeFileId}
+                    onSelectFile={ide.handleSelectFile}
+                    onAddFile={addFile}
+                    onDeleteFile={deleteFile}
+                    onRenameFile={renameFile}
+                    onOpenFolder={openDirectory}
+                  />
+                </div>
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  {activeFile ? (
+                    <Editor
+                      file={activeFile}
+                      onChange={(content) => updateFile(activeFile.id, content)}
+                      apiKeys={ide.apiKeys}
+                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                    />
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-nexus-text-muted gap-4">
+                      <div className="beginner-welcome-icon">
+                        <Zap size={32} className="text-nexus-accent" />
+                      </div>
+                      <h2 className="text-lg font-bold text-white">Welcome to Nexus IDE</h2>
+                      <p className="text-xs text-nexus-text-muted max-w-sm">
+                        Create a new file or open an existing folder to start coding. Your work is auto-saved every 60 seconds.
+                      </p>
+                      <div className="flex gap-3 mt-2">
+                        <button
+                          onClick={() => addFile('index.html', '<!DOCTYPE html>\n<html>\n<head>\n  <title>My Project</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>')}
+                          className="flex items-center gap-2 px-4 py-2 bg-nexus-accent hover:bg-nexus-accent/80 text-white rounded-lg text-xs font-bold transition-all"
+                        >
+                          <FilePlus size={14} />
+                          New HTML File
+                        </button>
+                        <button
+                          onClick={openDirectory}
+                          className="flex items-center gap-2 px-4 py-2 bg-nexus-bg hover:bg-nexus-border text-white rounded-lg text-xs font-medium transition-colors"
+                        >
+                          <FolderOpen size={14} />
+                          Open Folder
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {ide.showTerminal && (
+                    <div className="h-64 border-t border-nexus-border bg-nexus-bg">
+                      <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Code Panel (same editor but full-width, sidebar optional) */}
+            {beginnerActivity === 'code' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {activeFile ? (
+                  <>
+                    <Editor
+                      file={activeFile}
+                      onChange={(content) => updateFile(activeFile.id, content)}
+                      apiKeys={ide.apiKeys}
+                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                    />
+                    {ide.showTerminal && (
+                      <div className="h-64 border-t border-nexus-border bg-nexus-bg">
+                        <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-nexus-text-muted gap-3">
+                    <CodeIcon />
+                    <p className="text-sm">Open a file from the Files tab to start editing</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* AI Panel */}
+            {beginnerActivity === 'ai' && (
+              <div className="flex-1 overflow-hidden">
+                <AIAssistant
+                  ref={aiAssistantRef}
+                  files={files}
+                  activeFileId={ide.activeFileId}
+                  onAddFile={addFile}
+                  onUpdateFile={updateFile}
+                  onDeleteFile={deleteFile}
+                  apiKeys={ide.apiKeys}
+                  selectedProvider={ide.selectedAIProvider}
+                  selectedModels={ide.selectedModels}
+                  githubToken={ide.githubToken}
+                  onPendingActions={setPendingAiActions}
+                  onToggleMaximize={() => ide.setIsAiMaximized(!ide.isAiMaximized)}
+                  isMaximized={true}
+                  onClose={() => setBeginnerActivity('files')}
+                />
+              </div>
+            )}
+
+            {/* Run & Preview Panel */}
+            {beginnerActivity === 'run' && (
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 bg-nexus-sidebar border-b border-nexus-border">
+                  <button
+                    onClick={() => ide.setShowTerminal(!ide.showTerminal)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      ide.showTerminal ? "bg-nexus-accent text-white" : "bg-nexus-bg text-nexus-text-muted hover:text-white"
+                    )}
+                  >
+                    <Play size={12} />
+                    Terminal
+                  </button>
+                  <button
+                    onClick={() => ide.setShowPreview(!ide.showPreview)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                      ide.showPreview ? "bg-nexus-accent text-white" : "bg-nexus-bg text-nexus-text-muted hover:text-white"
+                    )}
+                  >
+                    <Zap size={12} />
+                    Preview
+                  </button>
+                </div>
+                <div className="flex-1 flex overflow-hidden">
+                  {ide.showTerminal && (
+                    <div className="flex-1 border-r border-nexus-border bg-nexus-bg">
+                      <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
+                    </div>
+                  )}
+                  {ide.showPreview && (
+                    <div className="flex-1 bg-white">
+                      <Preview files={files} activeFileId={ide.activeFileId} />
+                    </div>
+                  )}
+                  {!ide.showTerminal && !ide.showPreview && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-nexus-text-muted gap-3">
+                      <Play size={32} className="opacity-20" />
+                      <p className="text-sm">Click Terminal or Preview above to get started</p>
+                      <p className="text-[10px] text-nexus-text-muted/60">Run your code and see live results</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tools Panel */}
+            {beginnerActivity === 'tools' && (
+              <BeginnerToolsPanel activeTool={beginnerTool} onToolChange={setBeginnerTool}>
+                {beginnerTool === 'search' && (
+                  <SearchView files={files} onSelectFile={(id) => { ide.handleSelectFile(id); setBeginnerActivity('code'); }} />
+                )}
+                {beginnerTool === 'git' && (
+                  <GithubView files={files} onImportFiles={() => {}} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} />
+                )}
+                {beginnerTool === 'extensions' && <ExtensionsView />}
+                {beginnerTool === 'collab' && (
+                  <CollaborationView
+                    sessionId={ide.sessionId} isJoining={false} joinId="" setJoinId={() => {}}
+                    onCreateSession={() => ide.setSessionId(socketService.createSession())}
+                    onJoinSession={() => {}} onHostProject={() => {}} hostedUrl={ide.hostedUrl}
+                  />
+                )}
+                {beginnerTool === 'themes' && <ThemeStudio />}
+                {beginnerTool === 'minecraft' && <MinecraftView sessionId={ide.sessionId} />}
+                {beginnerTool === 'webcontainer' && (
+                  <WebContainerTerminal
+                    files={files}
+                    onFileUpdate={(path, content) => {
+                      const file = files.find(f => f.name === path);
+                      if (file) updateFile(file.id, content);
+                    }}
+                  />
+                )}
+                {beginnerTool === 'terminal' && (
+                  <Terminal files={files} onClose={() => setBeginnerTool('search')} onPreview={() => ide.setShowPreview(true)} />
+                )}
+              </BeginnerToolsPanel>
+            )}
+
+            {/* Workspace Panel */}
+            {beginnerActivity === 'workspace' && (
+              <WorkspacePanel
+                files={files.map(f => ({ name: f.name, content: f.content, language: f.language }))}
+                onLoadWorkspace={handleLoadWorkspace}
+              />
+            )}
+          </BeginnerUILayout>
+
+          {/* PWA Update Prompt */}
+          {pwa.showUpdatePrompt && (
+            <div className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100] bg-nexus-accent text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex items-center gap-2">
+                <Zap size={18} className="text-yellow-300 fill-yellow-300" />
+                <div>
+                  <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
+                  <p className="text-[10px] opacity-90">A new version is ready to install.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => pwa.setShowUpdatePrompt(false)} className="px-3 py-1 text-xs hover:bg-white/10 rounded">Later</button>
+                <button onClick={pwa.handleUpdateApp} className="px-3 py-1 text-xs bg-white text-nexus-accent font-bold rounded shadow-sm hover:bg-blue-50">Update Now</button>
+              </div>
+            </div>
+          )}
+
+          {/* Settings (modal overlay) */}
+          <SettingsPanel
+            isOpen={ide.showSettings}
+            onClose={() => ide.setShowSettings(false)}
+            apiKeys={ide.apiKeys}
+            onApiKeyChange={ide.setApiKey}
+            isTouchMode={ide.isTouchMode}
+            onToggleTouchMode={ide.toggleTouchMode}
+            useBeginnerUI={ide.useBeginnerUI}
+            onToggleBeginnerUI={() => ide.setUseBeginnerUI(!ide.useBeginnerUI)}
+            onClearWorkspace={handleClearWorkspace}
+            onExport={exportAsZip}
+            selectedAIProvider={ide.selectedAIProvider}
+            onAIProviderChange={ide.setSelectedAIProvider}
+            selectedModels={ide.selectedModels}
+            onModelChange={(provider, model) => {
+              ide.setSelectedModels(prev => ({ ...prev, [provider]: model }));
+            }}
+            githubToken={ide.githubToken}
+            onGithubTokenChange={ide.setGithubToken}
+            githubClientId={ide.githubClientId}
+            onGithubClientIdChange={ide.setGithubClientId}
+            githubClientSecret={ide.githubClientSecret}
+            onGithubClientSecretChange={ide.setGithubClientSecret}
+            ollamaUrl={ollamaUrl}
+            onOllamaUrlChange={setOllamaUrl}
+          />
+
+          {/* Command Palette */}
+          <CommandPalette
+            isOpen={ide.isCommandPaletteOpen}
+            onClose={() => ide.setIsCommandPaletteOpen(false)}
+            commands={commands}
+          />
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // === LEGACY / MOBILE UI RENDER ===
   return (
     <ErrorBoundary>
       <div className={cn("flex flex-col h-screen bg-nexus-bg text-nexus-text overflow-hidden select-none", ide.useBeginnerUI && "beginner-ui")}>
@@ -240,7 +594,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Zap size={18} className="text-yellow-300 fill-yellow-300" />
             <div>
-              <p className="text-sm font-bold">Nexus 5.0 Update Available</p>
+              <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
               <p className="text-[10px] opacity-90">A new version is ready to install.</p>
             </div>
           </div>
@@ -278,7 +632,10 @@ export default function App() {
           onActivityChange={(activity) => {
             if (activity === 'settings') {
               ide.setShowSettings(true);
+            } else if (activity === 'workspace') {
+              setShowWorkspacePanel(!showWorkspacePanel);
             } else {
+              setShowWorkspacePanel(false);
               ide.setActiveActivity(activity);
             }
           }} 
@@ -290,7 +647,12 @@ export default function App() {
         {/* Desktop sidebar panel — hidden on mobile (mobile uses bottom sheet) */}
         {ide.showSidebar && !ide.isTouchMode && (
           <div className="w-64 flex-shrink-0 flex flex-col border-r border-nexus-border bg-nexus-sidebar">
-            {ide.activeActivity === 'explorer' && (
+            {showWorkspacePanel ? (
+              <WorkspacePanel
+                files={files.map(f => ({ name: f.name, content: f.content, language: f.language }))}
+                onLoadWorkspace={handleLoadWorkspace}
+              />
+            ) : ide.activeActivity === 'explorer' && (
               <Sidebar
                 files={files}
                 activeFileId={ide.activeFileId}
@@ -300,6 +662,8 @@ export default function App() {
                 onRenameFile={renameFile}
                 onExport={exportAsZip}
                 onClearWorkspace={handleClearWorkspace}
+                onSaveWorkspace={() => handleSaveWorkspace()}
+                onShowWorkspace={() => setShowWorkspacePanel(true)}
                 onApplyTemplate={() => {}}
                 onShowDiff={(id) => {
                   const f = files.find(x => x.id === id);
@@ -318,7 +682,7 @@ export default function App() {
                 onRejectAiActions={() => setPendingAiActions(null)}
               />
             )}
-            {ide.activeActivity === 'search' && (
+            {ide.activeActivity === 'search' && !showWorkspacePanel && (
               <SearchView files={files} onSelectFile={ide.handleSelectFile} />
             )}
             {ide.activeActivity === 'debug' && (
@@ -563,7 +927,7 @@ export default function App() {
             </div>
           ) : (
           /* ===== DESKTOP LAYOUT ===== */
-          <>
+          <React.Fragment>
             <div className="h-9 bg-nexus-sidebar flex items-center overflow-x-auto no-scrollbar border-b border-nexus-border">
               {ide.openFileIds.map(id => {
                 const file = files.find(f => f.id === id);
@@ -602,7 +966,7 @@ export default function App() {
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                       <Zap size={64} className="opacity-10" />
-                      <p className="text-sm">Select a file to start coding in Nexus 5.0</p>
+                      <p className="text-sm">Select a file to start coding in Nexus 5.1</p>
                       <div className="flex gap-2">
                         <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
                         <span className="text-[10px]">Command Palette</span>
@@ -628,7 +992,7 @@ export default function App() {
                 </div>
               )}
             </div>
-          </>
+          </React.Fragment>
           )}
         </div>
 
@@ -658,6 +1022,8 @@ export default function App() {
                   onRenameFile={renameFile}
                   onExport={exportAsZip}
                   onClearWorkspace={handleClearWorkspace}
+                  onSaveWorkspace={() => handleSaveWorkspace()}
+                  onShowWorkspace={() => { setShowWorkspacePanel(true); ide.setShowSidebar(false); }}
                   onApplyTemplate={() => {}}
                   onShowDiff={(id) => {
                     const f = files.find(x => x.id === id);
@@ -763,5 +1129,16 @@ export default function App() {
 
     </div>
     </ErrorBoundary>
+  );
+}
+
+function CodeIcon() {
+  return (
+    <div className="w-12 h-12 rounded-xl bg-nexus-bg border border-nexus-border flex items-center justify-center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-nexus-text-muted">
+        <polyline points="16 18 22 12 16 6" />
+        <polyline points="8 6 2 12 8 18" />
+      </svg>
+    </div>
   );
 }

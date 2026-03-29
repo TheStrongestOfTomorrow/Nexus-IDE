@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface SettingsPanelProps {
@@ -89,7 +89,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.0 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.1 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -97,6 +97,86 @@ export default function SettingsPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+          {/* UI Mode Selection */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Layout size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Interface Mode</h3>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {/* Beginner UI Toggle */}
+              <div className={cn(
+                "p-4 rounded-xl border-2 transition-all cursor-pointer",
+                useBeginnerUI
+                  ? "bg-nexus-accent/5 border-nexus-accent shadow-lg shadow-nexus-accent/5"
+                  : "bg-nexus-bg border-nexus-border hover:border-nexus-accent/30"
+              )} onClick={onToggleBeginnerUI}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      useBeginnerUI ? "bg-nexus-accent text-white" : "bg-white/5 text-nexus-text-muted"
+                    )}>
+                      <Sparkles size={16} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white">Beginner Friendly UI</span>
+                      {useBeginnerUI && <span className="ml-2 text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold uppercase">Active</span>}
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "w-10 h-5 rounded-full transition-all relative",
+                    useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                  )}>
+                    <div className={cn(
+                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                      useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                    )} />
+                  </div>
+                </div>
+                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                  A clean, organized interface with labeled navigation tabs, contextual hints, and guided workflows. All features are accessible through logical categories — Files, Code, AI, Run, Tools, and Workspace. Perfect if you're new to Nexus IDE or prefer a simpler layout.
+                </p>
+              </div>
+
+              {/* Legacy UI Toggle */}
+              <div className={cn(
+                "p-4 rounded-xl border-2 transition-all cursor-pointer",
+                !useBeginnerUI
+                  ? "bg-nexus-accent/5 border-nexus-accent shadow-lg shadow-nexus-accent/5"
+                  : "bg-nexus-bg border-nexus-border hover:border-nexus-accent/30"
+              )} onClick={onToggleBeginnerUI}>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center",
+                      !useBeginnerUI ? "bg-nexus-accent text-white" : "bg-white/5 text-nexus-text-muted"
+                    )}>
+                      <RotateCcw size={16} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-white">Legacy UI</span>
+                      {!useBeginnerUI && <span className="ml-2 text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold uppercase">Active</span>}
+                    </div>
+                  </div>
+                  <div className={cn(
+                    "w-10 h-5 rounded-full transition-all relative",
+                    !useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                  )}>
+                    <div className={cn(
+                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                      !useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                    )} />
+                  </div>
+                </div>
+                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                  The classic VS Code-inspired interface with the activity bar, compact sidebar panels, and power-user shortcuts. Best if you're experienced with code editors and want maximum screen real estate for your editor.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* AI Configuration */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
@@ -284,36 +364,6 @@ export default function SettingsPanel({
             </div>
           </section>
 
-          {/* UI Settings */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
-                <Palette size={18} />
-                <h3 className="text-xs font-bold uppercase tracking-wider">UI Settings</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-white">Beginner Friendly UI</span>
-                        <button
-                            onClick={onToggleBeginnerUI}
-                            className={cn(
-                                "w-10 h-5 rounded-full transition-all relative",
-                                useBeginnerUI ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
-                            )}
-                        >
-                            <div className={cn(
-                                "absolute top-0.5 w-3 h-3 rounded-full transition-all",
-                                useBeginnerUI ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
-                            )} />
-                        </button>
-                    </div>
-                    <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                        A simplified UI for beginners. Disable to use the classic UI.
-                    </p>
-                </div>
-            </div>
-          </section>
-
           {/* Interface & Touch */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
@@ -323,7 +373,7 @@ export default function SettingsPanel({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">Touch Mode</span>
+                  <span className="text-xs font-bold text-white">Touch Mode (Mobile)</span>
                   <button
                     onClick={onToggleTouchMode}
                     className={cn(
@@ -332,13 +382,13 @@ export default function SettingsPanel({
                     )}
                   >
                     <div className={cn(
-                      "absolute top-0.5 w-3 h-3 rounded-full transition-all",
+                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
                       isTouchMode ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
                     )} />
                   </button>
                 </div>
                 <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                  Enables a mobile-optimized UI with navigation drawer and larger interactive elements.
+                  Enables a mobile-optimized UI with bottom navigation, slide-out explorer, and touch-friendly controls.
                 </p>
               </div>
 
@@ -348,7 +398,7 @@ export default function SettingsPanel({
                   <Layout size={14} className="text-nexus-accent" />
                 </div>
                 <p className="text-[10px] text-nexus-text-muted leading-relaxed">
-                  Automatically adapts layout for Portrait and Landscape orientations.
+                  Automatically adapts layout for portrait and landscape orientations on all devices.
                 </p>
               </div>
             </div>
@@ -357,8 +407,8 @@ export default function SettingsPanel({
           {/* Workspace Management */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
-              <Layout size={18} />
-              <h3 className="text-xs font-bold uppercase tracking-wider">Workspace Control</h3>
+              <HardDrive size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Workspace & Data</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <button
@@ -376,13 +426,22 @@ export default function SettingsPanel({
                 <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest">Nuke Files</span>
               </button>
             </div>
+            <div className="p-3 bg-nexus-bg rounded-xl border border-nexus-border">
+              <div className="flex items-center gap-2 mb-1">
+                <Undo2 size={12} className="text-nexus-text-muted" />
+                <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Auto-Save</span>
+              </div>
+              <p className="text-[9px] text-nexus-text-muted leading-relaxed">
+                Your workspace is automatically saved to IndexedDB every 60 seconds. Access saved workspaces from the Workspaces tab in the sidebar or via the Beginner UI.
+              </p>
+            </div>
           </section>
         </div>
 
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.0 Stable</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.1.0</span>
           </div>
           <button
             onClick={onClose}

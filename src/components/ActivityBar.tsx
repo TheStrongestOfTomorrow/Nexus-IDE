@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Box } from 'lucide-react';
+import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Box, HardDrive } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer' | 'workspace';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -18,6 +18,7 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
   const primaryActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
     { id: 'explorer', icon: Files, label: 'Explorer' },
     { id: 'search', icon: Search, label: 'Search' },
+    { id: 'workspace', icon: HardDrive, label: 'Workspaces' },
     { id: 'git', icon: GitBranch, label: 'Source Control' },
     { id: 'ai', icon: MessageSquare, label: 'AI Assistant' },
   ];

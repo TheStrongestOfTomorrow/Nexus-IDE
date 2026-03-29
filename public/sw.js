@@ -1,23 +1,23 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 importScripts('https://cdn.jsdelivr.net/npm/idb@8/build/umd.js');
 
-const CACHE_NAME = 'nexus-ide-v5.0.0';
+const CACHE_NAME = 'nexus-ide-v5.1.0';
 
 if (workbox) {
-  console.log('Nexus 5.0.0 Service Worker Active');
+  console.log('Nexus 5.1.0 Service Worker Active');
 
   // Pre-cache core assets for offline use
   workbox.precaching.precacheAndRoute([
-    {url: './', revision: '5.0.0'},
-    {url: 'index.html', revision: '5.0.0'},
-    {url: 'manifest.json', revision: '5.0.0'},
+    {url: './', revision: '5.1.0'},
+    {url: 'index.html', revision: '5.1.0'},
+    {url: 'manifest.json', revision: '5.1.0'},
   ]);
 
   // Cache-first for images and fonts
   workbox.routing.registerRoute(
     ({request}) => request.destination === 'image' || request.destination === 'font',
     new workbox.strategies.CacheFirst({
-      cacheName: 'nexus-assets-v4',
+      cacheName: 'nexus-assets-v5',
       plugins: [
         new workbox.expiration.ExpirationPlugin({
           maxEntries: 60,
@@ -31,7 +31,7 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({request}) => request.destination === 'script' || request.destination === 'style',
     new workbox.strategies.StaleWhileRevalidate({
-      cacheName: 'nexus-code-v4',
+      cacheName: 'nexus-code-v5',
     })
   );
 
@@ -39,7 +39,23 @@ if (workbox) {
   workbox.routing.registerRoute(
     ({request}) => request.destination === 'document',
     new workbox.strategies.NetworkFirst({
-      cacheName: 'nexus-pages-v4',
+      cacheName: 'nexus-pages-v5',
+    })
+  );
+
+  // Cache API responses for AI providers (short TTL)
+  workbox.routing.registerRoute(
+    ({url}) => url.hostname.includes('generativelanguage.googleapis.com') ||
+               url.hostname.includes('api.openai.com') ||
+               url.hostname.includes('api.anthropic.com'),
+    new workbox.strategies.NetworkFirst({
+      cacheName: 'nexus-api-v5',
+      plugins: [
+        new workbox.expiration.ExpirationPlugin({
+          maxEntries: 50,
+          maxAgeSeconds: 5 * 60, // 5 minutes
+        }),
+      ],
     })
   );
 
@@ -50,7 +66,7 @@ if (workbox) {
     }
   });
 }
- else {
+else {
   // Fallback to manual cache if Workbox fails
   self.addEventListener('install', (event) => {
     self.skipWaiting();
