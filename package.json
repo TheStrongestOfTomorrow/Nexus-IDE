@@ -1,5 +1,5 @@
 {
-  "name": "nexus-ide-cli",
+  "name": "@TheStrongestOfTomorrow/nexus-ide-cli",
   "version": "5.0.2",
   "description": "Nexus IDE CLI - Full Terminal IDE Experience with TUI, AI Assistant, Code Execution, and more",
   "author": "TheStrongestOfTomorrow",
@@ -50,6 +50,9 @@
     "url": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues"
   },
   "homepage": "https://github.com/TheStrongestOfTomorrow/Nexus-IDE#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
