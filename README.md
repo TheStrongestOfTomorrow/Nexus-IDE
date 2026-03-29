@@ -53,11 +53,19 @@ npm start
 
 Then open **http://localhost:3000** in your browser. That's it — Nexus IDE is running locally on your machine.
 
-> **Branch-specific clones** — if you want a specific edition:
+> **Branch-specific clones** — each edition has its own dev command:
 > ```bash
-> git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git   # Stable (v4.4)
-> git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git  # Professional
-> git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git         # Terminal Edition
+> # Beta (This Branch — v5.1)
+> git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run dev
+>
+> # Stable (v4.4)
+> git clone -b stable https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run dev
+>
+> # Professional
+> git clone -b professional https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run web
+>
+> # CLI / Terminal Edition
+> git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run tui
 > ```
 
 ---
