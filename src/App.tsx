@@ -304,7 +304,7 @@ export default function App() {
       if (session.showTerminal !== undefined) ide.setShowTerminal(session.showTerminal);
       if (session.showPreview !== undefined) ide.setShowPreview(session.showPreview);
       if (session.showAI !== undefined) ide.setShowAI(session.showAI);
-      if (session.isZenMode !== undefined) ide.toggleZenMode();
+      if (session.isZenMode !== undefined && session.isZenMode !== ide.isZenMode) ide.toggleZenMode();
       // Set last save time
       if (session.timestamp) {
         setSessionSavedAt(sessionPersistenceService.formatTimestamp(session.timestamp));
@@ -499,20 +499,10 @@ export default function App() {
           {ide.activeActivity === 'debug' && <DebugView activeFile={activeFile} onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)} />}
           {ide.activeActivity === 'extensions' && <ExtensionsView />}
           {ide.activeActivity === 'linux' && (
-            <LinuxTerminal
-              files={files.map(f => ({ name: f.name, content: f.content }))}
-              onPullFiles={(pulledFiles) => {
-                pulledFiles.forEach(pf => {
-                  const existing = files.find(ef => ef.name === pf.name);
-                  if (existing) {
-                    updateFile(existing.id, pf.content);
-                  } else {
-                    addFile(pf.name, pf.content);
-                  }
-                });
-                notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Alpine Linux`);
-              }}
-            />
+            <div className="flex flex-col items-center justify-center h-full text-[#858585]">
+              <p className="text-[12px]">Linux Terminal is open in the main editor area</p>
+              <p className="text-[10px] text-[#5a5a5a] mt-1">Use the activity bar to switch back</p>
+            </div>
           )}
           {ide.activeActivity === 'ai' && (
             <AIAssistant
@@ -535,7 +525,22 @@ export default function App() {
       </div>
     );
 
-    const vscodeEditorContent = splitEditor && activeFile ? (
+    const vscodeEditorContent = ide.activeActivity === 'linux' ? (
+      <LinuxTerminal
+        files={files.map(f => ({ name: f.name, content: f.content }))}
+        onPullFiles={(pulledFiles) => {
+          pulledFiles.forEach(pf => {
+            const existing = files.find(ef => ef.name === pf.name);
+            if (existing) {
+              updateFile(existing.id, pf.content);
+            } else {
+              addFile(pf.name, pf.content);
+            }
+          });
+          notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Alpine Linux`);
+        }}
+      />
+    ) : splitEditor && activeFile ? (
       <SplitEditor
         files={files}
         leftFileId={ide.activeFileId}

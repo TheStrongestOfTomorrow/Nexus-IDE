@@ -136,8 +136,6 @@ export default function LinuxTerminal({
   const [bootProgress, setBootProgress] = useState(0);
 
   // ── Panel State ───────────────────────────────────────────────────────────────
-  const [fileBrowserOpen, setFileBrowserOpen] = useState(showFileBrowser);
-  const [packageManagerOpen, setPackageManagerOpen] = useState(showPackageManager);
   const [activeSidePanel, setActiveSidePanel] = useState<'files' | 'packages' | null>(null);
 
   // ── File Browser State ────────────────────────────────────────────────────────
@@ -442,9 +440,11 @@ export default function LinuxTerminal({
       setBootPhase('booting');
 
       // Wait for emulator to become ready
+      let bootTimeoutId: ReturnType<typeof setTimeout> | null = null;
       const readyCheck = setInterval(() => {
         if (v86Service.status === 'running') {
           clearInterval(readyCheck);
+          if (bootTimeoutId) clearTimeout(bootTimeoutId);
           setBootProgress(100);
           setBootPhase('running');
           setStatus('running');
@@ -457,8 +457,9 @@ export default function LinuxTerminal({
       }, 300);
 
       // Timeout after 60s
-      setTimeout(() => {
+      bootTimeoutId = setTimeout(() => {
         clearInterval(readyCheck);
+        unsubEvents();
       }, 60000);
     } catch (err: any) {
       clearInterval(progressTimer);
@@ -752,7 +753,7 @@ export default function LinuxTerminal({
   return (
     <div className={cn(
       "flex bg-nexus-bg border-t border-nexus-border overflow-hidden",
-      isFullscreen ? "fixed inset-0 z-[300]" : "h-[28rem]"
+      isFullscreen ? "fixed inset-0 z-[300]" : "h-full"
     )}>
       {/* ═══ Main Column ═══════════════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col min-w-0">

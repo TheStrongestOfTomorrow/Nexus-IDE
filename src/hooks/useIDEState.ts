@@ -158,7 +158,7 @@ export function useIDEState(files: any[]) {
     diffData, setDiffData,
     isCommandPaletteOpen, setIsCommandPaletteOpen,
     mermaidChart, setMermaidChart,
-    isZenMode, toggleZenMode,
+    isZenMode, toggleZenMode, setIsZenMode,
     apiKeys, setApiKeys,
     setApiKey,
     githubToken, setGithubToken,
