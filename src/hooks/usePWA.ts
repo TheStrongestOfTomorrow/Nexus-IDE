@@ -55,12 +55,13 @@ export function usePWA() {
   // ── On boot: clear pending update flag after reload ──────────────────────
 
   useEffect(() => {
-    if (autoUpdateService.isUpdatePending()) {
-      autoUpdateService.clearPendingFlag();
-      // The update was applied; clean up the stored update data
-      autoUpdateService.clearStoredUpdate().catch(() => {
-        // Non-critical — ignore if IndexedDB cleanup fails
-      });
+    try {
+      if (autoUpdateService.isUpdatePending()) {
+        autoUpdateService.clearPendingFlag();
+        autoUpdateService.clearStoredUpdate().catch(() => {});
+      }
+    } catch {
+      // Service not available yet — ignore
     }
   }, []);
 

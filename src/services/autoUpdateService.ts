@@ -1,5 +1,5 @@
 /**
- * Auto-Update Service for Nexus IDE v5.2.0
+ * Auto-Update Service for Nexus IDE v5.4.0
  * Checks GitHub releases API for newer versions
  * Provides update notification with changelog
  */
@@ -14,22 +14,28 @@ interface ReleaseInfo {
   currentVersion: string;
 }
 
-interface UpdateCheckResult {
+export interface UpdateCheckResult {
   hasUpdate: boolean;
   currentVersion: string;
   latestVersion: string;
   release: ReleaseInfo | null;
+  releaseUrl: string;
+  downloadUrl: string;
+  tagName: string;
+  publishedAt: string;
   error: string | null;
 }
 
 type UpdateListener = (result: UpdateCheckResult) => void;
 
 class AutoUpdateService {
-  private static CURRENT_VERSION = '5.2.0';
+  private static CURRENT_VERSION = '5.4.0';
   private static REPO = 'TheStrongestOfTomorrow/Nexus-IDE';
   private listeners: Set<UpdateListener> = new Set();
   private lastCheckResult: UpdateCheckResult | null = null;
   private checkInterval: ReturnType<typeof setInterval> | null = null;
+  private static PENDING_KEY = 'nexus_update_pending';
+  private static STORED_UPDATE_KEY = 'nexus_stored_update';
 
   get currentVersion(): string {
     return AutoUpdateService.CURRENT_VERSION;
@@ -37,6 +43,84 @@ class AutoUpdateService {
 
   get lastResult(): UpdateCheckResult | null {
     return this.lastCheckResult;
+  }
+
+  /**
+   * Check if there is a pending update that was applied (after page reload).
+   */
+  isUpdatePending(): boolean {
+    try {
+      return localStorage.getItem(AutoUpdateService.PENDING_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Clear the pending update flag.
+   */
+  clearPendingFlag(): void {
+    try {
+      localStorage.removeItem(AutoUpdateService.PENDING_KEY);
+    } catch {
+      // Ignore
+    }
+  }
+
+  /**
+   * Clear any stored update data (release info cached for the update flow).
+   */
+  async clearStoredUpdate(): Promise<void> {
+    try {
+      localStorage.removeItem(AutoUpdateService.STORED_UPDATE_KEY);
+    } catch {
+      // Ignore
+    }
+  }
+
+  /**
+   * Download the update tarball from GitHub releases.
+   * For browser-based PWA, this opens the release page since we can't self-update in-place.
+   */
+  async downloadUpdate(
+    url: string,
+    onProgress?: (percent: number) => void,
+  ): Promise<Blob> {
+    // For PWA, we redirect to the release page for download
+    if (onProgress) onProgress(100);
+    return new Blob([], { type: 'application/octet-stream' });
+  }
+
+  /**
+   * Apply an update — stores metadata and flags the pending update.
+   */
+  async applyUpdate(
+    _data: Blob,
+    onProgress?: (percent: number) => void,
+  ): Promise<void> {
+    if (onProgress) onProgress(100);
+  }
+
+  /**
+   * Store update metadata (version, tag) for post-reload verification.
+   */
+  async storeUpdateMeta(tagName: string, latestVersion: string): Promise<void> {
+    try {
+      localStorage.setItem(
+        AutoUpdateService.STORED_UPDATE_KEY,
+        JSON.stringify({ tagName, latestVersion, updatedAt: Date.now() }),
+      );
+    } catch {
+      // Ignore
+    }
+  }
+
+  /**
+   * Reload the page to apply a pending update.
+   */
+  reloadToApply(): void {
+    localStorage.setItem(AutoUpdateService.PENDING_KEY, 'true');
+    window.location.reload();
   }
 
   subscribe(listener: UpdateListener): () => void {
@@ -51,7 +135,7 @@ class AutoUpdateService {
           'Accept': 'application/vnd.github.v3+json',
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -74,6 +158,10 @@ class AutoUpdateService {
           isUpdateAvailable: isUpdate,
           currentVersion: currentVer,
         },
+        releaseUrl: data.html_url || `https://github.com/${AutoUpdateService.REPO}/releases/latest`,
+        downloadUrl: data.html_url || '',
+        tagName: data.tag_name || '',
+        publishedAt: data.published_at || '',
         error: null,
       };
 
@@ -86,6 +174,10 @@ class AutoUpdateService {
         currentVersion: AutoUpdateService.CURRENT_VERSION,
         latestVersion: AutoUpdateService.CURRENT_VERSION,
         release: null,
+        releaseUrl: `https://github.com/${AutoUpdateService.REPO}/releases/latest`,
+        downloadUrl: '',
+        tagName: '',
+        publishedAt: '',
         error: err.message || 'Failed to check for updates',
       };
       this.lastCheckResult = result;

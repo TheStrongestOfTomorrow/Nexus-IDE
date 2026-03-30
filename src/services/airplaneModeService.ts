@@ -150,7 +150,7 @@ class AirplaneModeService {
 
       this._lastOnlineCheck = Date.now();
 
-      if (!response.aborted && this._status !== 'online') {
+      if (!controller.signal.aborted && this._status !== 'online') {
         this._status = 'online';
         this.notifyListeners();
       }

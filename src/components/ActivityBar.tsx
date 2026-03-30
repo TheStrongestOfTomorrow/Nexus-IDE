@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Box, HardDrive } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer' | 'workspace';
+export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer' | 'workspace' | 'linux';
 
 interface ActivityBarProps {
   activeActivity: ActivityType;
@@ -34,6 +34,7 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'insights', icon: BarChart, label: 'Project Insights' },
     { id: 'themes', icon: Palette, label: 'Theme Studio' },
     { id: 'minecraft', icon: Gamepad2, label: 'Minecraft Bridge' },
+    { id: 'linux', icon: TerminalIcon, label: 'Linux Terminal (v86)' },
   ];
 
   return (

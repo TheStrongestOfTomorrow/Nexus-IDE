@@ -9,13 +9,13 @@
     <script>
       // Targeted cache migration (preserves user data)
       (function() {
-        const VERSION = '5.1.0';
+        const VERSION = '5.4.0';
         const CACHE_KEYS_TO_CLEAR = ['nexus_version_hard'];
         const stored = localStorage.getItem('nexus_version_hard');
 
         if (stored !== VERSION) {
           // Only clear known IDE cache keys, NOT user settings/keys/data
-          const keysToRemove: string[] = [];
+          const keysToRemove = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             if (key && (

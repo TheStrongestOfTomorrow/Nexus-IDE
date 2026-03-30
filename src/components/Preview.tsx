@@ -397,7 +397,7 @@ ${activeFile.content.replace(/</g, '\\u003c')}
           key={key}
           ref={iframeRef}
           className="absolute inset-0 w-full h-full border-none"
-          sandbox="allow-scripts allow-same-origin"
+          sandbox="allow-scripts allow-popups allow-forms"
           title="preview"
         />
       </div>

@@ -11,13 +11,13 @@
   "scope": "./",
   "icons": [
     {
-      "src": "https://lucide.dev/api/icons/zap?size=192&color=3b82f6",
+      "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://lucide.dev/api/icons/zap?size=512&color=3b82f6",
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -29,35 +29,35 @@
       "short_name": "New File",
       "description": "Create a new file in Nexus IDE",
       "url": "./?action=new-file",
-      "icons": [{ "src": "https://lucide.dev/api/icons/file-plus?size=192", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Quick-connect to Minecraft",
       "short_name": "Connect MC",
       "description": "Instantly connect to your Minecraft session",
       "url": "./?action=connect-mc",
-      "icons": [{ "src": "https://lucide.dev/api/icons/gamepad-2?size=192", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Open Last Project",
       "short_name": "Last Project",
       "description": "Open your most recent project",
       "url": "./?action=open-last",
-      "icons": [{ "src": "https://lucide.dev/api/icons/folder-open?size=192", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "AI Assistant",
       "short_name": "AI Chat",
       "description": "Open the AI coding assistant",
       "url": "./?action=open-ai",
-      "icons": [{ "src": "https://lucide.dev/api/icons/message-square?size=192", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Saved Workspaces",
       "short_name": "Workspaces",
       "description": "View and manage your saved workspaces",
       "url": "./?action=open-workspaces",
-      "icons": [{ "src": "https://lucide.dev/api/icons/hard-drive?size=192", "sizes": "192x192" }]
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "file_handlers": [
