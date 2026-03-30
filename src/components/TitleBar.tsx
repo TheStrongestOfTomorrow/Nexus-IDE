@@ -53,7 +53,7 @@ export default function TitleBar({ activeFile, onSearch, onSettings, onToggleVoi
         {/* App Icon & Name */}
         <div className="flex items-center gap-2 mr-4">
           <Zap size={14} className="text-nexus-accent" />
-          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 5.2.0</span>
+          <span className="text-[11px] font-bold text-white uppercase tracking-widest">Nexus 5.3.0</span>
         </div>
 
         {/* Breadcrumbs */}

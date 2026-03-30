@@ -30,6 +30,8 @@ import AirplaneModeBanner from './components/AirplaneModeBanner';
 import { UpdateChecker } from './components/UpdateChecker';
 import SplitEditor from './components/SplitEditor';
 import NotificationToasts from './components/NotificationToasts';
+import WelcomeTab from './components/WelcomeTab';
+import KeyboardShortcutsPanel from './components/KeyboardShortcutsPanel';
 import { notificationService } from './services/notificationService';
 import './styles/beginner-ui.css';
 
@@ -112,6 +114,9 @@ export default function App() {
   // Split Editor state (B16)
   const [splitEditor, setSplitEditor] = useState(false);
   const [splitFileId, setSplitFileId] = useState<string | null>(null);
+
+  // Keyboard shortcuts panel state
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
   // Beginner UI state
   const [beginnerActivity, setBeginnerActivity] = useState<string>('files');
@@ -208,7 +213,7 @@ export default function App() {
           selectedAIProvider: ide.selectedAIProvider,
           selectedModels: ide.selectedModels,
           timestamp: Date.now(),
-          version: '5.2.0',
+          version: '5.3.0',
           sessionId: ide.sessionId,
         }).then(() => {
           const savedAt = sessionPersistenceService.formatTimestamp(Date.now());
@@ -360,6 +365,19 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFsLoaded, files.length, ide.activeFileId]);
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K S — Keyboard shortcuts panel
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && e.shiftKey) {
+        e.preventDefault();
+        setShowKeyboardShortcuts(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // PWA: Launch Handler API
   useEffect(() => {
     if ('launchQueue' in window) {
@@ -428,6 +446,7 @@ export default function App() {
     { id: 'clear-workspace', label: 'Clear Workspace', icon: Trash2, category: 'Workspace', action: handleClearWorkspace },
     { id: 'export-zip', label: 'Export as ZIP', icon: Download, category: 'File', action: exportAsZip },
     { id: 'analyze-arch', label: 'Analyze Architecture', icon: Layout, category: 'AI', action: handleAnalyzeArchitecture },
+    { id: 'keyboard-shortcuts', label: 'Keyboard Shortcuts', icon: Settings, category: 'App', action: () => setShowKeyboardShortcuts(true) },
   ];
 
   const activeFile = files.find(f => f.id === ide.activeFileId) || null;
@@ -1382,14 +1401,10 @@ export default function App() {
                       onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
                     />
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
-                      <Zap size={64} className="opacity-10" />
-                      <p className="text-sm">Select a file to start coding in Nexus 5.2</p>
-                      <div className="flex gap-2">
-                        <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
-                        <span className="text-[10px]">Command Palette</span>
-                      </div>
-                    </div>
+                    <WelcomeTab
+                      onNewFile={() => addFile('index.html', '<!DOCTYPE html>\n<html>\n<head>\n  <title>My Project</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>')}
+                      onOpenFolder={openDirectory}
+                    />
                   )}
                 </div>
 
@@ -1555,6 +1570,7 @@ export default function App() {
       />
 
       <NotificationToasts />
+      <KeyboardShortcutsPanel isOpen={showKeyboardShortcuts} onClose={() => setShowKeyboardShortcuts(false)} />
     </div>
     </ErrorBoundary>
   );

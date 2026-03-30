@@ -198,7 +198,7 @@ export default function Editor({
     return (
       <div className="flex-1 flex items-center justify-center bg-nexus-bg text-nexus-text-muted">
         <div className="text-center">
-          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.2.0</h2>
+          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.3.0</h2>
           <p className="text-xs">Select a file to start editing</p>
         </div>
       </div>
@@ -276,7 +276,7 @@ export default function Editor({
           onChange={(value) => onChange(value || '')}
           onMount={handleEditorDidMount}
           options={{
-            // v5.2.0 improvements
+            // v5.3.0 improvements
             minimap: { enabled: showMinimap },
             wordWrap: wordWrap ? 'on' : 'off' as any,
             fontSize,
@@ -284,6 +284,9 @@ export default function Editor({
             ...({ 'bracketPairColorization.enabled': true } as any),
             ...({ 'editor.stickyScroll.enabled': true } as any),
             ...({ 'editor.guides.indentation': true } as any),
+            ...({ 'editor.autoClosingBrackets': 'always' } as any),
+            ...({ 'editor.autoClosingQuotes': 'always' } as any),
+            ...({ 'editor.autoIndent': 'full' } as any),
             // Existing settings
             padding: { top: 16 },
             scrollBeyondLastLine: false,

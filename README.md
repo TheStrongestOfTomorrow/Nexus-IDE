@@ -7,7 +7,7 @@
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.2.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.3.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
@@ -89,7 +89,50 @@ Then open **http://localhost:3000** in your browser. That's it — Nexus IDE is 
 
 ---
 
-## 🔥 What's New in v5.2.0
+## 🔥 What's New in v5.3.0
+
+Editor polish blitz — 15 quality-of-life improvements that make Nexus IDE feel like a professional desktop IDE. Also a sneak peek at what's coming next.
+
+### 🎨 Editor Improvements
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Close Brackets** | Automatically closes `()`, `{}`, `[]`, `""`, `''` |
+| **Auto-Close Quotes** | Smart quote auto-closing for single and double quotes |
+| **Auto Indent** | Full auto-indentation on new lines and after `{` |
+| **Split Editor** | Side-by-side file editing — already built, now promoted |
+| **File Icons** | Color-coded icons by file type in explorer and tabs |
+| **Minimap** | Code overview sidebar (enabled by default, toggle with Ctrl+Shift+M) |
+| **Word Wrap** | Soft wrap long lines (enabled by default) |
+| **Indent Guides** | Visual indentation level guides |
+| **Bracket Pair Colors** | Matching brackets in distinct colors |
+| **Sticky Scroll** | Keeps current scope header visible while scrolling |
+| **Breadcrumbs** | File path navigation in all UI modes |
+
+### 🖥️ New Components
+
+| Component | Description |
+|-----------|-------------|
+| **Welcome Tab** | New tab page with quick actions, recent files, keyboard shortcuts |
+| **Keyboard Shortcuts Panel** | Full shortcuts reference (Ctrl+Shift+K), searchable, grouped by category |
+| **Notification Toasts** | Bottom-right toast system for success, error, warning, info |
+
+### 🔮 Coming in v5.4.0 — Real Linux in Your Browser
+
+The next update is the big one. **v86 x86 emulation** will boot a real **Alpine Linux** distro entirely inside Nexus IDE — no server, no VM, just your browser.
+
+| Capability | Details |
+|-----------|--------|
+| **Full Linux Terminal** | Real `bash`, `apk`, `git`, `python`, `node` — not simulated |
+| **v86 x86 Emulator** | WebAssembly-based x86 emulator runs actual Linux binaries |
+| **IndexedDB Persistence** | Your Linux filesystem survives refreshes and browser restarts |
+| **Portable** | Works on any device — even on a 2GB laptop on a plane |
+| **noVNC (Optional)** | Users can install noVNC to get a full GUI desktop |
+| **Wine (Optional)** | Users can install Wine to run Windows .exe binaries |
+
+> 🔥 *v5.4.0 is the next major update. The v86 + Alpine integration is already being planned and designed.*
+
+---
 
 The biggest GitHub integration update ever. Nexus IDE now has a full source control panel rivaling desktop IDEs, complete with staging, branching, commit history, pull requests, and issues — all from the browser.
 
@@ -264,7 +307,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.2.0) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.3.0) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -370,7 +413,23 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.2.0 (Current - Beta)
+### v5.3.0 (Current - Beta)
+- 🎨 **Auto-Close Brackets** — Automatically closes `()`, `{}`, `[]`, `""`, `''`
+- 🎨 **Auto-Close Quotes** — Smart quote auto-closing
+- 🎨 **Auto Indent** — Full auto-indentation on new lines
+- 🎨 **Split Editor** — Side-by-side file editing (Ctrl+B)
+- 🎨 **File Icons** — Color-coded by file type in explorer and tabs
+- 🎨 **Minimap** — Code overview sidebar, toggle with Ctrl+Shift+M
+- 🎨 **Word Wrap** — Soft wrap enabled by default
+- 🎨 **Indent Guides** — Visual indentation level guides
+- 🎨 **Bracket Pair Colors** — Matching brackets in distinct colors
+- 🎨 **Sticky Scroll** — Current scope header stays visible while scrolling
+- 🖥️ **Welcome Tab** — New tab page with quick actions, recent files, shortcuts
+- ⌨️ **Keyboard Shortcuts Panel** — Full reference (Ctrl+Shift+K), searchable
+- 🔔 **Notification Toasts** — Bottom-right toast system
+- 🔮 **v5.4.0 Tease** — v86 Alpine Linux coming in next release
+
+### v5.2.0
 - 🔀 **Deep Git Integration** — Full source control panel: staging, commits, branches, history, PRs, issues
 - 📋 **File Staging** — Stage/unstage individual files before committing
 - 🌿 **Branch Management** — List, create, switch, delete branches
@@ -436,6 +495,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.2.0 — Deep Git Integration**
+**v5.3.0 — Editor Polish Blitz**
 
 </div>
