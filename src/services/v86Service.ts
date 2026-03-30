@@ -78,20 +78,17 @@ export interface FileEntry {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ALPINE_DISK_IMAGE_URL =
-  'https://i.copy.sh/v86/images/alpine-rootfs-flat.img';
-
-const V86_BIOS_URL =
-  'https://i.copy.sh/v86/bios/seabios.bin';
-
-const V86_VGA_BIOS_URL =
-  'https://i.copy.sh/v86/bios/vgabios.bin';
+// Local v86 assets — served from public/v86/ for COEP compatibility
+const V86_BIOS_URL     = '/v86/seabios.bin';
+const V86_VGA_BIOS_URL = '/v86/vgabios.bin';
+const V86_BZIMAGE_URL  = '/v86/buildroot-bzimage.bin';
 
 const V86_CDN_BASE = 'https://cdn.jsdelivr.net/npm/v86@latest/build/';
 const V86_WASM_URL = `${V86_CDN_BASE}v86.wasm`;
 const V86_LIB_URL  = `${V86_CDN_BASE}libv86.js`;
 
 const RAM_SIZE = 128 * 1024 * 1024; // 128 MB
+const BZIMAGE_SIZE = 5_166_352; // buildroot-bzimage.bin exact size
 
 const DEFAULT_AUTO_SAVE_INTERVAL_MS = 60_000; // 1 minute
 
@@ -102,7 +99,7 @@ const DB_VERSION = 2; // bumped to add disk_images store
 const VM_STATE_STORE    = 'vm_state';
 const DISK_IMAGES_STORE = 'disk_images';
 const VM_STATE_KEY      = 'vm_state';
-const DISK_IMAGE_KEY    = 'alpine-rootfs-flat';
+const DISK_IMAGE_KEY    = 'buildroot-bzimage';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -183,11 +180,11 @@ async function loadDiskImageFromIDB(): Promise<ArrayBuffer | null> {
 }
 
 /**
- * Fetch the Alpine disk image from the remote URL and cache it in IndexedDB.
+ * Fetch the buildroot bzImage from the local URL and cache it in IndexedDB.
  * Reports download progress via `onProgress(loadedBytes, totalBytes)`.
  */
 async function fetchAndCacheDiskImage(
-  url: string = ALPINE_DISK_IMAGE_URL,
+  url: string = V86_BZIMAGE_URL,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<ArrayBuffer> {
   const response = await fetch(url);
@@ -357,16 +354,16 @@ class V86Service {
     }
 
     // 2. Download with progress
-    this.setStatus('loading-image', 10, 'Downloading Alpine Linux disk image...');
+    this.setStatus('loading-image', 10, 'Downloading Linux kernel...');
     try {
-      const buffer = await fetchAndCacheDiskImage(ALPINE_DISK_IMAGE_URL, (loaded, total) => {
+      const buffer = await fetchAndCacheDiskImage(V86_BZIMAGE_URL, (loaded, total) => {
         const pct = total > 0 ? Math.min(Math.round((loaded / total) * 85) + 10, 95) : 50;
         const msg = total > 0
-          ? `Downloading Alpine disk image... ${((loaded / total) * 100).toFixed(0)}%`
-          : `Downloading Alpine disk image... ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
+          ? `Downloading Linux kernel... ${((loaded / total) * 100).toFixed(0)}%`
+          : `Downloading Linux kernel... ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
         this.setStatus('loading-image', pct, msg);
       });
-      this.setStatus('loading-image', 100, 'Disk image downloaded and cached');
+      this.setStatus('loading-image', 100, 'Kernel downloaded and cached');
       return buffer;
     } catch (err: any) {
       this.setStatus('error', 0, `Failed to download disk image: ${err.message}`);
@@ -418,13 +415,14 @@ class V86Service {
         vga_bios_url:     config?.vgaBiosUrl || V86_VGA_BIOS_URL,
         memory_size:      config?.memorySize || RAM_SIZE,
         autostart:        config?.autostart !== undefined ? config.autostart : true,
-        hda:              { buffer: diskBuffer, async: false },
+        bzimage:          { buffer: diskBuffer },
+        cmdline:          "tsc=reliable mitigations=off random.trust_cpu=on",
         screen_adapter:   this.screenElement,
         serial_container_xtermjs: this.serial0Element,
       };
 
       // ── Stage 5: Instantiate emulator ──────────────────────────────
-      this.setStatus('booting', 0, 'Booting Alpine Linux...');
+      this.setStatus('booting', 0, 'Booting Buildroot Linux...');
       this.emulator = new V86Constructor(emulatorConfig as any);
 
       // ── Stage 6: Wire event listeners ──────────────────────────────
@@ -439,8 +437,8 @@ class V86Service {
       });
 
       this.emulator.add_listener('emulator-ready', async () => {
-        this.setStatus('running', 100, 'Alpine Linux is running');
-        console.log('[v86] Emulator ready — Alpine Linux booted');
+        this.setStatus('running', 100, 'Buildroot Linux is running');
+        console.log('[v86] Emulator ready — Buildroot Linux booted');
 
         // Attempt to restore saved state
         try {

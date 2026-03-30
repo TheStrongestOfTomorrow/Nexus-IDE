@@ -240,7 +240,7 @@ export default function LinuxTerminal({
     term.writeln('\x1b[1;32m  \\___/|_| |_|\\__,_|_| |_| |_| |_____| |_|   \x1b[0m');
     term.writeln('');
     term.writeln('\x1b[90m Nexus Linux Terminal v5.4.0 — v86 x86 Emulator\x1b[0m');
-    term.writeln('\x1b[90m Powered by Alpine Linux \x1b[0m');
+    term.writeln('\x1b[90m Powered by Buildroot Linux\x1b[0m');
     term.writeln('\x1b[90m RAM: ' + VM_MEMORY_MB + ' MB | Scrollback: 10,000 lines\x1b[0m');
     term.writeln('');
     term.writeln('Click \x1b[1;32m[▶ Boot Linux]\x1b[0m to start the emulator.');

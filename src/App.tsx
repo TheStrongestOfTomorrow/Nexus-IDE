@@ -47,7 +47,7 @@ import sessionPersistenceService from './services/sessionPersistenceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight, Terminal as TerminalIcon } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -1190,6 +1190,20 @@ export default function App() {
                 />
               </div>
             )}
+            {ide.activeActivity === 'linux' && (
+              <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-nexus-border">
+                  <TerminalIcon size={16} className="text-emerald-400" />
+                  <div>
+                    <p className="text-xs font-bold text-white">Linux Terminal</p>
+                    <p className="text-[10px] text-nexus-text-muted">Buildroot Linux via v86 x86 emulation</p>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center p-4">
+                  <p className="text-[10px] text-nexus-text-muted">Full terminal panel →</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1397,6 +1411,24 @@ export default function App() {
             )}
 
             <div className="flex-1 flex overflow-hidden">
+              {/* ── Linux Terminal: full-width panel ──────────────────── */}
+              {ide.activeActivity === 'linux' ? (
+                <LinuxTerminal
+                  files={files.map(f => ({ name: f.name, content: f.content }))}
+                  onPullFiles={(pulledFiles) => {
+                    pulledFiles.forEach(pf => {
+                      const existing = files.find(ef => ef.name === pf.name);
+                      if (existing) {
+                        updateFile(existing.id, pf.content);
+                      } else {
+                        addFile(pf.name, pf.content);
+                      }
+                    });
+                    notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Linux`);
+                  }}
+                />
+              ) : (
+              <React.Fragment>
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 relative">
                   {splitEditor && activeFile ? (
@@ -1443,6 +1475,8 @@ export default function App() {
                 <div className="w-1/3 border-l border-nexus-border bg-white">
                   <Preview files={files} activeFileId={ide.activeFileId} />
                 </div>
+              )}
+              </React.Fragment>
               )}
             </div>
           </React.Fragment>
