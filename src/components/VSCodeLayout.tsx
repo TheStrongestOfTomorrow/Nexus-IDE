@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Files,
@@ -92,6 +90,13 @@ export interface VSCodeLayoutProps {
   activeFileEncoding?: string;
   activeFileCursorLine?: number;
   activeFileCursorCol?: number;
+
+  // Activity sync — parent can listen to activity bar clicks
+  activeActivity?: string;
+  onActivityChange?: (activity: string) => void;
+
+  // Preview content
+  previewContent?: React.ReactNode;
 }
 
 // ─── File icon helper ────────────────────────────────────────────────────────
@@ -665,18 +670,59 @@ export default function VSCodeLayout({
   activeFileEncoding,
   activeFileCursorLine,
   activeFileCursorCol,
+  activeActivity: externalActivity,
+  onActivityChange,
+  previewContent,
 }: VSCodeLayoutProps) {
   // Local state
-  const [activeActivity, setActiveActivity] = useState<VSCodeActivityItem>('explorer');
+  const [activeActivity, setActiveActivity] = useState<VSCodeActivityItem>((externalActivity || 'explorer') as VSCodeActivityItem);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [bottomPanelActiveTab, setBottomPanelActiveTab] = useState<BottomPanelTab>('terminal');
   const [bottomPanelHeight, setBottomPanelHeight] = useState(200);
   const [aiPanelVisible, setAiPanelVisible] = useState(showAI);
+  const [sidebarWidth, setSidebarWidth] = useState(240);
+  const sidebarResizeRef = useRef<{ isDragging: boolean; startX: number; startWidth: number }>({ isDragging: false, startX: 0, startWidth: 240 });
 
   // Sync AI panel visibility
   useEffect(() => {
     setAiPanelVisible(showAI);
   }, [showAI]);
+
+  // Sync external activity changes (e.g. from parent)
+  useEffect(() => {
+    if (externalActivity && externalActivity !== activeActivity) {
+      setActiveActivity(externalActivity as VSCodeActivityItem);
+    }
+  }, [externalActivity]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sidebar resize handler
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const { isDragging, startX, startWidth } = sidebarResizeRef.current;
+      if (!isDragging) return;
+      const delta = e.clientX - startX;
+      setSidebarWidth(Math.max(160, Math.min(500, startWidth + delta)));
+    };
+    const handleMouseUp = () => {
+      sidebarResizeRef.current.isDragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
+  const handleSidebarResizeStart = useCallback((e: React.MouseEvent) => {
+    sidebarResizeRef.current = { isDragging: true, startX: e.clientX, startWidth: sidebarWidth };
+    document.body.style.cursor = 'ew-resize';
+    document.body.style.userSelect = 'none';
+  }, [sidebarWidth]);
 
   // Handle activity bar click — toggle sidebar panel like real VS Code
   const handleActivityClick = useCallback(
@@ -686,9 +732,11 @@ export default function VSCodeLayout({
       } else {
         setActiveActivity(item);
         setSidebarVisible(true);
+        // Notify parent of activity change so sidebar content updates
+        onActivityChange?.(item);
       }
     },
-    [activeActivity, sidebarVisible]
+    [activeActivity, sidebarVisible, onActivityChange]
   );
 
   // Bottom panel resize
@@ -764,11 +812,14 @@ export default function VSCodeLayout({
         {/* ─── Sidebar Panel ───────────────────────────────────── */}
         {sidebarVisible && (
           <div
-            className="flex flex-col border-r border-[#1e1e1e] overflow-hidden flex-shrink-0 transition-all duration-150"
-            style={{ width: '240px' }}
+            className="flex flex-col border-r border-[#1e1e1e] overflow-hidden flex-shrink-0 transition-all duration-150 relative"
+            style={{ width: sidebarWidth }}
           >
             {/* Sidebar resize handle */}
-            <div className="h-full w-[3px] cursor-ew-resize hover:bg-[#007acc]/50 absolute z-10" />
+            <div
+              className="absolute top-0 right-0 bottom-0 w-[3px] cursor-ew-resize hover:bg-[#007acc]/50 z-10"
+              onMouseDown={handleSidebarResizeStart}
+            />
 
             <div className="flex flex-col h-full w-full">
               {renderSidebarContent()}
@@ -795,7 +846,7 @@ export default function VSCodeLayout({
             {/* Editor / Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden min-w-0">
               {editorContent ? (
-                editorContent
+                <div className="flex-1 overflow-hidden">{editorContent}</div>
               ) : activeFile ? (
                 <div className="flex-1 flex items-center justify-center bg-[#1e1e1e]">
                   <div className="text-center space-y-2">
@@ -812,6 +863,32 @@ export default function VSCodeLayout({
                 <VSCodeWelcomeTab />
               )}
             </div>
+
+            {/* Preview Panel (right side) */}
+            {showPreview && (
+              <div className="w-[300px] flex-shrink-0 border-l border-[#252526] flex flex-col bg-white overflow-hidden">
+                <div className="flex items-center justify-between h-9 px-3 bg-[#252526] border-b border-[#1e1e1e] flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[12px] font-medium text-[#cccccc]">
+                      Preview
+                    </span>
+                  </div>
+                  <button
+                    onClick={onTogglePreview}
+                    className="p-1 hover:bg-[#37373d] rounded text-[#858585] hover:text-white transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {previewContent || (
+                    <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-[#858585]">
+                      <span className="text-[11px]">Preview content via props</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* AI Panel (right side) */}
             {aiPanelVisible && (

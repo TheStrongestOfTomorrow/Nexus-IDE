@@ -474,6 +474,19 @@ export default function App() {
       <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
     );
 
+    const vscodePreviewContent = (
+      <Preview files={files} activeFileId={ide.activeFileId} />
+    );
+
+    // Handle VS Code activity bar clicks → sync with IDE state
+    const handleVSCodeActivityChange = useCallback((activity: string) => {
+      if (activity === 'settings') {
+        ide.setShowSettings(true);
+      } else {
+        ide.setActiveActivity(activity as any);
+      }
+    }, [ide]);
+
     return (
       <ErrorBoundary>
         <AirplaneModeBanner
@@ -516,6 +529,9 @@ export default function App() {
           sidebarContent={vscodeSidebarContent}
           editorContent={vscodeEditorContent}
           bottomPanelContent={vscodeBottomContent}
+          previewContent={vscodePreviewContent}
+          activeActivity={ide.activeActivity}
+          onActivityChange={handleVSCodeActivityChange}
           extraComponents={
             <>
               <VoiceCommand isListening={isVoiceListening} onToggle={() => setIsVoiceListening(!isVoiceListening)} onCommand={handleVoiceCommand} />
