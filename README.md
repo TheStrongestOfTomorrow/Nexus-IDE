@@ -28,8 +28,8 @@ We're working on something huge. **v86 emulation** will let you run a **real Alp
 | **v86 x86 Emulator** | WebAssembly-based x86 emulator runs actual Linux binaries |
 | **IndexedDB Persistence** | Your Linux filesystem survives page refreshes and browser restarts |
 | **Portable** | Works on any device with a browser — even on a 2GB laptop on a plane |
-| **noVNC Ready** | Install noVNC to get a full GUI desktop in another tab |
-| **Wine Compatible** | Run Windows .exe binaries through Wine inside the emulated Linux |
+| **noVNC (Optional)** | Users can install noVNC inside the Linux env to get a full GUI desktop in another tab |
+| **Wine (Optional)** | Users can install Wine inside the Linux env to run Windows .exe binaries |
 | **Offline Ready** | Works completely offline — pair with Airplane Mode for true isolation |
 | **musl + glibc** | Alpine's musl by default, install glibc compat for any package |
 
