@@ -232,8 +232,13 @@ export default function App() {
   // Airplane Mode — listen for online/offline changes
   useEffect(() => {
     const unsub = airplaneModeService.subscribe((status) => {
-      setIsOffline(status === 'offline');
-      setBannerDismissed(false); // Show banner again on status change
+      const nowOffline = status === 'offline';
+      setIsOffline(nowOffline);
+      // Only show banner when transitioning FROM online TO offline
+      // Don't reset dismissal on online→offline→online flip-flops
+      if (nowOffline) {
+        setBannerDismissed(false);
+      }
     });
     return unsub;
   }, []);
