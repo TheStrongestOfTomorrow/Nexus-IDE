@@ -7,33 +7,55 @@
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.3.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.4.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Linux](https://img.shields.io/badge/Linux-Alpine_Linux_in_Browser-emerald?style=for-the-badge&labelColor=1e293b)](https://github.com/nickvdp/nickvdp)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 
-*A modern, high-performance IDE with AI integration, VS Code-like experience, workspace persistence, and the power to run Node.js entirely in your browser.*
+*A modern, high-performance IDE with AI integration, VS Code-like experience, real Alpine Linux in your browser, and the power to run Node.js entirely in the browser.*
 
 </div>
 
 ---
 
-## 🖥️ Coming Soon — Real Linux in Your Browser
+## 🐧 v5.4.0 — Real Linux in Your Browser
 
-We're working on something huge. **v86 emulation** will let you run a **real Alpine Linux distro** entirely inside Nexus IDE — no server, no VM, just your browser.
+The biggest update in Nexus IDE history. **v86 x86 emulation** now boots a **real Alpine Linux** distro entirely inside your browser — no server, no VM, no Docker, just pure WebAssembly-powered x86 emulation. Your Linux filesystem persists in IndexedDB and survives page refreshes and browser restarts.
 
-| Capability | Details |
-|-----------|--------|
-| **Full Linux Terminal** | Real `bash`, `apt`, `git`, `python`, `node` — not simulated |
+### 🖥️ Alpine Linux Terminal (NEW!)
+
+| Feature | Description |
+|---------|-------------|
+| **Real Linux Terminal** | Full `bash`, `apk`, `git`, `python3`, `node` — not simulated |
 | **v86 x86 Emulator** | WebAssembly-based x86 emulator runs actual Linux binaries |
-| **IndexedDB Persistence** | Your Linux filesystem survives page refreshes and browser restarts |
-| **Portable** | Works on any device with a browser — even on a 2GB laptop on a plane |
-| **noVNC (Optional)** | Users can install noVNC inside the Linux env to get a full GUI desktop in another tab |
-| **Wine (Optional)** | Users can install Wine inside the Linux env to run Windows .exe binaries |
-| **Offline Ready** | Works completely offline — pair with Airplane Mode for true isolation |
-| **musl + glibc** | Alpine's musl by default, install glibc compat for any package |
+| **Alpine Disk Image** | Pre-built Alpine Linux root filesystem, downloaded once from CDN |
+| **IndexedDB Persistence** | VM state and disk image cached in your browser |
+| **Serial Terminal** | xterm.js-powered terminal with command history (↑/↓) |
+| **Screen Mode** | Toggle to v86 canvas output for GUI apps |
+| **128 MB RAM** | Default memory allocation for the virtual machine |
+| **Auto-Save State** | Optional periodic VM state saving (every 60s) |
+| **Boot Progress** | Multi-phase boot UI: download → configure → boot → running |
 
-> 🚧 *This is an active development goal for the next beta release. Stay tuned.*
+### 📂 Workspace ↔ Alpine File Bridge (NEW!)
+
+| Feature | Description |
+|---------|-------------|
+| **Push Files** | Send workspace files to Alpine Linux with one click |
+| **Pull Files** | Import files from Alpine back into your Nexus workspace |
+| **Path Mapping** | Automatic mapping between workspace paths and Alpine paths |
+| **Directory Sync** | Push/pull entire directory structures |
+| **File Browser** | Browse Alpine filesystem right from the Linux Terminal panel |
+| **Package Manager** | Quick-install common packages: git, python3, nodejs, vim, htop |
+| **Disk Usage** | Real-time disk usage display |
+
+### 🖥️ Linux Terminal Activity
+
+A new **Monitor** icon in the activity bar gives you instant access to the Linux Terminal. Click it to open the full v86 Alpine Linux environment with serial terminal, file browser, and package manager panels.
+
+> 💡 **Tip**: Say "linux" or "alpine" via voice commands to instantly open the Linux Terminal.
+
+> ⚠️ **Note**: noVNC and Wine are optional user-installed packages inside Alpine, NOT bundled by Nexus IDE.
 
 ---
 
@@ -117,26 +139,9 @@ Editor polish blitz — 15 quality-of-life improvements that make Nexus IDE feel
 | **Keyboard Shortcuts Panel** | Full shortcuts reference (Ctrl+Shift+K), searchable, grouped by category |
 | **Notification Toasts** | Bottom-right toast system for success, error, warning, info |
 
-### 🔮 Coming in v5.4.0 — Real Linux in Your Browser
-
-The next update is the big one. **v86 x86 emulation** will boot a real **Alpine Linux** distro entirely inside Nexus IDE — no server, no VM, just your browser.
-
-| Capability | Details |
-|-----------|--------|
-| **Full Linux Terminal** | Real `bash`, `apk`, `git`, `python`, `node` — not simulated |
-| **v86 x86 Emulator** | WebAssembly-based x86 emulator runs actual Linux binaries |
-| **IndexedDB Persistence** | Your Linux filesystem survives refreshes and browser restarts |
-| **Portable** | Works on any device — even on a 2GB laptop on a plane |
-| **noVNC (Optional)** | Users can install noVNC to get a full GUI desktop |
-| **Wine (Optional)** | Users can install Wine to run Windows .exe binaries |
-
-> 🔥 *v5.4.0 is the next major update. The v86 + Alpine integration is already being planned and designed.*
-
 ---
 
-The biggest GitHub integration update ever. Nexus IDE now has a full source control panel rivaling desktop IDEs, complete with staging, branching, commit history, pull requests, and issues — all from the browser.
-
-### 🔀 Deep Git Integration (NEW!)
+## 🔥 What's New in v5.2.0
 
 Complete rewrite of the GitHub panel into a professional source control view with 5 tabs.
 
@@ -307,7 +312,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.3.0) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🐧 Latest with Alpine Linux (v5.4.0) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -336,6 +341,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 
 | Feature | Description |
 |---------|-------------|
+| 🐧 **Alpine Linux** | Real Linux terminal via v86 emulation |
 | 💾 **Workspace Saves** | Save/load projects to IndexedDB |
 | 🎨 **Beginner UI** | Simplified interface for newcomers |
 | 🌐 **WebContainer** | Run Node.js in browser |
@@ -398,7 +404,9 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
+| 🐧 **v5.4.0** | [Alpine Linux in Your Browser](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.4.0) |
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
+| 🔀 **v5.3.0** | [Editor Polish Blitz](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.3.0) |
 | 🔀 **v5.2.0** | [Deep Git Integration Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.2.0) |
 | ✈️ **v5.1.5** | Airplane Mode + Session Persistence |
 | GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
@@ -413,7 +421,21 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.3.0 (Current - Beta)
+### v5.4.0 (Current - Beta)
+- 🐧 **Alpine Linux Terminal** — Real Linux via v86 x86 emulation in your browser
+- 🐧 **v86 Emulator** — WebAssembly-powered x86 emulator boots Alpine Linux
+- 📂 **File Bridge** — Push/pull files between Nexus workspace and Alpine filesystem
+- 🐧 **Activity Bar Integration** — Monitor icon in activity bar for instant Linux access
+- 📦 **Package Manager** — Quick-install git, python3, nodejs, vim, htop, and more
+- 📁 **File Browser** — Browse Alpine filesystem from within Nexus IDE
+- 💾 **VM State Persistence** — Save/restore VM state to IndexedDB
+- 🔄 **Auto-Save State** — Optional periodic VM state saving (every 60s)
+- 📺 **Serial/Screen Modes** — Toggle between xterm.js terminal and v86 canvas output
+- 📡 **Disk Image Caching** — Alpine image downloaded once from CDN, cached in IndexedDB
+- 🎙️ **Voice Control** — Say "linux" or "alpine" to open the terminal
+- ⚙️ **Settings Panel** — v86/Linux section in Settings with usage instructions
+
+### v5.3.0
 - 🎨 **Auto-Close Brackets** — Automatically closes `()`, `{}`, `[]`, `""`, `''`
 - 🎨 **Auto-Close Quotes** — Smart quote auto-closing
 - 🎨 **Auto Indent** — Full auto-indentation on new lines
@@ -427,7 +449,6 @@ Connect GitHub → Auto-deploy
 - 🖥️ **Welcome Tab** — New tab page with quick actions, recent files, shortcuts
 - ⌨️ **Keyboard Shortcuts Panel** — Full reference (Ctrl+Shift+K), searchable
 - 🔔 **Notification Toasts** — Bottom-right toast system
-- 🔮 **v5.4.0 Tease** — v86 Alpine Linux coming in next release
 
 ### v5.2.0
 - 🔀 **Deep Git Integration** — Full source control panel: staging, commits, branches, history, PRs, issues
@@ -495,6 +516,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.3.0 — Editor Polish Blitz**
+**v5.4.0 — Alpine Linux in Your Browser**
 
 </div>

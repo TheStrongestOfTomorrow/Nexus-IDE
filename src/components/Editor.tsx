@@ -198,7 +198,7 @@ export default function Editor({
     return (
       <div className="flex-1 flex items-center justify-center bg-nexus-bg text-nexus-text-muted">
         <div className="text-center">
-          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.3.0</h2>
+          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.4.0</h2>
           <p className="text-xs">Select a file to start editing</p>
         </div>
       </div>

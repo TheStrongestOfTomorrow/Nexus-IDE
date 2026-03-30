@@ -22,6 +22,7 @@ import {
   PanelLeft,
   MoreHorizontal,
   Circle,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -32,7 +33,8 @@ export type VSCodeActivityItem =
   | 'git'
   | 'debug'
   | 'extensions'
-  | 'ai';
+  | 'ai'
+  | 'linux';
 
 export type BottomPanelTab = 'terminal' | 'problems' | 'output' | 'debug-console';
 
@@ -179,7 +181,7 @@ function VSCodeMenuBar() {
           <Sparkles size={11} className="text-white" />
         </div>
         <span className="text-[12px] font-semibold text-white tracking-tight">
-          Nexus IDE 5.2.0
+          Nexus IDE 5.4.0
         </span>
       </div>
 
@@ -209,6 +211,7 @@ const ACTIVITY_ITEMS: {
   { id: 'debug', icon: Play, label: 'Run and Debug' },
   { id: 'extensions', icon: Puzzle, label: 'Extensions' },
   { id: 'ai', icon: Sparkles, label: 'AI Assistant' },
+  { id: 'linux', icon: Monitor, label: 'Linux Terminal' },
 ];
 
 function VSCodeActivityBar({
@@ -613,9 +616,9 @@ function VSCodeWelcomeTab() {
         <div className="w-20 h-20 mx-auto rounded-2xl bg-[#007acc]/20 flex items-center justify-center">
           <Sparkles size={36} className="text-[#007acc]" />
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.2.0</h1>
+        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.4.0</h1>
         <p className="text-sm text-[#858585] leading-relaxed">
-          AI-powered code editor with v86 Linux support, split view, and enhanced editor features.
+          AI-powered code editor with real Alpine Linux, split view, and enhanced editor features.
         </p>
         <div className="flex items-center justify-center gap-6 text-[12px] text-[#858585]">
           <span>Ctrl+P — Quick Open</span>

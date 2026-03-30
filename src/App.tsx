@@ -32,6 +32,7 @@ import SplitEditor from './components/SplitEditor';
 import NotificationToasts from './components/NotificationToasts';
 import WelcomeTab from './components/WelcomeTab';
 import KeyboardShortcutsPanel from './components/KeyboardShortcutsPanel';
+import LinuxTerminal from './components/LinuxTerminal';
 import { notificationService } from './services/notificationService';
 import './styles/beginner-ui.css';
 
@@ -126,7 +127,7 @@ export default function App() {
     const zip = new JSZip();
     files.forEach(file => zip.file(file.name, file.content));
     const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-5.1.zip');
+    saveAs(content, 'nexus-project-5.4.zip');
   };
 
   const handleClearWorkspace = () => {
@@ -213,7 +214,7 @@ export default function App() {
           selectedAIProvider: ide.selectedAIProvider,
           selectedModels: ide.selectedModels,
           timestamp: Date.now(),
-          version: '5.3.0',
+          version: '5.4.0',
           sessionId: ide.sessionId,
         }).then(() => {
           const savedAt = sessionPersistenceService.formatTimestamp(Date.now());
@@ -354,6 +355,9 @@ export default function App() {
       handleAnalyzeArchitecture();
     } else if (command.includes("airplane")) {
       handleToggleAirplaneMode();
+    } else if (command.includes("linux") || command.includes("alpine")) {
+      ide.setActiveActivity('linux');
+      ide.setShowTerminal(true);
     }
   };
 
@@ -457,7 +461,7 @@ export default function App() {
     const vscodeSidebarContent = (
       <div className="flex flex-col h-full w-full overflow-hidden bg-[#252526]">
         <div className="flex items-center justify-between px-4 py-2 text-[11px] font-semibold text-[#bbbbbb] uppercase tracking-wider">
-          <span>{ide.activeActivity === 'explorer' ? 'Open Editors' : ide.activeActivity === 'search' ? 'Search' : ide.activeActivity === 'git' ? 'Source Control' : ide.activeActivity === 'ai' ? 'AI Assistant' : ide.activeActivity}</span>
+          <span>{ide.activeActivity === 'explorer' ? 'Open Editors' : ide.activeActivity === 'search' ? 'Search' : ide.activeActivity === 'git' ? 'Source Control' : ide.activeActivity === 'ai' ? 'AI Assistant' : ide.activeActivity === 'linux' ? 'Linux Terminal' : ide.activeActivity}</span>
         </div>
         <div className="flex-1 overflow-y-auto text-[12px] text-[#cccccc]">
           {ide.activeActivity === 'explorer' && (
@@ -494,6 +498,22 @@ export default function App() {
           {ide.activeActivity === 'git' && <GithubView files={files} onImportFiles={(importedFiles) => { importedFiles.forEach(f => { if (!files.find(ef => ef.name === f.name)) addFile(f.name, f.content); }); }} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} onBranchChange={(b) => ide.setGitBranch(b)} onRepoChange={(r) => ide.setGitRepoName(r)} onUpdateFile={updateFile} activeFileId={ide.activeFileId} />}
           {ide.activeActivity === 'debug' && <DebugView activeFile={activeFile} onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)} />}
           {ide.activeActivity === 'extensions' && <ExtensionsView />}
+          {ide.activeActivity === 'linux' && (
+            <LinuxTerminal
+              files={files.map(f => ({ name: f.name, content: f.content }))}
+              onPullFiles={(pulledFiles) => {
+                pulledFiles.forEach(pf => {
+                  const existing = files.find(ef => ef.name === pf.name);
+                  if (existing) {
+                    updateFile(existing.id, pf.content);
+                  } else {
+                    addFile(pf.name, pf.content);
+                  }
+                });
+                notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Alpine Linux`);
+              }}
+            />
+          )}
           {ide.activeActivity === 'ai' && (
             <AIAssistant
               ref={aiAssistantRef}
@@ -656,7 +676,7 @@ export default function App() {
                   <div className="flex items-center gap-2">
                     <Zap size={18} className="text-yellow-300 fill-yellow-300" />
                     <div>
-                      <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
+                      <p className="text-sm font-bold">Nexus Update Available</p>
                       <p className="text-[10px] opacity-90">A new version is ready to install.</p>
                     </div>
                   </div>
@@ -901,7 +921,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <Zap size={18} className="text-yellow-300 fill-yellow-300" />
                 <div>
-                  <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
+                  <p className="text-sm font-bold">Nexus Update Available</p>
                   <p className="text-[10px] opacity-90">A new version is ready to install.</p>
                 </div>
               </div>
@@ -990,7 +1010,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <Zap size={18} className="text-yellow-300 fill-yellow-300" />
             <div>
-              <p className="text-sm font-bold">Nexus 5.1 Update Available</p>
+              <p className="text-sm font-bold">Nexus Update Available</p>
               <p className="text-[10px] opacity-90">A new version is ready to install.</p>
             </div>
           </div>

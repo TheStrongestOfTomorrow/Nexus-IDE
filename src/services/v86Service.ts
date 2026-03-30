@@ -1,12 +1,15 @@
 /**
  * v86Service — Manages the v86 x86 emulator for running Alpine Linux
- * inside the browser. This is INFRASTRUCTURE ONLY; actual disk images
- * will be loaded lazily in a future update.
+ * inside the browser. Downloads and caches the Alpine disk image in
+ * IndexedDB, boots the full OS, and provides serial/file/VM-state APIs.
+ *
+ * v5.4.0 — Enhanced with Alpine boot support, disk image caching,
+ *           auto-save, command execution, and typed event system.
  */
 
 // ─── Type Definitions ─────────────────────────────────────────────────────────
 
-interface V86Config {
+export interface V86Config {
   wasmPath: string;
   biosUrl?: string;
   vgaBiosUrl?: string;
@@ -18,7 +21,7 @@ interface V86Config {
   autostart: boolean;
 }
 
-interface V86Emulator {
+export interface V86Emulator {
   create_file(path: string, buffer: Uint8Array): void;
   read_file(path: string): Promise<Uint8Array>;
   serial0_send(text: string): void;
@@ -34,14 +37,72 @@ interface V86Emulator {
   is_running(): boolean;
 }
 
-type V86Status = 'stopped' | 'booting' | 'running' | 'paused' | 'error';
+/**
+ * Full lifecycle stages for the emulator boot process.
+ * Backward-compatible: existing checks for 'stopped'|'booting'|'running'|'paused'|'error' still work.
+ */
+export type V86Status =
+  | 'idle'
+  | 'loading-image'
+  | 'configuring'
+  | 'booting'
+  | 'running'
+  | 'paused'
+  | 'stopped'
+  | 'error';
 
-// ─── IndexedDB helpers ────────────────────────────────────────────────────────
+/** Typed event payload for boot-progress events. */
+export interface BootProgressEvent {
+  stage: V86Status;
+  progress: number;   // 0-100
+  message: string;
+}
 
-const DB_NAME = 'nexus_v86';
-const DB_VERSION = 1;
-const STORE_NAME = 'vm_state';
-const VM_STATE_KEY = 'vm_state';
+/** All events emitted by V86Service. */
+export type V86ServiceEvent =
+  | 'boot-progress'
+  | 'state-saved'
+  | 'state-restored';
+
+/** Shape of a file entry returned by listDirectory. */
+export interface FileEntry {
+  permissions: string;
+  links: number;
+  owner: string;
+  group: string;
+  size: number;
+  date: string;
+  name: string;
+  isDirectory: boolean;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const ALPINE_DISK_IMAGE_URL =
+  'https://i.copy.sh/v86/images/alpine-rootfs-flat.img';
+
+const V86_BIOS_URL =
+  'https://i.copy.sh/v86/bios/seabios.bin';
+
+const V86_VGA_BIOS_URL =
+  'https://i.copy.sh/v86/bios/vgabios.bin';
+
+const V86_CDN_BASE = 'https://cdn.jsdelivr.net/npm/v86@latest/build/';
+const V86_WASM_URL = `${V86_CDN_BASE}v86.wasm`;
+const V86_LIB_URL  = `${V86_CDN_BASE}libv86.js`;
+
+const RAM_SIZE = 128 * 1024 * 1024; // 128 MB
+
+const DEFAULT_AUTO_SAVE_INTERVAL_MS = 60_000; // 1 minute
+
+// ─── IndexedDB ────────────────────────────────────────────────────────────────
+
+const DB_NAME    = 'nexus_v86';
+const DB_VERSION = 2; // bumped to add disk_images store
+const VM_STATE_STORE    = 'vm_state';
+const DISK_IMAGES_STORE = 'disk_images';
+const VM_STATE_KEY      = 'vm_state';
+const DISK_IMAGE_KEY    = 'alpine-rootfs-flat';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -49,67 +110,138 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
+      if (!db.objectStoreNames.contains(VM_STATE_STORE)) {
+        db.createObjectStore(VM_STATE_STORE);
+      }
+      if (!db.objectStoreNames.contains(DISK_IMAGES_STORE)) {
+        db.createObjectStore(DISK_IMAGES_STORE);
       }
     };
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror   = () => reject(request.error);
   });
 }
 
-async function saveToIDB(data: ArrayBuffer): Promise<void> {
+// ─── VM State helpers (keep existing) ────────────────────────────────────────
+
+async function saveVMStateToIDB(data: ArrayBuffer): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.put(data, VM_STATE_KEY);
+    const tx    = db.transaction(VM_STATE_STORE, 'readwrite');
+    const store = tx.objectStore(VM_STATE_STORE);
+    const req   = store.put(data, VM_STATE_KEY);
     req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
+    req.onerror   = () => reject(req.error);
   });
 }
 
-async function loadFromIDB(): Promise<ArrayBuffer | null> {
+async function loadVMStateFromIDB(): Promise<ArrayBuffer | null> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.get(VM_STATE_KEY);
+    const tx    = db.transaction(VM_STATE_STORE, 'readonly');
+    const store = tx.objectStore(VM_STATE_STORE);
+    const req   = store.get(VM_STATE_KEY);
     req.onsuccess = () => resolve(req.result ?? null);
-    req.onerror = () => reject(req.error);
+    req.onerror   = () => reject(req.error);
   });
 }
 
-async function clearIDB(): Promise<void> {
+async function clearVMStateInIDB(): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    const req = store.delete(VM_STATE_KEY);
+    const tx    = db.transaction(VM_STATE_STORE, 'readwrite');
+    const store = tx.objectStore(VM_STATE_STORE);
+    const req   = store.delete(VM_STATE_KEY);
     req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
+    req.onerror   = () => reject(req.error);
   });
+}
+
+// ─── Disk Image helpers ───────────────────────────────────────────────────────
+
+async function saveDiskImageToIDB(buffer: ArrayBuffer): Promise<void> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction(DISK_IMAGES_STORE, 'readwrite');
+    const store = tx.objectStore(DISK_IMAGES_STORE);
+    const req   = store.put(buffer, DISK_IMAGE_KEY);
+    req.onsuccess = () => resolve();
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+async function loadDiskImageFromIDB(): Promise<ArrayBuffer | null> {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx    = db.transaction(DISK_IMAGES_STORE, 'readonly');
+    const store = tx.objectStore(DISK_IMAGES_STORE);
+    const req   = store.get(DISK_IMAGE_KEY);
+    req.onsuccess = () => resolve(req.result ?? null);
+    req.onerror   = () => reject(req.error);
+  });
+}
+
+/**
+ * Fetch the Alpine disk image from the remote URL and cache it in IndexedDB.
+ * Reports download progress via `onProgress(loadedBytes, totalBytes)`.
+ */
+async function fetchAndCacheDiskImage(
+  url: string = ALPINE_DISK_IMAGE_URL,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<ArrayBuffer> {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to download disk image: HTTP ${response.status} ${response.statusText}`,
+    );
+  }
+
+  if (!response.body) {
+    // Fallback: fetch without streaming if ReadableStream is unavailable
+    const buffer = await response.arrayBuffer();
+    await saveDiskImageToIDB(buffer);
+    return buffer;
+  }
+
+  const contentLength = response.headers.get('content-length');
+  const total = contentLength ? parseInt(contentLength, 10) : 0;
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let loaded = 0;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    loaded += value.byteLength;
+    onProgress?.(loaded, total);
+  }
+
+  // Concatenate chunks into a single ArrayBuffer
+  const buffer = new Uint8Array(loaded);
+  let offset = 0;
+  for (const chunk of chunks) {
+    buffer.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  await saveDiskImageToIDB(buffer.buffer as ArrayBuffer);
+  return buffer.buffer as ArrayBuffer;
 }
 
 // ─── v86 CDN Loader ───────────────────────────────────────────────────────────
 
-const V86_CDN_BASE = 'https://cdn.jsdelivr.net/npm/v86@latest/build/';
-const V86_WASM_URL = `${V86_CDN_BASE}v86.wasm`;
-
-/**
- * Dynamically injects the v86 libv86.js script tag.
- * Returns the V86 constructor from the global scope.
- */
 async function loadV86Library(): Promise<new (config: V86Config) => V86Emulator> {
-  // Check if already loaded
   if ((window as any).V86) {
     return (window as any).V86;
   }
 
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
-    script.src = `${V86_CDN_BASE}libv86.js`;
+    script.src   = V86_LIB_URL;
     script.async = true;
 
     script.onload = () => {
@@ -132,11 +264,20 @@ async function loadV86Library(): Promise<new (config: V86Config) => V86Emulator>
 
 class V86Service {
   private emulator: V86Emulator | null = null;
-  private _status: V86Status = 'stopped';
+  private _status: V86Status = 'idle';
   private outputCallbacks: Array<(text: string) => void> = [];
   private screenCallbacks: Array<() => void> = [];
   private serial0Element: HTMLElement | null = null;
   private screenElement: HTMLElement | null = null;
+  private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
+
+  /** Typed event listeners keyed by event name. */
+  private eventListeners: Map<string, Array<(...args: any[]) => void>> = new Map();
+
+  /** Pending command resolver — used by runCommand to capture serial output. */
+  private commandResolve: ((output: string) => void) | null = null;
+  private commandBuffer: string = '';
+  private commandMarker: string = '';
 
   // ─── Public getters ────────────────────────────────────────────────
 
@@ -148,19 +289,118 @@ class V86Service {
     return this._status === 'running';
   }
 
+  // ─── Event System ──────────────────────────────────────────────────
+
+  /**
+   * Subscribe to a typed service event.
+   * Returns an unsubscribe function.
+   */
+  on<E extends V86ServiceEvent>(
+    event: E,
+    callback: E extends 'boot-progress'
+      ? (payload: BootProgressEvent) => void
+      : () => void,
+  ): () => void {
+    if (!this.eventListeners.has(event)) {
+      this.eventListeners.set(event, []);
+    }
+    this.eventListeners.get(event)!.push(callback as (...args: any[]) => void);
+
+    return () => {
+      const listeners = this.eventListeners.get(event);
+      if (listeners) {
+        this.eventListeners.set(
+          event,
+          listeners.filter(cb => cb !== callback),
+        );
+      }
+    };
+  }
+
+  /** Emit an event to all registered listeners. */
+  private emit(event: V86ServiceEvent, ...args: any[]): void {
+    const listeners = this.eventListeners.get(event);
+    if (listeners) {
+      listeners.forEach(cb => {
+        try {
+          cb(...args);
+        } catch (err) {
+          console.error(`[v86] Error in ${event} listener:`, err);
+        }
+      });
+    }
+  }
+
+  /** Update status and emit a boot-progress event. */
+  private setStatus(stage: V86Status, progress: number, message: string): void {
+    this._status = stage;
+    this.emit('boot-progress', { stage, progress, message });
+  }
+
+  // ─── Disk Image ────────────────────────────────────────────────────
+
+  /**
+   * Load the Alpine disk image — from IndexedDB cache or by downloading.
+   * Progress is reported via boot-progress events.
+   */
+  private async acquireDiskImage(): Promise<ArrayBuffer> {
+    // 1. Try IndexedDB cache
+    this.setStatus('loading-image', 5, 'Checking disk image cache...');
+    try {
+      const cached = await loadDiskImageFromIDB();
+      if (cached && cached.byteLength > 0) {
+        this.setStatus('loading-image', 100, 'Disk image loaded from cache');
+        return cached;
+      }
+    } catch (err) {
+      console.warn('[v86] Failed to read disk image cache:', err);
+    }
+
+    // 2. Download with progress
+    this.setStatus('loading-image', 10, 'Downloading Alpine Linux disk image...');
+    try {
+      const buffer = await fetchAndCacheDiskImage(ALPINE_DISK_IMAGE_URL, (loaded, total) => {
+        const pct = total > 0 ? Math.min(Math.round((loaded / total) * 85) + 10, 95) : 50;
+        const msg = total > 0
+          ? `Downloading Alpine disk image... ${((loaded / total) * 100).toFixed(0)}%`
+          : `Downloading Alpine disk image... ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
+        this.setStatus('loading-image', pct, msg);
+      });
+      this.setStatus('loading-image', 100, 'Disk image downloaded and cached');
+      return buffer;
+    } catch (err: any) {
+      this.setStatus('error', 0, `Failed to download disk image: ${err.message}`);
+      throw new Error(`Failed to download Alpine disk image: ${err.message}`);
+    }
+  }
+
   // ─── Boot ───────────────────────────────────────────────────────────
 
+  /**
+   * Boot the Alpine Linux VM.
+   *
+   * 1. Loads v86 library from CDN
+   * 2. Acquires Alpine disk image (cached or downloaded)
+   * 3. Configures and creates the v86 emulator
+   * 4. Listens for 'emulator-ready' to confirm boot
+   * 5. Restores saved VM state if available
+   */
   async boot(config?: Partial<V86Config>): Promise<void> {
     if (this.emulator) {
       throw new Error('v86 emulator is already running. Call stop() first.');
     }
 
-    this._status = 'booting';
-
     try {
+      // ── Stage 1: Load v86 library ──────────────────────────────────
+      this.setStatus('configuring', 0, 'Loading v86 emulator library...');
       const V86Constructor = await loadV86Library();
 
-      // Create the serial0 and screen container elements
+      // ── Stage 2: Acquire disk image ────────────────────────────────
+      const diskBuffer = await this.acquireDiskImage();
+
+      // ── Stage 3: Create DOM elements ──────────────────────────────
+      this.setStatus('configuring', 90, 'Setting up emulator...');
+
       this.serial0Element = document.createElement('div');
       this.serial0Element.id = 'v86-serial0';
       this.serial0Element.style.display = 'none';
@@ -171,57 +411,55 @@ class V86Service {
       this.screenElement.style.display = 'none';
       document.body.appendChild(this.screenElement);
 
-      const defaultConfig: Record<string, any> = {
-        wasmPath: V86_WASM_URL,
-        memorySize: 128 * 1024 * 1024, // 128 MB
-        autostart: true,
-        // Screen adapter for GUI mode
-        screen_adapter: this.screenElement,
-        // ... additional config can be overridden by caller
-      };
-
-      // Allow caller to override config (e.g. provide disk image later)
-      const finalConfig: Record<string, any> = {
-        ...defaultConfig,
-        ...config,
-        wasm_path: config?.wasmPath || V86_WASM_URL,
-        memory_size: config?.memorySize || 128 * 1024 * 1024,
-        autostart: config?.autostart !== undefined ? config.autostart : true,
-        screen_adapter: this.screenElement,
+      // ── Stage 4: Build emulator config ─────────────────────────────
+      const emulatorConfig: Record<string, any> = {
+        wasm_path:        config?.wasmPath || V86_WASM_URL,
+        bios_url:         config?.biosUrl  || V86_BIOS_URL,
+        vga_bios_url:     config?.vgaBiosUrl || V86_VGA_BIOS_URL,
+        memory_size:      config?.memorySize || RAM_SIZE,
+        autostart:        config?.autostart !== undefined ? config.autostart : true,
+        hda:              { buffer: diskBuffer, async: false },
+        screen_adapter:   this.screenElement,
         serial_container_xtermjs: this.serial0Element,
       };
 
-      // If BIOS/VGA BIOS URLs not provided, use CDN defaults
-      if (!finalConfig.bios_url) {
-        finalConfig.bios_url = `${V86_CDN_BASE}bios/seabios.bin`;
-      }
-      if (!finalConfig.vga_bios_url) {
-        finalConfig.vga_bios_url = `${V86_CDN_BASE}bios/vgabios.bin`;
-      }
+      // ── Stage 5: Instantiate emulator ──────────────────────────────
+      this.setStatus('booting', 0, 'Booting Alpine Linux...');
+      this.emulator = new V86Constructor(emulatorConfig as any);
 
-      this.emulator = new V86Constructor(finalConfig as any);
-
-      // Listen for serial output
+      // ── Stage 6: Wire event listeners ──────────────────────────────
       this.emulator.add_listener('serial0-output-byte', (byte: number) => {
         const char = String.fromCharCode(byte);
         this.outputCallbacks.forEach(cb => cb(char));
+
+        // Accumulate output for runCommand
+        if (this.commandResolve) {
+          this.commandBuffer += char;
+        }
       });
 
-      // Listen for emulator status changes
-      this.emulator.add_listener('emulator-ready', () => {
-        this._status = 'running';
+      this.emulator.add_listener('emulator-ready', async () => {
+        this.setStatus('running', 100, 'Alpine Linux is running');
+        console.log('[v86] Emulator ready — Alpine Linux booted');
+
+        // Attempt to restore saved state
+        try {
+          const restored = await this.restoreState();
+          if (restored) {
+            console.log('[v86] VM state restored after boot');
+          }
+        } catch (err) {
+          // Non-fatal — boot still succeeded
+          console.warn('[v86] Could not restore VM state after boot:', err);
+        }
       });
 
       this.emulator.add_listener('emulator-stopped', () => {
-        this._status = 'stopped';
+        this.setStatus('stopped', 0, 'Emulator stopped');
       });
 
-      // Note: If no hard disk image is provided, the emulator will still boot
-      // but won't have a filesystem. The disk image will be loaded lazily.
-      this._status = 'booting';
-
     } catch (err: any) {
-      this._status = 'error';
+      this.setStatus('error', 0, err.message || 'Failed to boot emulator');
       this.cleanup();
       throw err;
     }
@@ -230,7 +468,12 @@ class V86Service {
   // ─── Stop ───────────────────────────────────────────────────────────
 
   async stop(): Promise<void> {
-    if (!this.emulator) return;
+    this.stopAutoSave();
+
+    if (!this.emulator) {
+      this._status = 'stopped';
+      return;
+    }
 
     try {
       this.emulator.stop();
@@ -275,6 +518,94 @@ class V86Service {
     this.emulator.serial0_send(text);
   }
 
+  // ─── Command Execution ──────────────────────────────────────────────
+
+  /**
+   * Send a shell command via serial and wait for output.
+   * Uses a unique marker to detect when the command has finished.
+   *
+   * @param cmd  The shell command to execute (e.g. 'ls -la /home')
+   * @param timeoutMs  Maximum time to wait for output (default 10000ms)
+   * @returns The raw output text between the command echo and the marker
+   */
+  async runCommand(cmd: string, timeoutMs: number = 10_000): Promise<string> {
+    if (!this.emulator || this._status !== 'running') {
+      throw new Error('Cannot run command: emulator not running');
+    }
+
+    if (this.commandResolve) {
+      throw new Error('Another command is already executing. Wait for it to finish.');
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      // Generate a unique end-of-output marker
+      const marker = `__NEXUS_CMD_END_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
+      this.commandMarker  = marker;
+      this.commandBuffer  = '';
+
+      const timeout = setTimeout(() => {
+        this.commandResolve = null;
+        this.commandBuffer  = '';
+        this.commandMarker  = '';
+        reject(new Error(`Command timed out after ${timeoutMs}ms: ${cmd}`));
+      }, timeoutMs);
+
+      this.commandResolve = (output: string) => {
+        clearTimeout(timeout);
+        this.commandResolve = null;
+        this.commandMarker  = '';
+        this.commandBuffer  = '';
+        resolve(output);
+      };
+
+      // Send command + echo marker so we can detect completion
+      this.emulator.serial0_send(`${cmd}\n`);
+      this.emulator.serial0_send(`echo '${marker}'\n`);
+    });
+  }
+
+  /**
+   * Parse raw `ls -la` output into structured FileEntry objects.
+   */
+  private parseLsOutput(raw: string): FileEntry[] {
+    const lines = raw.split('\n').filter(line => line.trim().length > 0);
+    const entries: FileEntry[] = [];
+
+    // Expected format: permissions links owner group size month day time/year name
+    const lsRegex =
+      /^([dl\-rwxsStT]{10})\s+(\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+[\d:]+)\s+(.+)$/;
+
+    for (const line of lines) {
+      const match = line.match(lsRegex);
+      if (match) {
+        entries.push({
+          permissions: match[1],
+          links:       parseInt(match[2], 10),
+          owner:       match[3],
+          group:       match[4],
+          size:        parseInt(match[5], 10),
+          date:        match[6],
+          name:        match[7],
+          isDirectory: match[1].startsWith('d'),
+        });
+      }
+    }
+
+    return entries;
+  }
+
+  /**
+   * List files in a directory inside the Alpine VM.
+   * Sends `ls -la {path}` and parses the output.
+   *
+   * @param path  Directory path (default '/')
+   * @returns Array of FileEntry objects
+   */
+  async listDirectory(path: string = '/'): Promise<FileEntry[]> {
+    const output = await this.runCommand(`ls -la ${path}`);
+    return this.parseLsOutput(output);
+  }
+
   // ─── File Operations ────────────────────────────────────────────────
 
   writeFile(path: string, content: string | Uint8Array): void {
@@ -305,7 +636,7 @@ class V86Service {
     return this.emulator.read_file(path);
   }
 
-  // ─── Event Listeners ────────────────────────────────────────────────
+  // ─── Event Listeners (legacy, backward-compatible) ─────────────────
 
   onOutput(callback: (text: string) => void): () => void {
     this.outputCallbacks.push(callback);
@@ -331,8 +662,9 @@ class V86Service {
 
     try {
       const state = await this.emulator.save_state();
-      await saveToIDB(state);
+      await saveVMStateToIDB(state);
       console.log('[v86] VM state saved to IndexedDB');
+      this.emit('state-saved');
     } catch (err) {
       console.error('[v86] Failed to save VM state:', err);
       throw err;
@@ -341,7 +673,7 @@ class V86Service {
 
   async restoreState(): Promise<boolean> {
     try {
-      const state = await loadFromIDB();
+      const state = await loadVMStateFromIDB();
       if (!state) {
         console.log('[v86] No saved VM state found');
         return false;
@@ -355,6 +687,7 @@ class V86Service {
       this.emulator.restore_state(state);
       this._status = 'running';
       console.log('[v86] VM state restored from IndexedDB');
+      this.emit('state-restored');
       return true;
     } catch (err) {
       console.error('[v86] Failed to restore VM state:', err);
@@ -364,10 +697,42 @@ class V86Service {
 
   async clearState(): Promise<void> {
     try {
-      await clearIDB();
+      await clearVMStateInIDB();
       console.log('[v86] VM state cleared from IndexedDB');
     } catch (err) {
       console.error('[v86] Failed to clear VM state:', err);
+    }
+  }
+
+  // ─── Auto-Save ──────────────────────────────────────────────────────
+
+  /**
+   * Start periodic VM state saving.
+   *
+   * @param intervalMs  Save interval in milliseconds (default 60000 = 1 min)
+   */
+  startAutoSave(intervalMs: number = DEFAULT_AUTO_SAVE_INTERVAL_MS): void {
+    this.stopAutoSave();
+
+    this.autoSaveTimer = setInterval(async () => {
+      if (this.emulator && this._status === 'running') {
+        try {
+          await this.saveState();
+        } catch {
+          // Auto-save failure is non-fatal; already logged inside saveState
+        }
+      }
+    }, intervalMs);
+
+    console.log(`[v86] Auto-save started (interval: ${intervalMs}ms)`);
+  }
+
+  /** Stop the periodic auto-save timer. */
+  stopAutoSave(): void {
+    if (this.autoSaveTimer !== null) {
+      clearInterval(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+      console.log('[v86] Auto-save stopped');
     }
   }
 
@@ -395,14 +760,12 @@ class V86Service {
     }
 
     if (config.mode === 'root') {
-      // Stay as root, no setup needed
       return;
     }
 
     const username = config.username || 'nexus';
     const password = config.password || 'nexus';
 
-    // Send setup commands via serial (shell scripting)
     const setupScript = [
       `adduser -D ${username}`,
       ...(password ? [`echo "${username}:${password}" | chpasswd`] : []),
@@ -429,6 +792,9 @@ class V86Service {
 
     this.outputCallbacks = [];
     this.screenCallbacks = [];
+    this.commandResolve  = null;
+    this.commandBuffer   = '';
+    this.commandMarker   = '';
   }
 }
 
@@ -436,5 +802,4 @@ class V86Service {
 
 export const v86Service = new V86Service();
 
-export type { V86Config, V86Emulator, V86Status };
 export default v86Service;

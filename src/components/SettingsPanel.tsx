@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw, Plane, WifiOff, Save, RotateCw, Database, Lock, Code2 } from 'lucide-react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw, Plane, WifiOff, Save, RotateCw, Database, Lock, Code2, Terminal } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 type UIMode = 'legacy' | 'beginner' | 'vscode';
@@ -171,7 +171,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.2.0 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.4.0 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -720,6 +720,66 @@ export default function SettingsPanel({
             </div>
           </section>
 
+          {/* ─── v86 Linux Terminal ──────────────────────────────────────── */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Terminal size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Linux Terminal (v86)</h3>
+              <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">New in v5.4.0</span>
+            </div>
+
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-4">
+              <div className="flex items-start gap-3">
+                <Monitor size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-white">Alpine Linux in Your Browser</p>
+                  <p className="text-[10px] text-nexus-text-muted leading-relaxed mt-1">
+                    Nexus IDE now runs a real Alpine Linux distro entirely inside your browser using the v86 x86 emulator. 
+                    No server, no VM, no downloads — just pure WebAssembly-powered x86 emulation. Your Linux filesystem 
+                    persists in IndexedDB and survives page refreshes and browser restarts.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-3 bg-nexus-sidebar rounded-lg border border-nexus-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Cpu size={12} className="text-blue-400" />
+                    <span className="text-[10px] font-bold text-white">128 MB RAM</span>
+                  </div>
+                  <p className="text-[9px] text-nexus-text-muted">Default memory allocation for the v86 virtual machine. Adjustable in future updates.</p>
+                </div>
+
+                <div className="p-3 bg-nexus-sidebar rounded-lg border border-nexus-border">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Database size={12} className="text-emerald-400" />
+                    <span className="text-[10px] font-bold text-white">IndexedDB Persistence</span>
+                  </div>
+                  <p className="text-[9px] text-nexus-text-muted">VM state and disk image are cached in your browser. Disk image is downloaded once from CDN.</p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-nexus-sidebar rounded-lg border border-nexus-border">
+                <div className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest mb-2">How to Use</div>
+                <ol className="text-[9px] text-nexus-text-muted space-y-1 list-decimal ml-3">
+                  <li>Click the <b className="text-white">Monitor</b> icon in the activity bar (or say "linux" via voice)</li>
+                  <li>Click <b className="text-emerald-400">[Boot Linux]</b> — the Alpine disk image will download from CDN on first boot</li>
+                  <li>Use the terminal to run <b className="text-white">bash, apk, git, python3, node</b> and more</li>
+                  <li>Click <b className="text-cyan-400">[Push Files]</b> to send workspace files to Alpine</li>
+                  <li>Click <b className="text-purple-400">[Pull Files]</b> to import files from Alpine to your workspace</li>
+                </ol>
+              </div>
+
+              <div className="p-2 bg-amber-900/10 rounded-lg border border-amber-500/10 flex items-start gap-2">
+                <Zap size={12} className="text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-[9px] text-amber-400/80 leading-relaxed">
+                  Optional: Install <b>noVNC</b> inside Alpine for a full GUI desktop, or <b>Wine</b> to run Windows .exe binaries. 
+                  These are user-installed packages, not bundled by Nexus IDE.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* Workspace & Data */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
@@ -757,7 +817,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.2.0</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.4.0</span>
           </div>
           <button
             onClick={onClose}
