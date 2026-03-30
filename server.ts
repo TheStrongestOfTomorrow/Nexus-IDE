@@ -86,6 +86,24 @@ async function startServer() {
   });
 
   // GitHub API Proxies
+
+  // Auto-update: check latest release
+  app.get("/api/github-proxy/latest-release", async (req, res) => {
+    const token = req.headers.authorization?.replace('token ', '');
+    const headers: any = {
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'Nexus-IDE'
+    };
+    if (token) headers['Authorization'] = `token ${token}`;
+
+    try {
+      const response = await axios.get('https://api.github.com/repos/TheStrongestOfTomorrow/Nexus-IDE/releases/latest', { headers });
+      res.json(response.data);
+    } catch (err) {
+      res.status(500).json({ error: 'Failed to check for updates' });
+    }
+  });
+
   app.get("/api/github/user", async (req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ error: "No token" });
@@ -205,6 +223,255 @@ async function startServer() {
     } catch (error: any) {
       console.error("Push error:", error.response?.data || error.message);
       res.status(500).json(error.response?.data || { error: "Push failed" });
+    }
+  });
+
+  // --- Git v5.2 API Proxies ---
+
+  // Repo info (default branch, etc.)
+  app.get("/api/github/repos/:owner/:repo/info", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // List commits
+  app.get("/api/github/repos/:owner/:repo/commits", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    const { sha, per_page, page, path } = req.query;
+    const params: Record<string, string> = {};
+    if (sha) params.sha = sha as string;
+    if (per_page) params.per_page = per_page as string;
+    if (page) params.page = page as string;
+    if (path) params.path = path as string;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits`, {
+        params,
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Single commit details
+  app.get("/api/github/repos/:owner/:repo/commits/:sha", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo, sha } = req.params;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits/${sha}`, {
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // List branches
+  app.get("/api/github/repos/:owner/:repo/branches", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/branches`, {
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Create git ref (used for branch creation)
+  app.post("/api/github/repos/:owner/:repo/git/refs", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    try {
+      const response = await axios.post(
+        `https://api.github.com/repos/${owner}/${repo}/git/refs`,
+        req.body,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Delete branch
+  app.delete("/api/github/repos/:owner/:repo/branches/:branch", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo, branch } = req.params;
+    try {
+      const response = await axios.delete(
+        `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data || { success: true });
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Get tree
+  app.get("/api/github/repos/:owner/:repo/git/trees/:ref", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo, ref } = req.params;
+    const { recursive } = req.query;
+    const params: Record<string, string> = {};
+    if (recursive) params.recursive = recursive as string;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/git/trees/${ref}`, {
+        params,
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Create or update file content
+  app.put("/api/github/repos/:owner/:repo/contents/:path(*)", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    const filePath = req.params[0];
+    try {
+      const response = await axios.put(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+        req.body,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Delete file
+  app.delete("/api/github/repos/:owner/:repo/contents/:path(*)", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    const filePath = req.params[0];
+    try {
+      const response = await axios.delete(
+        `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+        {
+          data: req.body,
+          headers: { Authorization: `token ${token}` },
+        }
+      );
+      res.json(response.data || { success: true });
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Compare branches
+  app.get("/api/github/repos/:owner/:repo/compare/:base...:head", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo, base, head } = req.params;
+    try {
+      const response = await axios.get(
+        `https://api.github.com/repos/${owner}/${repo}/compare/${base}...${head}`,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // List pull requests
+  app.get("/api/github/repos/:owner/:repo/pulls", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    const { state } = req.query;
+    const params: Record<string, string> = {};
+    if (state) params.state = state as string;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+        params,
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Create pull request
+  app.post("/api/github/repos/:owner/:repo/pulls", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    try {
+      const response = await axios.post(
+        `https://api.github.com/repos/${owner}/${repo}/pulls`,
+        req.body,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Merge pull request
+  app.put("/api/github/repos/:owner/:repo/pulls/:number/merge", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo, number } = req.params;
+    try {
+      const response = await axios.put(
+        `https://api.github.com/repos/${owner}/${repo}/pulls/${number}/merge`,
+        req.body,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // List issues
+  app.get("/api/github/repos/:owner/:repo/issues", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    const { state } = req.query;
+    const params: Record<string, string> = {};
+    if (state) params.state = state as string;
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+        params,
+        headers: { Authorization: `token ${token}` },
+      });
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
+    }
+  });
+
+  // Create issue
+  app.post("/api/github/repos/:owner/:repo/issues", async (req, res) => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const { owner, repo } = req.params;
+    try {
+      const response = await axios.post(
+        `https://api.github.com/repos/${owner}/${repo}/issues`,
+        req.body,
+        { headers: { Authorization: `token ${token}` } }
+      );
+      res.json(response.data);
+    } catch (error: any) {
+      res.status(error.response?.status || 500).json(error.response?.data || { error: "Failed" });
     }
   });
 

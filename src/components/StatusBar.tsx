@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles, FileText, Plane } from 'lucide-react';
+import { Wifi, WifiOff, Bell, CheckCircle2, Brain, Download, Loader2, ZapOff, Sparkles, FileText, Plane, GitBranch } from 'lucide-react';
 import { FileNode } from '../hooks/useFileSystem';
 import { cn } from '../lib/utils';
 import PomodoroTimer from './PomodoroTimer';
@@ -13,6 +13,8 @@ interface StatusBarProps {
   isPreinstalling?: boolean;
   preinstallProgress?: number;
   vibeProgress?: { active: boolean, percent: number, message: string };
+  gitBranch?: string;
+  gitRepoName?: string;
 }
 
 export default function StatusBar({ 
@@ -23,7 +25,9 @@ export default function StatusBar({
   onPreinstallOffline, 
   isPreinstalling, 
   preinstallProgress,
-  vibeProgress
+  vibeProgress,
+  gitBranch,
+  gitRepoName
 }: StatusBarProps) {
   const [isPwaInstalled, setIsPwaInstalled] = useState(false);
   const totalLines = files.reduce((acc, file) => acc + file.content.split('\n').length, 0);
@@ -42,6 +46,12 @@ export default function StatusBar({
   return (
     <div className="h-6 bg-nexus-accent text-white flex items-center justify-between px-3 text-[11px] flex-shrink-0 select-none">
       <div className="flex items-center h-full">
+        {gitBranch && (
+          <div className="flex items-center gap-1 px-2 hover:bg-white/10 h-full cursor-pointer transition-colors" title={gitRepoName ? `Git: ${gitRepoName}` : 'Git branch'}>
+            <GitBranch size={12} />
+            <span>{gitBranch}</span>
+          </div>
+        )}
         <div className={cn(
           "flex items-center gap-1 px-2 h-full cursor-pointer transition-colors",
           isOffline

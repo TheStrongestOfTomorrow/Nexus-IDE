@@ -27,6 +27,10 @@ import WorkspacePanel from './components/WorkspacePanel';
 import BeginnerUILayout, { BeginnerFilePanel, BeginnerToolsPanel } from './components/BeginnerUILayout';
 import VSCodeLayout from './components/VSCodeLayout';
 import AirplaneModeBanner from './components/AirplaneModeBanner';
+import { UpdateChecker } from './components/UpdateChecker';
+import SplitEditor from './components/SplitEditor';
+import NotificationToasts from './components/NotificationToasts';
+import { notificationService } from './services/notificationService';
 import './styles/beginner-ui.css';
 
 import { useFileSystem } from './hooks/useFileSystem';
@@ -40,7 +44,7 @@ import sessionPersistenceService from './services/sessionPersistenceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -105,6 +109,10 @@ export default function App() {
   );
   const autoSaveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Split Editor state (B16)
+  const [splitEditor, setSplitEditor] = useState(false);
+  const [splitFileId, setSplitFileId] = useState<string | null>(null);
+
   // Beginner UI state
   const [beginnerActivity, setBeginnerActivity] = useState<string>('files');
   const [beginnerTool, setBeginnerTool] = useState<string>('search');
@@ -154,8 +162,10 @@ export default function App() {
       const id = await workspaceSaveService.saveWorkspaceToIDB(snapshot);
       setCurrentWorkspaceId(id);
       localStorage.setItem('nexus_current_workspace_id', id);
+      notificationService.success('Workspace saved', 'Your workspace has been saved to IndexedDB');
     } catch (err) {
       console.error('Workspace save failed:', err);
+      notificationService.error('Save failed', 'Failed to save workspace');
     }
   }, [files, currentWorkspaceId]);
 
@@ -198,10 +208,12 @@ export default function App() {
           selectedAIProvider: ide.selectedAIProvider,
           selectedModels: ide.selectedModels,
           timestamp: Date.now(),
-          version: '5.1.5',
+          version: '5.2.0',
           sessionId: ide.sessionId,
         }).then(() => {
-          setSessionSavedAt(sessionPersistenceService.formatTimestamp(Date.now()));
+          const savedAt = sessionPersistenceService.formatTimestamp(Date.now());
+          setSessionSavedAt(savedAt);
+          notificationService.success('Session saved', 'Auto-saved at ' + new Date().toLocaleTimeString());
         }).catch(() => {});
       }
     }, 30000);
@@ -224,6 +236,26 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('nexus_full_lock', isFullLock.toString());
   }, [isFullLock]);
+
+  const handleToggleSplit = useCallback(() => {
+    if (splitEditor) {
+      // Close split
+      setSplitEditor(false);
+      setSplitFileId(null);
+    } else {
+      // Open split with next file that isn't active
+      if (files.length > 1) {
+        const nextFile = files.find(f => f.id !== ide.activeFileId);
+        if (nextFile) {
+          setSplitEditor(true);
+          setSplitFileId(nextFile.id);
+          notificationService.info('Split Editor', `Opened ${nextFile.name.split('/').pop()} in split view`);
+        }
+      } else {
+        notificationService.warning('Split Editor', 'You need at least 2 files to split the editor');
+      }
+    }
+  }, [splitEditor, files, ide.activeFileId]);
 
   const handleToggleAirplaneMode = useCallback(() => {
     const newMode = !airplaneModeEnabled;
@@ -307,6 +339,8 @@ export default function App() {
       ide.setShowTerminal(!ide.showTerminal);
     } else if (command.includes("toggle sidebar")) {
       ide.setShowSidebar(!ide.showSidebar);
+    } else if (command.includes("split") || command.includes("split editor")) {
+      handleToggleSplit();
     } else if (command.includes("clear workspace")) {
       handleClearWorkspace();
     } else if (command.includes("save workspace")) {
@@ -389,6 +423,7 @@ export default function App() {
     { id: 'save-workspace', label: 'Save Workspace', icon: Save, category: 'Workspace', action: () => handleSaveWorkspace() },
     { id: 'toggle-ai', label: 'Toggle AI Assistant', icon: MessageSquare, category: 'View', action: () => ide.setShowAI(!ide.showAI) },
     { id: 'toggle-terminal', label: 'Toggle Terminal', icon: Play, category: 'View', action: () => ide.setShowTerminal(!ide.showTerminal) },
+    { id: 'toggle-split', label: 'Toggle Split Editor', icon: Columns2, category: 'View', action: handleToggleSplit },
     { id: 'settings', label: 'Open Settings', icon: Settings, category: 'App', action: () => ide.setShowSettings(true) },
     { id: 'clear-workspace', label: 'Clear Workspace', icon: Trash2, category: 'Workspace', action: handleClearWorkspace },
     { id: 'export-zip', label: 'Export as ZIP', icon: Download, category: 'File', action: exportAsZip },
@@ -437,7 +472,7 @@ export default function App() {
             />
           )}
           {ide.activeActivity === 'search' && <SearchView files={files} onSelectFile={ide.handleSelectFile} />}
-          {ide.activeActivity === 'git' && <GithubView files={files} onImportFiles={() => {}} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} />}
+          {ide.activeActivity === 'git' && <GithubView files={files} onImportFiles={(importedFiles) => { importedFiles.forEach(f => { if (!files.find(ef => ef.name === f.name)) addFile(f.name, f.content); }); }} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} onBranchChange={(b) => ide.setGitBranch(b)} onRepoChange={(r) => ide.setGitRepoName(r)} onUpdateFile={updateFile} activeFileId={ide.activeFileId} />}
           {ide.activeActivity === 'debug' && <DebugView activeFile={activeFile} onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)} />}
           {ide.activeActivity === 'extensions' && <ExtensionsView />}
           {ide.activeActivity === 'ai' && (
@@ -461,7 +496,22 @@ export default function App() {
       </div>
     );
 
-    const vscodeEditorContent = activeFile ? (
+    const vscodeEditorContent = splitEditor && activeFile ? (
+      <SplitEditor
+        files={files}
+        leftFileId={ide.activeFileId}
+        rightFileId={splitFileId}
+        onSelectFile={(id) => {
+          ide.handleSelectFile(id);
+          if (!splitEditor) return;
+          if (id !== ide.activeFileId) setSplitFileId(id);
+        }}
+        onUpdateFile={(id, content) => updateFile(id, content)}
+        onCloseSplit={handleToggleSplit}
+        apiKeys={ide.apiKeys}
+        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+      />
+    ) : activeFile ? (
       <Editor
         file={activeFile}
         onChange={(content) => updateFile(activeFile.id, content)}
@@ -597,6 +647,8 @@ export default function App() {
                   </div>
                 </div>
               )}
+              <UpdateChecker isOffline={isOffline} />
+              <NotificationToasts />
             </>
           }
         />
@@ -788,7 +840,7 @@ export default function App() {
                   <SearchView files={files} onSelectFile={(id) => { ide.handleSelectFile(id); setBeginnerActivity('code'); }} />
                 )}
                 {beginnerTool === 'git' && (
-                  <GithubView files={files} onImportFiles={() => {}} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} />
+                  <GithubView files={files} onImportFiles={(importedFiles) => { importedFiles.forEach(f => { if (!files.find(ef => ef.name === f.name)) addFile(f.name, f.content); }); }} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} onBranchChange={(b) => ide.setGitBranch(b)} onRepoChange={(r) => ide.setGitRepoName(r)} onUpdateFile={updateFile} activeFileId={ide.activeFileId} />
                 )}
                 {beginnerTool === 'extensions' && <ExtensionsView />}
                 {beginnerTool === 'collab' && (
@@ -840,6 +892,7 @@ export default function App() {
               </div>
             </div>
           )}
+          <UpdateChecker isOffline={isOffline} />
 
           {/* Settings (modal overlay) */}
           <SettingsPanel
@@ -881,6 +934,7 @@ export default function App() {
             onClose={() => ide.setIsCommandPaletteOpen(false)}
             commands={commands}
           />
+          <NotificationToasts />
         </div>
       </ErrorBoundary>
     );
@@ -927,6 +981,7 @@ export default function App() {
           </div>
         </div>
       )}
+      <UpdateChecker isOffline={isOffline} />
 
       <div className="flex flex-1 overflow-hidden">
         <CommandPalette 
@@ -1033,7 +1088,7 @@ export default function App() {
             )}
             {ide.activeActivity === 'git' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <GithubView files={files} onImportFiles={() => {}} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} />
+                <GithubView files={files} onImportFiles={(importedFiles) => { importedFiles.forEach(f => { if (!files.find(ef => ef.name === f.name)) addFile(f.name, f.content); }); }} onClearWorkspace={handleClearWorkspace} onUserUpdate={() => {}} onBranchChange={(b) => ide.setGitBranch(b)} onRepoChange={(r) => ide.setGitRepoName(r)} onUpdateFile={updateFile} activeFileId={ide.activeFileId} />
               </div>
             )}
             {ide.activeActivity === 'extensions' && (
@@ -1258,7 +1313,10 @@ export default function App() {
                 return (
                   <div
                     key={id}
-                    onClick={() => ide.setActiveFileId(id)}
+                    onClick={() => {
+                      ide.setActiveFileId(id);
+                      if (splitEditor && id !== ide.activeFileId) setSplitFileId(id);
+                    }}
                     className={cn(
                       "nexus-tab",
                       ide.activeFileId === id ? "nexus-tab-active" : "nexus-tab-inactive"
@@ -1274,12 +1332,49 @@ export default function App() {
                   </div>
                 );
               })}
+              {/* Split Editor Toggle Button */}
+              <button
+                onClick={handleToggleSplit}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 h-full border-l border-nexus-border text-xs transition-colors flex-shrink-0",
+                  splitEditor ? "text-nexus-accent bg-nexus-accent/10 hover:bg-nexus-accent/20" : "text-nexus-text-muted hover:text-white hover:bg-nexus-bg/50"
+                )}
+                title={splitEditor ? "Close Split Editor" : "Split Editor"}
+              >
+                <Columns2 size={14} />
+              </button>
             </div>
+
+            {/* Breadcrumb Navigation (Legacy) */}
+            {activeFile && (
+              <div className="h-6 px-3 flex items-center text-[11px] text-nexus-text-muted bg-nexus-sidebar border-b border-nexus-border overflow-hidden">
+                {activeFile.name.split('/').map((part, i, arr) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <ChevronRight size={12} className="mx-1 opacity-40" />}
+                    <span className={i === arr.length - 1 ? 'text-nexus-text' : ''}>{part}</span>
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
 
             <div className="flex-1 flex overflow-hidden">
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 relative">
-                  {activeFile ? (
+                  {splitEditor && activeFile ? (
+                    <SplitEditor
+                      files={files}
+                      leftFileId={ide.activeFileId}
+                      rightFileId={splitFileId}
+                      onSelectFile={(id) => {
+                        ide.handleSelectFile(id);
+                        if (splitEditor && id !== ide.activeFileId) setSplitFileId(id);
+                      }}
+                      onUpdateFile={(id, content) => updateFile(id, content)}
+                      onCloseSplit={handleToggleSplit}
+                      apiKeys={ide.apiKeys}
+                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                    />
+                  ) : activeFile ? (
                     <Editor
                       file={activeFile}
                       onChange={(content) => updateFile(activeFile.id, content)}
@@ -1289,7 +1384,7 @@ export default function App() {
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                       <Zap size={64} className="opacity-10" />
-                      <p className="text-sm">Select a file to start coding in Nexus 5.1</p>
+                      <p className="text-sm">Select a file to start coding in Nexus 5.2</p>
                       <div className="flex gap-2">
                         <kbd className="px-2 py-1 bg-nexus-sidebar border border-nexus-border rounded text-[10px]">Ctrl+Shift+P</kbd>
                         <span className="text-[10px]">Command Palette</span>
@@ -1422,6 +1517,8 @@ export default function App() {
         files={files}
         isOffline={isOffline}
         vibeProgress={vibeProgress || undefined}
+        gitBranch={ide.gitBranch}
+        gitRepoName={ide.gitRepoName}
       />
 
       <SettingsPanel
@@ -1457,6 +1554,7 @@ export default function App() {
         sessionSavedAt={sessionSavedAt}
       />
 
+      <NotificationToasts />
     </div>
     </ErrorBoundary>
   );

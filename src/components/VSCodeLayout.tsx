@@ -179,7 +179,7 @@ function VSCodeMenuBar() {
           <Sparkles size={11} className="text-white" />
         </div>
         <span className="text-[12px] font-semibold text-white tracking-tight">
-          Nexus IDE
+          Nexus IDE 5.2.0
         </span>
       </div>
 
@@ -613,9 +613,9 @@ function VSCodeWelcomeTab() {
         <div className="w-20 h-20 mx-auto rounded-2xl bg-[#007acc]/20 flex items-center justify-center">
           <Sparkles size={36} className="text-[#007acc]" />
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE</h1>
+        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.2.0</h1>
         <p className="text-sm text-[#858585] leading-relaxed">
-          AI-powered code editor. Open a file to start editing, or create a new one.
+          AI-powered code editor with v86 Linux support, split view, and enhanced editor features.
         </p>
         <div className="flex items-center justify-center gap-6 text-[12px] text-[#858585]">
           <span>Ctrl+P — Quick Open</span>

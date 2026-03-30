@@ -33,6 +33,8 @@ export function useIDEState(files: any[]) {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [mermaidChart, setMermaidChart] = useState<string | null>(null);
   const [isZenMode, setIsZenMode] = useState(false);
+  const [gitBranch, setGitBranch] = useState<string | undefined>(undefined);
+  const [gitRepoName, setGitRepoName] = useState<string | undefined>(undefined);
 
   // Computed boolean for backward compatibility
   const useBeginnerUI = uiMode === 'beginner';
@@ -165,6 +167,8 @@ export function useIDEState(files: any[]) {
     selectedAIProvider, setSelectedAIProvider,
     selectedModels, setSelectedModels,
     handleSelectFile,
-    closeFile
+    closeFile,
+    gitBranch, setGitBranch,
+    gitRepoName, setGitRepoName
   };
 }

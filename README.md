@@ -7,7 +7,7 @@
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.1.5-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.2.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
@@ -86,6 +86,51 @@ Then open **http://localhost:3000** in your browser. That's it — Nexus IDE is 
 > # CLI / Terminal Edition
 > git clone -b cli https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git && cd Nexus-IDE && npm install && npm run tui
 > ```
+
+---
+
+## 🔥 What's New in v5.2.0
+
+The biggest GitHub integration update ever. Nexus IDE now has a full source control panel rivaling desktop IDEs, complete with staging, branching, commit history, pull requests, and issues — all from the browser.
+
+### 🔀 Deep Git Integration (NEW!)
+
+Complete rewrite of the GitHub panel into a professional source control view with 5 tabs.
+
+| Feature | Description |
+|---------|-------------|
+| **File Staging** | Stage/unstage individual files before committing |
+| **Commit Messages** | Write commit messages with a dedicated textarea |
+| **Staged/Unstaged Groups** | Visual separation of staged vs unstaged files |
+| **File Status Icons** | See which files are added, modified, or untracked |
+| **Branch Management** | List, create, switch, and delete branches |
+| **Commit History** | Browse full commit log with expandable details |
+| **Commit Diffs** | View file changes per commit |
+| **Pull/Fetch** | Pull latest changes from remote |
+| **Clone Repository** | Import repos directly into workspace |
+| **Pull Requests** | List, create, merge PRs with Open/Closed/All filters |
+| **Issues** | List, create, and browse issues |
+| **Repo Selector** | Switch between connected repositories |
+
+### 🔄 Auto-Update Check (NEW!)
+
+Nexus IDE now automatically checks GitHub for new releases.
+
+| Feature | Description |
+|---------|-------------|
+| **Auto-Check** | Checks every 5 minutes for new releases |
+| **Version Compare** | Semver comparison against latest GitHub release |
+| **Manual Check** | Check for updates anytime from Settings |
+| **Release Info** | Shows changelog, publish date, and download link |
+
+### 🛠️ VS Code UI Fixes
+
+| Bug | Fix |
+|-----|-----|
+| **Activity bar broken** | Clicking Explorer/Search/Git now actually changes the sidebar |
+| **Editor collapsed** | Editor now fills the full available height |
+| **No preview panel** | Preview panel added to VS Code mode |
+| **Sidebar resize broken** | Drag to resize sidebar (160px–500px) |
 
 ---
 
@@ -219,7 +264,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.1.5) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🧪 Latest with all features (v5.2.0) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -324,7 +369,20 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.1.5 (Current - Beta)
+### v5.2.0 (Current - Beta)
+- 🔀 **Deep Git Integration** — Full source control panel: staging, commits, branches, history, PRs, issues
+- 📋 **File Staging** — Stage/unstage individual files before committing
+- 🌿 **Branch Management** — List, create, switch, delete branches
+- 📜 **Commit History** — Browse commit log with expandable diffs
+- 🔃 **Pull/Fetch** — Pull latest changes from remote
+- 📥 **Clone Repository** — Import repos directly into workspace
+- 🔀 **Pull Requests** — List, create, merge PRs
+- 🐛 **Issues** — List, create, and browse issues
+- 🔄 **Auto-Update Check** — Checks GitHub for new releases every 5 minutes
+- 🛠️ **VS Code UI Fixes** — Activity bar, editor height, preview panel, sidebar resize
+- 📦 **GitHub Service Rewrite** — 16 new API methods, full TypeScript interfaces
+
+### v5.1.5
 - ✈️ **Airplane Mode** — Auto-detect offline, partial lock on internet features only
 - 📡 **Active Ping Check** — 30-second connectivity verification (not just navigator.onLine)
 - ✈️ **Manual Toggle** — Click airplane icon in title bar or use voice commands
@@ -377,6 +435,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.1.5 — Airplane Mode + Session Persistence**
+**v5.2.0 — Deep Git Integration**
 
 </div>

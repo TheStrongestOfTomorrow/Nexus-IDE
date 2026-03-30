@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw, Plane, WifiOff, Save, RotateCw, Database, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Settings, Shield, Cpu, Palette, Globe, Zap, Trash2, Download, Smartphone, Layout, Monitor, Github, Brain, Sparkles, ExternalLink, HardDrive, Undo2, RotateCcw, Plane, WifiOff, Save, RotateCw, Database, Lock, Code2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 type UIMode = 'legacy' | 'beginner' | 'vscode';
@@ -34,6 +34,21 @@ interface SettingsPanelProps {
   onToggleFullLock?: () => void;
   lastOnlineCheck?: string;
   sessionSavedAt?: string;
+  // Editor settings (v5.2.0)
+  editorSettings?: {
+    showMinimap: boolean;
+    wordWrap: boolean;
+    fontSize: number;
+    fontFamily: string;
+    tabSize: number;
+  };
+  onEditorSettingsChange?: (settings: {
+    showMinimap: boolean;
+    wordWrap: boolean;
+    fontSize: number;
+    fontFamily: string;
+    tabSize: number;
+  }) => void;
 }
 
 export default function SettingsPanel({
@@ -66,7 +81,31 @@ export default function SettingsPanel({
   onToggleFullLock,
   lastOnlineCheck,
   sessionSavedAt,
+  editorSettings: externalEditorSettings,
+  onEditorSettingsChange,
 }: SettingsPanelProps) {
+  // Local editor settings state with localStorage persistence
+  const EDITOR_SETTINGS_KEY = 'nexus_editor_settings_v2';
+
+  const [editorSettings, setEditorSettings] = useState(() => {
+    if (externalEditorSettings) return externalEditorSettings;
+    try {
+      const saved = localStorage.getItem(EDITOR_SETTINGS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return {
+      showMinimap: true,
+      wordWrap: true,
+      fontSize: 13,
+      fontFamily: "'JetBrains Mono', monospace",
+      tabSize: 2,
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem(EDITOR_SETTINGS_KEY, JSON.stringify(editorSettings));
+    onEditorSettingsChange?.(editorSettings);
+  }, [editorSettings, onEditorSettingsChange]);
   if (!isOpen) return null;
 
   const providers = [
@@ -132,7 +171,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.1.5 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.2.0 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -140,6 +179,135 @@ export default function SettingsPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+          {/* ─── Editor Settings (v5.2.0) ────────────────────────────── */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
+              <Code2 size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider">Editor Settings</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Minimap Toggle */}
+              <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Minimap</span>
+                  <button
+                    onClick={() => setEditorSettings(prev => ({ ...prev, showMinimap: !prev.showMinimap }))}
+                    className={cn(
+                      "w-10 h-5 rounded-full transition-all relative",
+                      editorSettings.showMinimap ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                      editorSettings.showMinimap ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                    )} />
+                  </button>
+                </div>
+                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                  Show a minimap on the right side of the editor for quick file navigation.
+                </p>
+              </div>
+
+              {/* Word Wrap Toggle */}
+              <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white">Word Wrap</span>
+                  <button
+                    onClick={() => setEditorSettings(prev => ({ ...prev, wordWrap: !prev.wordWrap }))}
+                    className={cn(
+                      "w-10 h-5 rounded-full transition-all relative",
+                      editorSettings.wordWrap ? "bg-nexus-accent" : "bg-nexus-sidebar border border-nexus-border"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-0.5 w-4 h-4 rounded-full transition-all",
+                      editorSettings.wordWrap ? "right-0.5 bg-white" : "left-0.5 bg-nexus-text-muted"
+                    )} />
+                  </button>
+                </div>
+                <p className="text-[10px] text-nexus-text-muted leading-relaxed">
+                  Wrap long lines so they stay within the editor viewport.
+                </p>
+              </div>
+            </div>
+
+            {/* Font Size Slider */}
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-white">Font Size</span>
+                  <span className="ml-2 text-[10px] text-nexus-text-muted">
+                    {editorSettings.fontSize}px
+                  </span>
+                </div>
+              </div>
+              <input
+                type="range"
+                min={10}
+                max={32}
+                step={1}
+                value={editorSettings.fontSize}
+                onChange={(e) => setEditorSettings(prev => ({ ...prev, fontSize: parseInt(e.target.value) }))}
+                className="w-full h-1.5 bg-nexus-sidebar rounded-full appearance-none cursor-pointer accent-nexus-accent"
+              />
+              <div className="flex justify-between text-[9px] text-nexus-text-muted">
+                <span>10px</span>
+                <span>32px</span>
+              </div>
+            </div>
+
+            {/* Font Family Input */}
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-2">
+              <label className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">
+                Font Family
+              </label>
+              <input
+                type="text"
+                value={editorSettings.fontFamily}
+                onChange={(e) => setEditorSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
+                className="w-full bg-nexus-sidebar border border-nexus-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-nexus-accent text-white font-mono"
+              />
+              <p className="text-[9px] text-nexus-text-muted italic">
+                Default: 'JetBrains Mono', monospace
+              </p>
+            </div>
+
+            {/* Tab Size */}
+            <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-2">
+              <label className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">
+                Tab Size
+              </label>
+              <div className="flex gap-2">
+                {[2, 4].map(size => (
+                  <button
+                    key={size}
+                    onClick={() => setEditorSettings(prev => ({ ...prev, tabSize: size }))}
+                    className={cn(
+                      "flex-1 py-2 rounded-lg text-xs font-bold transition-all border",
+                      editorSettings.tabSize === size
+                        ? "bg-nexus-accent border-nexus-accent text-white"
+                        : "bg-nexus-sidebar border-nexus-border text-nexus-text-muted hover:text-white hover:border-nexus-accent/30"
+                    )}
+                  >
+                    {size} spaces
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Auto Save Info */}
+            <div className="p-3 bg-nexus-bg rounded-xl border border-nexus-border">
+              <div className="flex items-center gap-2 mb-1">
+                <Save size={12} className="text-emerald-400" />
+                <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Auto Save</span>
+              </div>
+              <p className="text-[9px] text-nexus-text-muted leading-relaxed">
+                Workspace auto-saves every <b className="text-white">30 seconds</b> to IndexedDB. Editor settings are saved immediately on change.
+              </p>
+            </div>
+          </section>
+
           {/* UI Mode Selection */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
@@ -589,7 +757,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.1.5</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.2.0</span>
           </div>
           <button
             onClick={onClose}

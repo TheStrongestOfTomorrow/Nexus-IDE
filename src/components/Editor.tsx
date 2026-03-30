@@ -15,9 +15,37 @@ loader.init().catch(error => {
 
 import { FileNode } from '../hooks/useFileSystem';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Play, Bug, Sparkles, Wand2 } from 'lucide-react';
+import { Play, Bug, Sparkles, Wand2, ChevronRight } from 'lucide-react';
 import { socketService } from '../services/socketService';
 import FormattingService from '../services/formattingService';
+
+// ─── Editor Settings (localStorage-backed) ────────────────────────────────────
+
+const SETTINGS_KEY = 'nexus_editor_settings_v2';
+
+interface EditorSettings {
+  showMinimap: boolean;
+  wordWrap: boolean;
+  fontSize: number;
+  fontFamily: string;
+  tabSize: number;
+}
+
+function getEditorSettings(): EditorSettings {
+  try {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch { /* ignore */ }
+  return {
+    showMinimap: true,
+    wordWrap: true,
+    fontSize: 13,
+    fontFamily: "'JetBrains Mono', monospace",
+    tabSize: 2,
+  };
+}
+
+// ─── Editor Props ─────────────────────────────────────────────────────────────
 
 interface EditorProps {
   file: FileNode | null;
@@ -25,11 +53,36 @@ interface EditorProps {
   extensions?: any[];
   apiKeys?: Record<string, string>;
   onToggleTerminal?: () => void;
+  showMinimap?: boolean;
+  wordWrap?: boolean;
+  fontSize?: number;
+  fontFamily?: string;
+  hideBreadcrumbs?: boolean;
 }
 
-export default function Editor({ file, onChange, extensions = [], apiKeys = {}, onToggleTerminal }: EditorProps) {
+// ─── Editor Component ─────────────────────────────────────────────────────────
+
+export default function Editor({
+  file,
+  onChange,
+  extensions = [],
+  apiKeys = {},
+  onToggleTerminal,
+  showMinimap: showMinimapProp,
+  wordWrap: wordWrapProp,
+  fontSize: fontSizeProp,
+  fontFamily: fontFamilyProp,
+  hideBreadcrumbs = false,
+}: EditorProps) {
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
+
+  // Resolve settings: props override localStorage defaults
+  const settings = getEditorSettings();
+  const showMinimap = showMinimapProp !== undefined ? showMinimapProp : settings.showMinimap;
+  const wordWrap = wordWrapProp !== undefined ? wordWrapProp : settings.wordWrap;
+  const fontSize = fontSizeProp || settings.fontSize;
+  const fontFamily = fontFamilyProp || settings.fontFamily;
 
   const handleFormat = async () => {
     if (file) {
@@ -145,16 +198,24 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
     return (
       <div className="flex-1 flex items-center justify-center bg-nexus-bg text-nexus-text-muted">
         <div className="text-center">
-          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.0</h2>
+          <h2 className="text-2xl font-light mb-2">Nexus IDE 5.2.0</h2>
           <p className="text-xs">Select a file to start editing</p>
         </div>
       </div>
     );
   }
 
+  // Build file path breadcrumbs
+  const filePathParts = file.name.split('/');
+  const breadcrumbs = filePathParts.map((part, i) => ({
+    name: part,
+    isLast: i === filePathParts.length - 1,
+  }));
+
   return (
     <div className="flex-1 flex flex-col h-full bg-nexus-bg">
-      <div className="flex items-center justify-between px-4 py-2 bg-nexus-sidebar border-b border-nexus-border">
+      {/* ─── Toolbar ──────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-4 py-2 bg-nexus-sidebar border-b border-nexus-border flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-nexus-accent" />
           <span className="text-xs text-nexus-text font-mono tracking-tight">{file.name}</span>
@@ -185,6 +246,27 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
           </button>
         </div>
       </div>
+
+      {/* ─── Breadcrumbs ──────────────────────────────────────────── */}
+      {!hideBreadcrumbs && filePathParts.length > 1 && (
+        <div className="flex items-center h-6 px-4 bg-nexus-bg border-b border-nexus-border/50 flex-shrink-0 overflow-hidden">
+          {breadcrumbs.map((crumb, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && (
+                <ChevronRight size={12} className="mx-1 text-gray-600 flex-shrink-0" />
+              )}
+              <span
+                className="text-[11px] truncate hover:text-nexus-text cursor-pointer transition-colors"
+                style={{ color: crumb.isLast ? '#e0e0e0' : '#888' }}
+              >
+                {crumb.name}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      {/* ─── Monaco Editor ────────────────────────────────────────── */}
       <div className="flex-1 relative">
         <MonacoEditor
           height="100%"
@@ -194,10 +276,15 @@ export default function Editor({ file, onChange, extensions = [], apiKeys = {}, 
           onChange={(value) => onChange(value || '')}
           onMount={handleEditorDidMount}
           options={{
-            minimap: { enabled: false },
-            fontSize: 13,
-            fontFamily: "'JetBrains Mono', monospace",
-            wordWrap: 'on',
+            // v5.2.0 improvements
+            minimap: { enabled: showMinimap },
+            wordWrap: wordWrap ? 'on' : 'off' as any,
+            fontSize,
+            fontFamily,
+            ...({ 'bracketPairColorization.enabled': true } as any),
+            ...({ 'editor.stickyScroll.enabled': true } as any),
+            ...({ 'editor.guides.indentation': true } as any),
+            // Existing settings
             padding: { top: 16 },
             scrollBeyondLastLine: false,
             smoothScrolling: true,

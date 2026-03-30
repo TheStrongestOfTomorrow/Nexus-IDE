@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FileNode } from '../hooks/useFileSystem';
-import { File, FilePlus, Trash2, Edit2, X, Check, FileCode, FileJson, FileText, Database, Hash, FileType, Download, Box, Layout, GitCompare, FolderOpen, Sparkles, AlertTriangle, Save, HardDrive } from 'lucide-react';
+import { File, FilePlus, Trash2, Edit2, X, Check, Download, Box, Layout, GitCompare, FolderOpen, Sparkles, AlertTriangle, Save, HardDrive } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GRAPHICS_TEMPLATES } from '../constants/templates';
 
@@ -96,37 +96,85 @@ export default function Sidebar({
     }
   };
 
-  const getFileIcon = (fileName: string, isActive: boolean) => {
+  // File type colored dot — shows a small colored circle based on extension
+  const getFileDotColor = (fileName: string): string => {
     const ext = fileName.split('.').pop()?.toLowerCase();
-    const iconSize = 16;
-    const iconClass = isActive ? "text-blue-500" : "text-gray-400";
-
     switch (ext) {
-      case 'html':
-      case 'htm':
-        return <FileType size={iconSize} className={cn(iconClass, "text-orange-500")} />;
-      case 'css':
-        return <Hash size={iconSize} className={cn(iconClass, "text-blue-400")} />;
-      case 'js':
-      case 'jsx':
-        return <FileCode size={iconSize} className={cn(iconClass, "text-yellow-400")} />;
       case 'ts':
       case 'tsx':
-        return <FileCode size={iconSize} className={cn(iconClass, "text-blue-500")} />;
+        return 'bg-blue-500';
+      case 'js':
+      case 'jsx':
+        return 'bg-yellow-400';
+      case 'html':
+      case 'htm':
+        return 'bg-orange-400';
+      case 'css':
+      case 'scss':
+      case 'less':
+        return 'bg-blue-400';
       case 'py':
-        return <FileCode size={iconSize} className={cn(iconClass, "text-blue-300")} />;
+        return 'bg-green-400';
+      case 'json':
+        return 'bg-yellow-600';
+      case 'md':
+        return 'bg-gray-400';
+      case 'svg':
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'webp':
+        return 'bg-purple-400';
+      case 'sql':
+        return 'bg-pink-400';
       case 'node':
       case 'cjs':
       case 'mjs':
-        return <FileCode size={iconSize} className={cn(iconClass, "text-green-500")} />;
-      case 'json':
-        return <FileJson size={iconSize} className={cn(iconClass, "text-yellow-600")} />;
-      case 'md':
-        return <FileText size={iconSize} className={cn(iconClass, "text-gray-400")} />;
-      case 'sql':
-        return <Database size={iconSize} className={cn(iconClass, "text-pink-500")} />;
+        return 'bg-green-500';
       default:
-        return <File size={iconSize} className={iconClass} />;
+        return 'bg-gray-500';
+    }
+  };
+
+  // File type badge — returns a colored text span based on extension (v5.2.0)
+  const getFileBadge = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    switch (ext) {
+      case 'ts':
+      case 'tsx':
+        return <span className="text-[10px] font-bold text-blue-400 w-5 text-center flex-shrink-0">TS</span>;
+      case 'js':
+      case 'jsx':
+        return <span className="text-[10px] font-bold text-yellow-400 w-5 text-center flex-shrink-0">JS</span>;
+      case 'html':
+      case 'htm':
+        return <span className="text-[10px] font-bold text-orange-400 w-5 text-center flex-shrink-0">⟨⟩</span>;
+      case 'css':
+      case 'scss':
+      case 'less':
+        return <span className="text-[10px] font-bold text-blue-400 w-5 text-center flex-shrink-0">#</span>;
+      case 'py':
+        return <span className="text-[10px] font-bold text-green-400 w-5 text-center flex-shrink-0">Py</span>;
+      case 'json':
+        return <span className="text-[10px] font-bold text-yellow-600 w-5 text-center flex-shrink-0">{'{}'}</span>;
+      case 'md':
+        return <span className="text-[10px] font-bold text-gray-400 w-5 text-center flex-shrink-0">M↓</span>;
+      case 'svg':
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'webp':
+        return <span className="text-[10px] font-bold text-purple-400 w-5 text-center flex-shrink-0">🖼</span>;
+      case 'sql':
+        return <span className="text-[10px] font-bold text-pink-400 w-5 text-center flex-shrink-0">SQL</span>;
+      case 'node':
+      case 'cjs':
+      case 'mjs':
+        return <span className="text-[10px] font-bold text-green-500 w-5 text-center flex-shrink-0">N</span>;
+      default:
+        return <span className="text-[10px] font-bold text-gray-500 w-5 text-center flex-shrink-0">📄</span>;
     }
   };
 
@@ -346,7 +394,7 @@ export default function Sidebar({
                     )}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
-                      {getFileIcon(file.name, activeFileId === file.id)}
+                      {getFileBadge(file.name)}
                       <span className="truncate">{file.name.split('/').pop()}</span>
                     </div>
                     <div className="hidden group-hover:flex items-center gap-1">
