@@ -356,7 +356,8 @@ Connect GitHub → Auto-deploy
 | Resource | Link |
 |----------|------|
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
-| ✈️ **v5.1.5** | Airplane Mode + Session Persistence (this branch) |
+| 🔀 **v5.2.0** | [Deep Git Integration Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.2.0) |
+| ✈️ **v5.1.5** | Airplane Mode + Session Persistence |
 | GitHub Packages | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages |
 | GitHub | https://github.com/TheStrongestOfTomorrow/Nexus-IDE |
 | Issues | https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues |
