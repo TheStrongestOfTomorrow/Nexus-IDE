@@ -1,10 +1,10 @@
 /**
- * v86Service — Manages the v86 x86 emulator for running Alpine Linux
- * inside the browser. Downloads and caches the Alpine disk image in
- * IndexedDB, boots the full OS, and provides serial/file/VM-state APIs.
+ * v86Service — Manages the v86 x86 emulator for running operating systems
+ * inside the browser. The default Buildroot Linux image is bundled in the
+ * project (public/v86/buildroot-bzimage.bin, ~5MB). Custom images (ISO, IMG,
+ * floppy) can be uploaded by the user for Windows or other Linux distros.
  *
- * v5.4.0 — Enhanced with Alpine boot support, disk image caching,
- *           auto-save, command execution, and typed event system.
+ * v5.4.1 — Added custom image boot support, improved bundled image handling.
  */
 
 // ─── Type Definitions ─────────────────────────────────────────────────────────
@@ -19,6 +19,18 @@ export interface V86Config {
   };
   memorySize: number; // bytes (e.g. 128 * 1024 * 1024)
   autostart: boolean;
+}
+
+/** Configuration for booting a custom OS image */
+export interface CustomImageConfig {
+  /** File name for display */
+  name: string;
+  /** Raw ArrayBuffer of the image file */
+  buffer: ArrayBuffer;
+  /** File extension — determines how v86 mounts the image */
+  extension: string;
+  /** Optional custom memory size override (bytes) */
+  memorySize?: number;
 }
 
 export interface V86Emulator {
@@ -89,6 +101,11 @@ const V86_LIB_URL  = `${V86_CDN_BASE}libv86.js`;
 
 const RAM_SIZE = 128 * 1024 * 1024; // 128 MB
 const BZIMAGE_SIZE = 5_166_352; // buildroot-bzimage.bin exact size
+
+// Memory defaults for custom images (ISOs need more RAM)
+const DEFAULT_CDROM_RAM = 512 * 1024 * 1024;  // 512 MB for ISO images
+const DEFAULT_HDA_RAM     = 256 * 1024 * 1024;  // 256 MB for disk images
+const DEFAULT_FDA_RAM     = 64 * 1024 * 1024;   // 64 MB for floppy images
 
 const DEFAULT_AUTO_SAVE_INTERVAL_MS = 60_000; // 1 minute
 
@@ -264,7 +281,6 @@ class V86Service {
   private _status: V86Status = 'idle';
   private outputCallbacks: Array<(text: string) => void> = [];
   private screenCallbacks: Array<() => void> = [];
-  private serial0Element: HTMLElement | null = null;
   private screenElement: HTMLElement | null = null;
   private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -353,31 +369,104 @@ class V86Service {
       console.warn('[v86] Failed to read disk image cache:', err);
     }
 
-    // 2. Download with progress
-    this.setStatus('loading-image', 10, 'Downloading Linux kernel...');
+    // 2. Load from local public/v86/ directory (bundled, no network needed)
+    this.setStatus('loading-image', 10, 'Loading bundled Linux kernel...');
     try {
       const buffer = await fetchAndCacheDiskImage(V86_BZIMAGE_URL, (loaded, total) => {
         const pct = total > 0 ? Math.min(Math.round((loaded / total) * 85) + 10, 95) : 50;
         const msg = total > 0
-          ? `Downloading Linux kernel... ${((loaded / total) * 100).toFixed(0)}%`
-          : `Downloading Linux kernel... ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
+          ? `Loading Linux kernel... ${((loaded / total) * 100).toFixed(0)}%`
+          : `Loading Linux kernel... ${(loaded / (1024 * 1024)).toFixed(1)} MB`;
         this.setStatus('loading-image', pct, msg);
       });
-      this.setStatus('loading-image', 100, 'Kernel downloaded and cached');
+      this.setStatus('loading-image', 100, 'Kernel loaded and cached');
       return buffer;
     } catch (err: any) {
-      this.setStatus('error', 0, `Failed to download disk image: ${err.message}`);
-      throw new Error(`Failed to download Alpine disk image: ${err.message}`);
+      this.setStatus('error', 0, `Failed to load disk image: ${err.message}`);
+      throw new Error(`Failed to load disk image: ${err.message}`);
     }
   }
 
   // ─── Boot ───────────────────────────────────────────────────────────
 
   /**
-   * Boot the Alpine Linux VM.
+   * Boot with a custom uploaded image (ISO, IMG, floppy).
+   * The image is passed as an ArrayBuffer and mounted appropriately.
+   */
+  async bootCustomImage(imageConfig: CustomImageConfig): Promise<void> {
+    if (this.emulator) {
+      throw new Error('v86 emulator is already running. Call stop() first.');
+    }
+
+    try {
+      this.setStatus('configuring', 0, 'Loading v86 emulator library...');
+      const V86Constructor = await loadV86Library();
+
+      this.setStatus('configuring', 50, 'Configuring emulator for custom image...');
+      this.createDomElements();
+
+      // Determine how to mount based on file extension
+      const ext = imageConfig.extension.toLowerCase();
+      const imageConfigObj: Record<string, any> = {};
+      let bootLabel = imageConfig.name;
+
+      if (ext === '.iso') {
+        imageConfigObj.cdrom = { buffer: imageConfig.buffer };
+        bootLabel = `ISO: ${imageConfig.name}`;
+      } else if (ext === '.img' || ext === '.bin') {
+        // .img/.bin could be bzImage or hard disk image
+        // If file is > 20MB, treat as hard disk; otherwise as bzImage kernel
+        if (imageConfig.buffer.byteLength > 20 * 1024 * 1024) {
+          imageConfigObj.hda = { buffer: imageConfig.buffer, async: true };
+          bootLabel = `Disk: ${imageConfig.name}`;
+        } else {
+          imageConfigObj.bzimage = { buffer: imageConfig.buffer };
+          imageConfigObj.cmdline = 'console=ttyS0 tsc=reliable mitigations=off random.trust_cpu=on';
+          bootLabel = `Kernel: ${imageConfig.name}`;
+        }
+      } else if (ext === '.fdd' || ext === '.flp') {
+        imageConfigObj.fda = { buffer: imageConfig.buffer };
+        bootLabel = `Floppy: ${imageConfig.name}`;
+      } else {
+        // Unknown extension — try as CDROM
+        imageConfigObj.cdrom = { buffer: imageConfig.buffer };
+        bootLabel = `Image: ${imageConfig.name}`;
+      }
+
+      // Select appropriate RAM size
+      let ramSize = imageConfig.memorySize || RAM_SIZE;
+      if (!imageConfig.memorySize) {
+        if (imageConfigObj.cdrom) ramSize = DEFAULT_CDROM_RAM;
+        else if (imageConfigObj.hda && imageConfig.buffer.byteLength > 20 * 1024 * 1024) ramSize = DEFAULT_HDA_RAM;
+        else if (imageConfigObj.fda) ramSize = DEFAULT_FDA_RAM;
+      }
+
+      const emulatorConfig: Record<string, any> = {
+        wasm_path:    V86_WASM_URL,
+        bios_url:     V86_BIOS_URL,
+        vga_bios_url: V86_VGA_BIOS_URL,
+        memory_size:  ramSize,
+        autostart:    true,
+        screen_adapter: this.screenElement,
+        ...imageConfigObj,
+      };
+
+      this.setStatus('booting', 0, `Booting ${bootLabel}...`);
+      this.emulator = new V86Constructor(emulatorConfig as any);
+      this.wireEventListeners(bootLabel);
+    } catch (err: any) {
+      this.setStatus('error', 0, err.message || 'Failed to boot emulator');
+      this.cleanup();
+      throw err;
+    }
+  }
+
+  /**
+   * Boot the default bundled Buildroot Linux VM.
+   * The ~5MB kernel image is already in public/v86/buildroot-bzimage.bin.
    *
    * 1. Loads v86 library from CDN
-   * 2. Acquires Alpine disk image (cached or downloaded)
+   * 2. Acquires bundled disk image (from IndexedDB cache or local fetch)
    * 3. Configures and creates the v86 emulator
    * 4. Listens for 'emulator-ready' to confirm boot
    * 5. Restores saved VM state if available
@@ -397,16 +486,7 @@ class V86Service {
 
       // ── Stage 3: Create DOM elements ──────────────────────────────
       this.setStatus('configuring', 90, 'Setting up emulator...');
-
-      this.serial0Element = document.createElement('div');
-      this.serial0Element.id = 'v86-serial0';
-      this.serial0Element.style.display = 'none';
-      document.body.appendChild(this.serial0Element);
-
-      this.screenElement = document.createElement('div');
-      this.screenElement.id = 'v86-screen';
-      this.screenElement.style.display = 'none';
-      document.body.appendChild(this.screenElement);
+      this.createDomElements();
 
       // ── Stage 4: Build emulator config ─────────────────────────────
       const emulatorConfig: Record<string, any> = {
@@ -416,45 +496,15 @@ class V86Service {
         memory_size:      config?.memorySize || RAM_SIZE,
         autostart:        config?.autostart !== undefined ? config.autostart : true,
         bzimage:          { buffer: diskBuffer },
-        cmdline:          "tsc=reliable mitigations=off random.trust_cpu=on",
+        cmdline:          "console=ttyS0 tsc=reliable mitigations=off random.trust_cpu=on",
         screen_adapter:   this.screenElement,
-        serial_container_xtermjs: this.serial0Element,
       };
 
       // ── Stage 5: Instantiate emulator ──────────────────────────────
       this.setStatus('booting', 0, 'Booting Buildroot Linux...');
       this.emulator = new V86Constructor(emulatorConfig as any);
 
-      // ── Stage 6: Wire event listeners ──────────────────────────────
-      this.emulator.add_listener('serial0-output-byte', (byte: number) => {
-        const char = String.fromCharCode(byte);
-        this.outputCallbacks.forEach(cb => cb(char));
-
-        // Accumulate output for runCommand
-        if (this.commandResolve) {
-          this.commandBuffer += char;
-        }
-      });
-
-      this.emulator.add_listener('emulator-ready', async () => {
-        this.setStatus('running', 100, 'Buildroot Linux is running');
-        console.log('[v86] Emulator ready — Buildroot Linux booted');
-
-        // Attempt to restore saved state
-        try {
-          const restored = await this.restoreState();
-          if (restored) {
-            console.log('[v86] VM state restored after boot');
-          }
-        } catch (err) {
-          // Non-fatal — boot still succeeded
-          console.warn('[v86] Could not restore VM state after boot:', err);
-        }
-      });
-
-      this.emulator.add_listener('emulator-stopped', () => {
-        this.setStatus('stopped', 0, 'Emulator stopped');
-      });
+      this.wireEventListeners('Buildroot Linux');
 
     } catch (err: any) {
       this.setStatus('error', 0, err.message || 'Failed to boot emulator');
@@ -736,15 +786,52 @@ class V86Service {
 
   // ─── Element Accessors ──────────────────────────────────────────────
 
-  getSerialElement(): HTMLElement | null {
-    return this.serial0Element;
-  }
-
   getScreenElement(): HTMLElement | null {
     return this.screenElement;
   }
 
   // ─── User Setup ─────────────────────────────────────────────────────
+
+  /** Extracted DOM element creation shared by boot() and bootCustomImage() */
+  private createDomElements(): void {
+    this.screenElement = document.createElement('div');
+    this.screenElement.id = 'v86-screen';
+    this.screenElement.style.display = 'none';
+    document.body.appendChild(this.screenElement);
+  }
+
+  /** Extracted event listener wiring shared by boot() and bootCustomImage() */
+  private wireEventListeners(label: string): void {
+    this.emulator!.add_listener('serial0-output-byte', (byte: number) => {
+      const char = String.fromCharCode(byte);
+      this.outputCallbacks.forEach(cb => cb(char));
+
+      // Accumulate output for runCommand
+      if (this.commandResolve) {
+        this.commandBuffer += char;
+      }
+    });
+
+    this.emulator!.add_listener('emulator-ready', async () => {
+      this.setStatus('running', 100, `${label} is running`);
+      console.log(`[v86] Emulator ready — ${label} booted`);
+
+      // Attempt to restore saved state
+      try {
+        const restored = await this.restoreState();
+        if (restored) {
+          console.log('[v86] VM state restored after boot');
+        }
+      } catch (err) {
+        // Non-fatal — boot still succeeded
+        console.warn('[v86] Could not restore VM state after boot:', err);
+      }
+    });
+
+    this.emulator!.add_listener('emulator-stopped', () => {
+      this.setStatus('stopped', 0, 'Emulator stopped');
+    });
+  }
 
   setupUser(config: {
     mode: 'root' | 'user';
@@ -777,11 +864,6 @@ class V86Service {
 
   private cleanup(): void {
     this.emulator = null;
-
-    if (this.serial0Element && this.serial0Element.parentNode) {
-      this.serial0Element.parentNode.removeChild(this.serial0Element);
-      this.serial0Element = null;
-    }
 
     if (this.screenElement && this.screenElement.parentNode) {
       this.screenElement.parentNode.removeChild(this.screenElement);

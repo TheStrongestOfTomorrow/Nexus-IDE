@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
-import { v86Service, V86Status } from '../services/v86Service';
+import { v86Service, V86Status, CustomImageConfig } from '../services/v86Service';
 import type { SyncStats } from '../services/fileBridgeService';
 import { fileBridgeService } from '../services/fileBridgeService';
 import {
@@ -26,6 +26,8 @@ import {
   HardDrive,
   ToggleLeft,
   Terminal as TerminalIcon,
+  ImagePlus,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -158,6 +160,11 @@ export default function LinuxTerminal({
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
 
+  // ── Custom Image State ────────────────────────────────────────────────────
+  const [customImage, setCustomImage] = useState<CustomImageConfig | null>(null);
+  const [imageLoading, setImageLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // ── Sync State ────────────────────────────────────────────────────────────────
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
@@ -223,6 +230,19 @@ export default function LinuxTerminal({
 
     term.open(terminalRef.current);
 
+    // CRITICAL: Auto-focus the terminal so keyboard input works immediately
+    // The VS Code layout parent has select-none which can block xterm input
+    setTimeout(() => {
+      term.focus();
+    }, 100);
+
+    // Also focus on click to handle cases where focus is lost
+    terminalRef.current.addEventListener('mousedown', (e) => {
+      // Only focus if clicking directly on the terminal container or xterm
+      if (!term.element?.contains(e.target as Node) && e.target !== terminalRef.current) return;
+      term.focus();
+    });
+
     // Delay fit to ensure DOM is ready
     const fitTimer = setTimeout(() => fitAddon.fit(), 50);
 
@@ -237,11 +257,17 @@ export default function LinuxTerminal({
     term.writeln('\x1b[1;32m | |_| | | | | |_| | | | | | | / __/  | |   \x1b[0m');
     term.writeln('\x1b[1;32m  \\___/|_| |_|\\__,_|_| |_| |_| |_____| |_|   \x1b[0m');
     term.writeln('');
-    term.writeln('\x1b[90m Nexus Linux Terminal v5.4.0 — v86 x86 Emulator\x1b[0m');
-    term.writeln('\x1b[90m Powered by Buildroot Linux\x1b[0m');
+    term.writeln('\x1b[90m Nexus Linux Terminal v5.4.2 — v86 x86 Emulator\x1b[0m');
+    term.writeln('\x1b[90m Default OS: Buildroot Linux (bundled, ~5MB, no download needed)\x1b[0m');
     term.writeln('\x1b[90m RAM: ' + VM_MEMORY_MB + ' MB | Scrollback: 10,000 lines\x1b[0m');
     term.writeln('');
-    term.writeln('Click \x1b[1;32m[▶ Boot Linux]\x1b[0m to start the emulator.');
+    if (customImage) {
+      term.writeln(`\x1b[1;36m  Custom image loaded: ${customImage.name}\x1b[0m`);
+      term.writeln('');
+    }
+    term.writeln('Click \x1b[1;32m[▶ Boot]\x1b[0m to start the emulator with default Alpine Linux.');
+    term.writeln('Use \x1b[33m[🖼 Upload]\x1b[0m to load a custom ISO/IMG (Windows, Ubuntu, etc.).');
+    term.writeln('You can switch between default Alpine and custom images at any time.');
     term.writeln('Use \x1b[33m↑/↓\x1b[0m to navigate command history.');
     term.writeln('');
 
@@ -284,12 +310,26 @@ export default function LinuxTerminal({
     };
   }, [status, mode]);
 
+  // ── Auto-focus terminal when emulator becomes running or mode changes ──────────
+  useEffect(() => {
+    if (status === 'running' && mode === 'serial') {
+      // Use a short delay to ensure DOM has settled after mode switch
+      setTimeout(() => {
+        xtermRef.current?.focus();
+      }, 100);
+    }
+  }, [status, mode]);
+
   // ── Connect xterm input to v86 with command history ───────────────────────────
   useEffect(() => {
     const term = xtermRef.current;
     if (!term || status !== 'running' || mode !== 'serial') return;
 
     const disposable = term.onData((data: string) => {
+      // Prevent default browser behavior for keys (backspace, tab, etc.)
+      // This ensures v86 gets all keystrokes
+      v86Service.sendInput(data);
+
       // Handle special keys for command history
       if (data === '\x1b[A') {
         // Up arrow
@@ -350,8 +390,6 @@ export default function LinuxTerminal({
         // Regular printable character
         currentInputRef.current += data;
       }
-
-      v86Service.sendInput(data);
     });
 
     return () => disposable.dispose();
@@ -414,7 +452,6 @@ export default function LinuxTerminal({
     setBootPhase('loading-image');
     setBootProgress(0);
 
-    // Simulate download progress (the real progress comes from v86Service events)
     const progressTimer = setInterval(() => {
       setBootProgress(prev => {
         if (prev < 30) return prev + Math.random() * 5 + 2;
@@ -433,7 +470,12 @@ export default function LinuxTerminal({
       setBootPhase('configuring');
       setBootProgress(35);
 
-      await v86Service.boot();
+      // Boot with custom image or default bundled image
+      if (customImage) {
+        await v86Service.bootCustomImage(customImage);
+      } else {
+        await v86Service.boot();
+      }
 
       clearInterval(progressTimer);
       setBootProgress(60);
@@ -516,6 +558,60 @@ export default function LinuxTerminal({
     setBootPhase('idle');
     handleBoot();
   }, [handleBoot]);
+
+  // ── Custom image upload handler ─────────────────────────────────────────────
+  const handleUploadImage = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageLoading(true);
+    setError(null);
+    setBootPhase('loading-image');
+    setBootProgress(10);
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+
+      setCustomImage({
+        name: file.name,
+        buffer,
+        extension: ext,
+      });
+
+      setBootPhase('idle');
+      setBootProgress(0);
+      setImageLoading(false);
+
+      if (xtermRef.current) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        xtermRef.current.writeln(`\r\n\x1b[32m✓ Image loaded: ${file.name} (${sizeMB} MB)\x1b[0m`);
+        xtermRef.current.writeln(`\x1b[90m  Extension: ${ext} | Click [▶ Boot] to start.\x1b[0m\r\n`);
+      }
+
+      // Reset input so the same file can be re-uploaded
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err: any) {
+      const errMsg = err.message || 'Failed to read image file';
+      setError(errMsg);
+      setBootPhase('error');
+      setImageLoading(false);
+      if (xtermRef.current) {
+        xtermRef.current.writeln(`\r\n\x1b[31m✗ Failed to load image: ${errMsg}\x1b[0m\r\n`);
+      }
+    }
+  }, []);
+
+  const handleClearImage = useCallback(() => {
+    setCustomImage(null);
+    if (xtermRef.current) {
+      xtermRef.current.writeln('\r\n\x1b[90mCustom image cleared — will use default Buildroot Linux.\x1b[0m\r\n');
+    }
+  }, []);
 
   // ── Fullscreen toggle ─────────────────────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
@@ -755,6 +851,15 @@ export default function LinuxTerminal({
       "flex bg-nexus-bg border-t border-nexus-border overflow-hidden",
       isFullscreen ? "fixed inset-0 z-[300]" : "h-full"
     )}>
+      {/* Hidden file input for image upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".iso,.img,.bin,.fdd,.flp,.raw"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* ═══ Main Column ═══════════════════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col min-w-0">
 
@@ -851,6 +956,32 @@ export default function LinuxTerminal({
               </button>
             )}
 
+            {/* Upload Custom Image / Clear Custom Image */}
+            {customImage ? (
+              <button
+                onClick={handleClearImage}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-700/60 hover:bg-amber-700 text-white rounded text-[10px] font-bold transition-colors"
+                title={`Switch back to default Alpine (remove: ${customImage.name})`}
+              >
+                <Trash2 size={10} />
+                <span className="hidden lg:inline max-w-[100px] truncate">{customImage.name}</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleUploadImage}
+                disabled={imageLoading}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-violet-700/60 hover:bg-violet-700 text-white rounded text-[10px] font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Upload custom OS image (ISO, IMG, etc.)"
+              >
+                {imageLoading ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <ImagePlus size={10} />
+                )}
+                <span className="hidden lg:inline">Upload Image</span>
+              </button>
+            )}
+
             {/* Boot / Stop */}
             {status === 'stopped' || status === 'error' ? (
               <button
@@ -858,7 +989,7 @@ export default function LinuxTerminal({
                 className="flex items-center gap-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold transition-colors shadow-sm"
               >
                 <Play size={10} />
-                Boot Linux
+                {customImage ? `Boot ${customImage.name.split('.')[0]}` : 'Boot Linux'}
               </button>
             ) : (
               <button
@@ -994,7 +1125,16 @@ export default function LinuxTerminal({
         )}
 
         {/* ─── Terminal / Screen Content ───────────────────────────────────── */}
-        <div className="flex-1 overflow-hidden relative">
+        <div
+          className="flex-1 overflow-hidden relative"
+          style={{ userSelect: 'none' }}
+          onClick={(e) => {
+            // Only focus xterm when in serial mode
+            if (mode === 'serial' && xtermRef.current) {
+              xtermRef.current.focus();
+            }
+          }}
+        >
           {/* Serial terminal (xterm.js) */}
           <div
             ref={terminalRef}
@@ -1002,6 +1142,7 @@ export default function LinuxTerminal({
               'absolute inset-0 p-2',
               mode === 'serial' ? 'block' : 'hidden'
             )}
+            style={{ userSelect: 'text', pointerEvents: 'auto' }}
           />
 
           {/* Screen output (v86 canvas) */}
@@ -1016,6 +1157,14 @@ export default function LinuxTerminal({
               <div
                 id="v86-screen-container"
                 className="w-full h-full"
+                onClick={() => {
+                  // Focus the v86 screen element so it receives keyboard events
+                  const screenEl = v86Service.getScreenElement();
+                  if (screenEl) {
+                    const canvas = screenEl.querySelector('canvas');
+                    if (canvas) canvas.focus();
+                  }
+                }}
                 ref={(el) => {
                   if (el && el.children.length === 0) {
                     const screenEl = v86Service.getScreenElement();
@@ -1052,15 +1201,15 @@ export default function LinuxTerminal({
                 {/* Phase title */}
                 <div>
                   <p className="text-white text-sm font-bold">
-                    {bootPhase === 'loading-image' && 'Downloading Disk Image...'}
+                    {bootPhase === 'loading-image' && 'Loading Linux Kernel...'}
                     {bootPhase === 'configuring' && 'Configuring Emulator...'}
-                    {bootPhase === 'booting' && 'Booting Alpine Linux...'}
+                    {bootPhase === 'booting' && 'Booting Linux...'}
                     {bootPhase === 'error' && 'Boot Failed'}
                   </p>
                   <p className="text-gray-500 text-[10px] mt-1">
-                    {bootPhase === 'loading-image' && `Fetching Alpine Linux image from CDN — ${Math.round(bootProgress)}%`}
+                    {bootPhase === 'loading-image' && `Loading bundled Buildroot Linux kernel — ${Math.round(bootProgress)}%`}
                     {bootPhase === 'configuring' && 'Setting up v86 virtual machine parameters'}
-                    {bootPhase === 'booting' && 'Initializing Alpine Linux kernel and services'}
+                    {bootPhase === 'booting' && 'Initializing Linux kernel and services'}
                     {bootPhase === 'error' && 'An error occurred during the boot process'}
                   </p>
                 </div>
@@ -1081,9 +1230,9 @@ export default function LinuxTerminal({
                 {/* Boot step indicators */}
                 {bootPhase !== 'error' && (
                   <div className="space-y-1.5 mt-2">
-                    <BootStep label="Download disk image" active={bootPhase === 'loading-image'} done={bootPhase === 'configuring' || bootPhase === 'booting'} />
+                    <BootStep label="Load bundled kernel" active={bootPhase === 'loading-image'} done={bootPhase === 'configuring' || bootPhase === 'booting'} />
                     <BootStep label="Configure emulator" active={bootPhase === 'configuring'} done={bootPhase === 'booting'} />
-                    <BootStep label="Boot Alpine Linux" active={bootPhase === 'booting'} done={false} />
+                    <BootStep label="Boot Linux" active={bootPhase === 'booting'} done={false} />
                     <BootStep label="Running" active={false} done={false} />
                   </div>
                 )}
@@ -1396,7 +1545,7 @@ function StatusBadge({ status, bootPhase }: { status: V86Status; bootPhase: Boot
         <div className="flex items-center gap-1.5 text-[10px] text-amber-400">
           <Loader2 size={10} className="animate-spin" />
           <span>
-            {bootPhase === 'loading-image' && 'Downloading...'}
+            {bootPhase === 'loading-image' && 'Loading...'}
             {bootPhase === 'configuring' && 'Configuring...'}
             {bootPhase === 'booting' && 'Booting...'}
             {!['loading-image', 'configuring', 'booting'].includes(bootPhase) && 'Booting...'}
