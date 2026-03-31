@@ -21,7 +21,7 @@
 
 ## 🚀 v5.5.0 — The Freedom Update
 
-The biggest feature release ever. Real AI streaming, 36-tool system, password-protected collaboration, terminal freedom, and a completely redesigned Settings page with mobile UI for both portrait and landscape.
+The biggest feature release ever. Real AI streaming, 51-tool system, password-protected collaboration, terminal freedom, CI/CD pipelines, and a completely redesigned Settings page with mobile UI for both portrait and landscape.
 
 ### 🤖 AI Streaming & Tools (NEW!)
 | Feature | Description |
@@ -29,12 +29,17 @@ The biggest feature release ever. Real AI streaming, 36-tool system, password-pr
 | **Real-Time Streaming** | AI responses stream token-by-token via SSE for all 12 providers |
 | **Stop Button** | Abort streaming mid-response with one click |
 | **Streaming Toggle** | Enable/disable streaming per session |
-| **36 AI Tools** | AI can read/write files, run terminal commands, manage git, and more |
+| **51 AI Tools** | AI can read/write files, run terminal commands, manage git, search web, and more |
 | **File Tools** | read_file, write_file, delete_file, list_files, search_files, and more |
 | **Git Tools** | git_status, git_diff, git_log, git_commit, git_branch, git_push, and more |
 | **GitHub Tools** | create_issue, create_pr, search_repos, read_file, and more |
 | **Terminal Tools** | run_terminal_command, get_terminal_output, clear_terminal |
 | **Code Analysis** | analyze_code, find_references, count_lines_of_code |
+| **Web Tools** | web_search, web_scrape, web_screenshot, fetch_url |
+| **Editor Tools** | get_selection, replace_selection, goto_line, find_replace |
+| **Workspace Tools** | create_snippet, list_snippets, apply_snippet, export_workspace |
+| **Debug Tools** | toggle_breakpoint, get_call_stack, inspect_variable |
+| **Streaming + Tools** | Tools execute mid-stream with follow-up streaming response |
 | **Tool Results UI** | Tool calls shown inline in chat with collapsible results |
 
 ### 🔒 Secure Collaboration (NEW!)
@@ -45,6 +50,7 @@ The biggest feature release ever. Real AI streaming, 36-tool system, password-pr
 | **Max Participants** | Limit session size |
 | **Host Controls** | Kick participants, transfer host role |
 | **Mutual Backup** | Both host and visitor save workspace to IndexedDB |
+| **Password Validation** | Server-side password verification via WebSocket |
 | **Conflict Resolution** | Restore from backup on reconnect |
 
 ### ⚙️ Redesigned Settings (NEW!)
@@ -73,8 +79,43 @@ The biggest feature release ever. Real AI streaming, 36-tool system, password-pr
 | **Skip User Setup** | Option to stay as root, no user created |
 | **User Creation** | Create user with sudo or restricted access |
 | **Custom Images** | Upload ISO/IMG files (Windows, Ubuntu, etc.) |
-| **Package Manager** | Quick-install common Alpine packages |
+| **Network Relay** | Real internet access inside the VM via network_relay_url |
+| **Smart Install Prompts** | "Install?" banner when commands aren't found |
+| **Proper Package Manager** | Uses runCommand() for reliable apk add/del |
 | **File Browser** | Navigate Alpine filesystem from within Nexus |
+
+### 🎨 Theme Studio (UPGRADED!)
+| Feature | Description |
+|---------|-------------|
+| **21 CSS Variables** | Full theme customization including scrollbar, selection, hover, badges |
+| **7 Preset Themes** | Midnight Blue, One Dark Pro, Dracula, Solarized Dark, GitHub Dark, VS Code Dark+, Light |
+| **Custom Themes** | Save/load named themes to localStorage |
+| **Import/Export** | Share themes as JSON files |
+| **Live Preview** | Changes apply instantly via CSS variables |
+
+### 🚀 CI/CD Pipelines (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Tauri Desktop Builds** | macOS, Windows, Linux via GitHub Actions |
+| **Android APK Builds** | Capacitor-based debug + release APKs |
+| **GitHub Pages Deploy** | Automatic deployment on push to main |
+| **Release Artifacts** | APK, DMG, MSI, AppImage on tagged releases |
+
+### ⚡ Performance (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Lazy Loading** | Monaco Editor, v86, xterm.js, ThemeStudio loaded on demand |
+| **Code Splitting** | Heavy components in separate chunks (62KB, 13KB, 6KB) |
+| **Faster Startup** | Initial load reduced by deferring non-essential modules |
+
+### 📲 Capacitor Bridge (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Native Shell** | Execute commands via Termux plugin bridge |
+| **Native Filesystem** | Read/write files on Android storage |
+| **Haptics & Vibration** | Haptic feedback for actions |
+| **Device Info** | Access platform, model, OS version |
+| **Share Sheet** | Share files via native Android share dialog |
 
 ---
 
@@ -483,9 +524,11 @@ Connect GitHub → Auto-deploy
 
 ### v5.5.0 (Current - Beta)
 - 🤖 **AI Streaming** — Real-time token-by-token streaming for all 12 providers via SSE
-- 🤖 **AI Tool System** — 36 tools for file ops, git, GitHub, terminal, and code analysis
+- 🤖 **51 AI Tools** — File ops, git, GitHub, terminal, web, editor, workspace, debug, code analysis
+- 🤖 **Streaming + Tools** — Tools execute mid-stream with follow-up response
 - 🔒 **Password-Protected Sessions** — SHA-256 hashed passwords for collaboration
 - 🔒 **Session Management** — Timeout, max participants, kick, host transfer
+- 🔒 **Password Validation** — Server-side verification via WebSocket
 - 💾 **Mutual Collab Backup** — Both host and visitor save workspace to IndexedDB
 - ⚙️ **Settings Overhaul** — Sidebar navigation with 9 organized categories
 - ⚙️ **Terminal Config** — RAM, disk, network relay, boot-on-start in Settings
@@ -493,8 +536,15 @@ Connect GitHub → Auto-deploy
 - 📱 **Mobile Landscape UI** — Activity sidebar, split panel, resizable bottom panel
 - 🐧 **Setup Wizard** — First-boot user configuration (Root/Sudo/Restricted/Skip)
 - 🐧 **Custom Image Upload** — Load ISO/IMG files into v86 emulator
+- 🐧 **Network Relay** — Real internet access inside the VM
+- 🐧 **Smart Install Prompts** — "Install?" banner for missing commands
+- 🐧 **Proper Package Manager** — Uses runCommand() for reliable apk add/del
 - 🛡️ **FileBridge Security** — Path sanitization against shell injection
 - 🔧 **VS Code UI Polish** — Scrollable tabs, better resize handling, search bar
+- 🎨 **Theme Studio** — 21 variables, 7 presets, custom themes, import/export, light mode
+- 🚀 **CI/CD Pipelines** — Tauri (Win/Mac/Linux), Android APK, GitHub Pages
+- ⚡ **Lazy Loading** — Monaco, v86, xterm.js, ThemeStudio loaded on demand
+- 📲 **Capacitor Bridge** — Native shell, filesystem, haptics, share sheet
 
 ### v5.4.0
 - 🐧 **Alpine Linux Terminal** — Real Linux via v86 x86 emulation in your browser

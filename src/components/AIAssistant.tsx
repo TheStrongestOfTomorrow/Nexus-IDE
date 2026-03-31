@@ -92,6 +92,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
   const [isToolEnabled, setIsToolEnabled] = useState(() => localStorage.getItem('nexus_ai_tools') !== 'false');
   const [toolResults, setToolResults] = useState<AIToolResult[]>([]);
   const [expandedToolResults, setExpandedToolResults] = useState<Set<string>>(new Set());
+  const [isExecutingTools, setIsExecutingTools] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -681,6 +682,68 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
     }
   };
 
+  // === TOOL CALL TEXT PARSER ===
+  /**
+   * Parse AI response text for [TOOL_CALL: tool_name, {"key": "value"}] patterns.
+   * Returns parsed tool calls and the cleaned text with tool call lines removed.
+   * Format: [TOOL_CALL: tool_name, {"param": "value"}] (one per line)
+   */
+  const processToolCallsFromResponse = useCallback((text: string): {
+    toolCalls: AIToolCall[];
+    cleanedText: string;
+  } => {
+    const toolCallRegex = /\[TOOL_CALL:\s*(\w+)\s*,\s*(\{[^}]*\})\s*\]/g;
+    const toolCalls: AIToolCall[] = [];
+    let match: RegExpExecArray | null;
+    const linesToRemove: Set<number> = new Set();
+
+    // Scan line by line for tool call patterns
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const lineRegex = /^\s*\[TOOL_CALL:\s*(\w+)\s*,\s*(\{[\s\S]*\})\s*\]\s*$/;
+      const lineMatch = lineRegex.exec(lines[i]);
+      if (lineMatch) {
+        const name = lineMatch[1];
+        try {
+          const args = JSON.parse(lineMatch[2]);
+          toolCalls.push({
+            id: generateToolCallId(),
+            name,
+            arguments: args,
+          });
+          linesToRemove.add(i);
+        } catch {
+          // Malformed JSON — skip
+        }
+      }
+    }
+
+    const cleanedText = lines
+      .filter((_, idx) => !linesToRemove.has(idx))
+      .join('\n')
+      .trim();
+
+    return { toolCalls, cleanedText };
+  }, []);
+
+  // === TOOL DESCRIPTION GENERATOR ===
+  /**
+   * Generate a concise tool list string from AI_TOOL_CATEGORIES
+   * for inclusion in the system prompt so the AI knows what tools are available.
+   */
+  const generateToolDescriptions = useCallback((): string => {
+    const categories = Object.entries(AI_TOOL_CATEGORIES) as [string, readonly string[]][];
+    let desc = '\n\nYou have access to the following tools. When you need to use a tool, include a tool call on its own line in your response using this exact format:\n';
+    desc += '[TOOL_CALL: tool_name, {"param": "value"}]\n\n';
+    desc += 'Available tools by category:\n';
+    for (const [category, toolNames] of categories) {
+      desc += `\n**${category}:** ${toolNames.join(', ')}`;
+    }
+    desc += '\n\nTool call format: [TOOL_CALL: tool_name, {"param1": "value1", "param2": "value2"}]\n';
+    desc += 'You may include multiple tool calls in a single response, one per line. After tool calls, the system will execute them and show you the results for a follow-up.\n';
+    return desc;
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() && attachments.length === 0) return;
@@ -742,10 +805,15 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         systemInstruction = 'You are an autonomous coding agent for review-based developments. Analyze the user\'s code and provide suggestions. Implement changes by returning file actions. Use [CREATE_FOLDER: "path"] and [WRITE_FILE: "path", "content"].' + githubInfo;
       }
 
+      // Append tool descriptions to system prompt when tools are enabled
+      if (isToolEnabled) {
+        systemInstruction += generateToolDescriptions();
+      }
+
       // Build the final user prompt with attachments context
       const fullUserMessage = `Context Files:\n${contextFiles}\n\nTerminal:\n${terminalOutput}\n\nActive File: ${activeFile?.name}\n\nUser Request: ${userMessage}${attachmentContext}`;
 
-      const fetchAIResponse = async (provider: string, model: string, key: string, history: Message[]): Promise<{ text: string, groundingMetadata?: any }> => {
+      const fetchAIResponse = async (provider: string, model: string, key: string, history: Message[]): Promise<{ text: string, groundingMetadata?: any, _toolCalls?: AIToolCall[], _toolResults?: AIToolResult[] }> => {
         if (provider === 'gemini') {
           const genAI = new GoogleGenerativeAI(key);
           const aiModel = genAI.getGenerativeModel({ model, systemInstruction });
@@ -866,10 +934,12 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
             const toolCallsParsed: AIToolCall[] = [];
             
             for (const tc of oaiToolCalls) {
+              const fn = 'function' in tc ? tc.function : null;
+              if (!fn) continue;
               const toolCall: AIToolCall = {
-                id: tc.id,
-                name: tc.function.name,
-                arguments: JSON.parse(tc.function.arguments || '{}'),
+                id: tc.id || generateToolCallId(),
+                name: fn.name,
+                arguments: JSON.parse(fn.arguments || '{}'),
               };
               toolCallsParsed.push(toolCall);
               const toolResult = await executeToolCall(toolCall);
@@ -947,10 +1017,11 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
             const toolCallsParsed: AIToolCall[] = [];
             
             for (const block of toolUseBlocks) {
+              const toolUseBlock = block as { type: 'tool_use'; id: string; name: string; input: Record<string, any> };
               const toolCall: AIToolCall = {
-                id: block.id,
-                name: block.name,
-                arguments: block.input || {},
+                id: toolUseBlock.id,
+                name: toolUseBlock.name,
+                arguments: toolUseBlock.input || {},
               };
               toolCallsParsed.push(toolCall);
               const toolResult = await executeToolCall(toolCall);
@@ -1225,6 +1296,79 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
           setIsStreaming(false);
           setStreamingContent('');
           streamingContentRef.current = '';
+
+          // === STREAMING + TOOL CALLING COMBINED ===
+          // After streaming completes, check if the AI output contains tool call patterns
+          if (isToolEnabled && responseData.text) {
+            const { toolCalls, cleanedText } = processToolCallsFromResponse(responseData.text);
+
+            if (toolCalls.length > 0) {
+              // Show "Executing tools..." indicator
+              setIsExecutingTools(true);
+
+              // Execute all tool calls
+              const toolResultsList: AIToolResult[] = [];
+              for (const tc of toolCalls) {
+                const result = await executeToolCall(tc);
+                toolResultsList.push(result);
+              }
+              setToolResults(prev => [...prev, ...toolResultsList]);
+              setIsExecutingTools(false);
+
+              // Show the initial response (cleaned of tool calls) + tool results as a message
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: cleanedText || '(Tool calls executed — see results below)',
+                groundingMetadata: responseData.groundingMetadata,
+                toolCalls,
+                toolResults: toolResultsList,
+              }]);
+
+              // Build tool results summary for follow-up prompt
+              const toolResultsSummary = toolResultsList.map(tr => {
+                const args = toolCalls.find(tc => tc.id === tr.toolCallId);
+                return `Tool: ${tr.name}${args ? `(${JSON.stringify(args.arguments).substring(0, 100)})` : ''}\nResult: ${tr.result}${tr.isError ? ' (ERROR)' : ''}`;
+              }).join('\n\n---\n\n');
+
+              // Send tool results back to the AI for a follow-up response (also streamed)
+              const followUpUserMessage = `The following tool calls were executed:\n\n${toolResultsSummary}\n\nPlease provide a summary of the results and any next steps based on the tool outputs above.`;
+
+              const followUpMessages: Message[] = [
+                ...newMessages,
+                { role: 'assistant', content: cleanedText + '\n' + toolCalls.map(tc => `[TOOL_CALL: ${tc.name}, ${JSON.stringify(tc.arguments)}]`).join('\n') },
+                { role: 'user', content: followUpUserMessage },
+              ];
+
+              setIsStreaming(true);
+              setStreamingContent('');
+              streamingContentRef.current = '';
+
+              const followUpResponse = isStreamEnabled
+                ? await fetchAIResponseStreaming(
+                    selectedProvider, selectedModel, apiKey, followUpMessages,
+                    (_token, full) => {
+                      setStreamingContent(full);
+                      streamingContentRef.current = full;
+                    }
+                  )
+                : await fetchAIResponse(selectedProvider, selectedModel, apiKey, followUpMessages);
+
+              setIsStreaming(false);
+              setStreamingContent('');
+              streamingContentRef.current = '';
+
+              // Add the follow-up response as a new message
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: followUpResponse.text,
+                groundingMetadata: followUpResponse.groundingMetadata,
+              }]);
+
+              // Skip the normal message processing below — we already added messages
+              setIsLoading(false);
+              return;
+            }
+          }
         } else {
           // === NON-STREAMING PATH (fallback) ===
           responseData = await fetchAIResponse(selectedProvider, selectedModel, apiKey, newMessages);
@@ -1279,6 +1423,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
+      setIsExecutingTools(false);
       setStreamingContent('');
       streamingContentRef.current = '';
       abortControllerRef.current = null;
@@ -1468,8 +1613,20 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
           </div>
         )}
 
+        {/* Tool execution indicator — shown between stream and follow-up */}
+        {isExecutingTools && (
+          <div className="flex w-full flex-col min-w-0 items-start">
+            <div className="bg-purple-500/10 border-purple-500/30 border rounded-xl rounded-tl-none max-w-[95%] min-w-0 w-full p-3 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-purple-300">
+                <span className="animate-spin">🛠️</span>
+                <span>Executing tools...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Non-streaming loading indicator */}
-        {isLoading && !isStreaming && (
+        {isLoading && !isStreaming && !isExecutingTools && (
           <div className="flex justify-start">
             <div className="bg-nexus-sidebar text-nexus-text rounded-xl px-4 py-2 border border-nexus-border">
               <div className="flex gap-1.5"><div className="w-1.5 h-1.5 bg-nexus-accent rounded-full animate-bounce" /><div className="w-1.5 h-1.5 bg-nexus-accent rounded-full animate-bounce delay-100" /><div className="w-1.5 h-1.5 bg-nexus-accent rounded-full animate-bounce delay-200" /></div>

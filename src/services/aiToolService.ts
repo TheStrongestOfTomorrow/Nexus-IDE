@@ -313,9 +313,139 @@ const UI_TOOLS: AIToolDefinition[] = [
   },
 ];
 
+// ─── New Tool Categories (v5.5.0) ───────────────────────────────────────────
+
+const WEB_TOOLS: AIToolDefinition[] = [
+  {
+    name: 'web_search',
+    description: 'Search the web for information using a query string.',
+    parameters: {
+      query: { type: 'string', description: 'Search query to look up on the web', required: true },
+      num_results: { type: 'number', description: 'Number of results to return (default 5)' },
+    },
+  },
+  {
+    name: 'web_scrape',
+    description: 'Scrape and extract text content from a web page URL.',
+    parameters: {
+      url: { type: 'string', description: 'URL of the web page to scrape', required: true },
+      selector: { type: 'string', description: 'CSS selector to extract specific content (optional)' },
+    },
+  },
+  {
+    name: 'web_screenshot',
+    description: 'Take a screenshot of a web page and return it as base64 image data.',
+    parameters: {
+      url: { type: 'string', description: 'URL of the web page to screenshot', required: true },
+      full_page: { type: 'boolean', description: 'Whether to capture the full scrollable page (default false)' },
+    },
+  },
+  {
+    name: 'fetch_url',
+    description: 'Fetch raw content from a URL (HTML, JSON, text, etc.).',
+    parameters: {
+      url: { type: 'string', description: 'URL to fetch content from', required: true },
+      method: { type: 'string', description: 'HTTP method (default GET)', enum: ['GET', 'POST', 'PUT', 'DELETE'] },
+      headers: { type: 'string', description: 'JSON string of custom headers to include' },
+      body: { type: 'string', description: 'Request body for POST/PUT methods' },
+    },
+  },
+];
+
+const EDITOR_TOOLS: AIToolDefinition[] = [
+  {
+    name: 'get_selection',
+    description: 'Get the currently selected text in the editor, including its file path and line range.',
+    parameters: {},
+  },
+  {
+    name: 'replace_selection',
+    description: 'Replace the currently selected text in the editor with new content.',
+    parameters: {
+      content: { type: 'string', description: 'New text content to replace the selection with', required: true },
+    },
+  },
+  {
+    name: 'goto_line',
+    description: 'Navigate the editor cursor to a specific line number in a file.',
+    parameters: {
+      path: { type: 'string', description: 'Path to the file', required: true },
+      line: { type: 'number', description: 'Line number to navigate to (1-based)', required: true },
+    },
+  },
+  {
+    name: 'find_replace',
+    description: 'Find and replace text within a file in the workspace.',
+    parameters: {
+      path: { type: 'string', description: 'Path to the file to search', required: true },
+      find: { type: 'string', description: 'Text or regex pattern to find', required: true },
+      replace: { type: 'string', description: 'Replacement text', required: true },
+      regex: { type: 'boolean', description: 'Whether the find pattern is a regular expression (default false)' },
+    },
+  },
+];
+
+const WORKSPACE_TOOLS: AIToolDefinition[] = [
+  {
+    name: 'create_snippet',
+    description: 'Save a code snippet with a name and description for reuse.',
+    parameters: {
+      name: { type: 'string', description: 'Name for the snippet', required: true },
+      content: { type: 'string', description: 'Code content of the snippet', required: true },
+      language: { type: 'string', description: 'Programming language of the snippet' },
+      description: { type: 'string', description: 'Description of what the snippet does' },
+    },
+  },
+  {
+    name: 'list_snippets',
+    description: 'List all saved code snippets with their names and languages.',
+    parameters: {},
+  },
+  {
+    name: 'apply_snippet',
+    description: 'Insert a saved snippet into a file at a specific line.',
+    parameters: {
+      name: { type: 'string', description: 'Name of the snippet to apply', required: true },
+      path: { type: 'string', description: 'Path to the file to insert into', required: true },
+      line: { type: 'number', description: 'Line number to insert at (1-based, default end of file)' },
+    },
+  },
+  {
+    name: 'export_workspace',
+    description: 'Export the entire workspace as a downloadable ZIP archive.',
+    parameters: {
+      format: { type: 'string', description: 'Export format', enum: ['zip', 'json'] },
+    },
+  },
+];
+
+const DEBUG_TOOLS: AIToolDefinition[] = [
+  {
+    name: 'toggle_breakpoint',
+    description: 'Set or remove a debug breakpoint at a specific line in a file.',
+    parameters: {
+      path: { type: 'string', description: 'Path to the file', required: true },
+      line: { type: 'number', description: 'Line number for the breakpoint (1-based)', required: true },
+      action: { type: 'string', description: 'Action to perform', required: true, enum: ['add', 'remove', 'toggle'] },
+    },
+  },
+  {
+    name: 'get_call_stack',
+    description: 'Get the current debug call stack with function names and line numbers.',
+    parameters: {},
+  },
+  {
+    name: 'inspect_variable',
+    description: 'Inspect the value and type of a variable in the current debug context.',
+    parameters: {
+      name: { type: 'string', description: 'Variable name to inspect', required: true },
+    },
+  },
+];
+
 // ─── Aggregate Export ─────────────────────────────────────────────────────────
 
-/** All 36 tools available to the AI assistant. */
+/** All 51 tools available to the AI assistant. */
 export const AI_TOOLS: AIToolDefinition[] = [
   ...FILE_TOOLS,
   ...GIT_TOOLS,
@@ -323,6 +453,10 @@ export const AI_TOOLS: AIToolDefinition[] = [
   ...TERMINAL_TOOLS,
   ...CODE_ANALYSIS_TOOLS,
   ...UI_TOOLS,
+  ...WEB_TOOLS,
+  ...EDITOR_TOOLS,
+  ...WORKSPACE_TOOLS,
+  ...DEBUG_TOOLS,
 ];
 
 /** Tool names grouped by category for display purposes. */
@@ -333,6 +467,10 @@ export const AI_TOOL_CATEGORIES = {
   'Terminal Tools': TERMINAL_TOOLS.map(t => t.name),
   'Code Analysis': CODE_ANALYSIS_TOOLS.map(t => t.name),
   'UI Tools': UI_TOOLS.map(t => t.name),
+  'Web Tools': WEB_TOOLS.map(t => t.name),
+  'Editor Tools': EDITOR_TOOLS.map(t => t.name),
+  'Workspace Tools': WORKSPACE_TOOLS.map(t => t.name),
+  'Debug Tools': DEBUG_TOOLS.map(t => t.name),
 } as const;
 
 // ─── Format Helpers for API Providers ─────────────────────────────────────────

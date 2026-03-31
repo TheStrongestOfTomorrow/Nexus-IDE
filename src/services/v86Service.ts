@@ -393,7 +393,7 @@ class V86Service {
    * Boot with a custom uploaded image (ISO, IMG, floppy).
    * The image is passed as an ArrayBuffer and mounted appropriately.
    */
-  async bootCustomImage(imageConfig: CustomImageConfig): Promise<void> {
+  async bootCustomImage(imageConfig: CustomImageConfig, network_relay_url?: string): Promise<void> {
     if (this.emulator) {
       throw new Error('v86 emulator is already running. Call stop() first.');
     }
@@ -451,6 +451,10 @@ class V86Service {
         ...imageConfigObj,
       };
 
+      if (network_relay_url) {
+        emulatorConfig.network_relay_url = network_relay_url;
+      }
+
       this.setStatus('booting', 0, `Booting ${bootLabel}...`);
       this.emulator = new V86Constructor(emulatorConfig as any);
       this.wireEventListeners(bootLabel);
@@ -471,7 +475,7 @@ class V86Service {
    * 4. Listens for 'emulator-ready' to confirm boot
    * 5. Restores saved VM state if available
    */
-  async boot(config?: Partial<V86Config>): Promise<void> {
+  async boot(config?: Partial<V86Config>, network_relay_url?: string): Promise<void> {
     if (this.emulator) {
       throw new Error('v86 emulator is already running. Call stop() first.');
     }
@@ -499,6 +503,10 @@ class V86Service {
         cmdline:          "console=ttyS0 tsc=reliable mitigations=off random.trust_cpu=on",
         screen_adapter:   this.screenElement,
       };
+
+      if (network_relay_url) {
+        emulatorConfig.network_relay_url = network_relay_url;
+      }
 
       // ── Stage 5: Instantiate emulator ──────────────────────────────
       this.setStatus('booting', 0, 'Booting Buildroot Linux...');

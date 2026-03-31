@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
-import Editor from './components/Editor';
+const Editor = lazy(() => import('./components/Editor').then(m => ({ default: m.default })));
+const LinuxTerminal = lazy(() => import('./components/LinuxTerminal').then(m => ({ default: m.default })));
+const WebContainerTerminal = lazy(() => import('./components/WebContainerTerminal').then(m => ({ default: m.default })));
+const ThemeStudio = lazy(() => import('./components/ThemeStudio').then(m => ({ default: m.default })));
+
 import Preview from './components/Preview';
 import AIAssistant from './components/AIAssistant';
 import ActivityBar from './components/ActivityBar';
@@ -17,12 +21,14 @@ import PreviewPopout from './components/PreviewPopout';
 import SettingsPanel from './components/SettingsPanel';
 import SearchView from './components/SearchView';
 import DebugView from './components/DebugView';
-import ThemeStudio from './components/ThemeStudio';
+// ThemeStudio is now lazy-loaded above
+
 import DependencyGraph from './components/DependencyGraph';
 import TodoScanner from './components/TodoScanner';
 import SnippetManager from './components/SnippetManager';
 import ProjectInsights from './components/ProjectInsights';
-import WebContainerTerminal from './components/WebContainerTerminal';
+// WebContainerTerminal is now lazy-loaded above
+
 import WorkspacePanel from './components/WorkspacePanel';
 import BeginnerUILayout, { BeginnerFilePanel, BeginnerToolsPanel } from './components/BeginnerUILayout';
 import VSCodeLayout from './components/VSCodeLayout';
@@ -32,7 +38,8 @@ import SplitEditor from './components/SplitEditor';
 import NotificationToasts from './components/NotificationToasts';
 import WelcomeTab from './components/WelcomeTab';
 import KeyboardShortcutsPanel from './components/KeyboardShortcutsPanel';
-import LinuxTerminal from './components/LinuxTerminal';
+// LinuxTerminal is now lazy-loaded above
+
 import { notificationService } from './services/notificationService';
 import './styles/beginner-ui.css';
 
@@ -557,20 +564,22 @@ export default function App() {
     );
 
     const vscodeEditorContent = ide.activeActivity === 'linux' ? (
-      <LinuxTerminal
-        files={files.map(f => ({ name: f.name, content: f.content }))}
-        onPullFiles={(pulledFiles) => {
-          pulledFiles.forEach(pf => {
-            const existing = files.find(ef => ef.name === pf.name);
-            if (existing) {
-              updateFile(existing.id, pf.content);
-            } else {
-              addFile(pf.name, pf.content);
-            }
-          });
-          notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Alpine Linux`);
-        }}
-      />
+      <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+        <LinuxTerminal
+          files={files.map(f => ({ name: f.name, content: f.content }))}
+          onPullFiles={(pulledFiles) => {
+            pulledFiles.forEach(pf => {
+              const existing = files.find(ef => ef.name === pf.name);
+              if (existing) {
+                updateFile(existing.id, pf.content);
+              } else {
+                addFile(pf.name, pf.content);
+              }
+            });
+            notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Alpine Linux`);
+          }}
+        />
+      </Suspense>
     ) : splitEditor && activeFile ? (
       <SplitEditor
         files={files}
@@ -587,12 +596,14 @@ export default function App() {
         onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
       />
     ) : activeFile ? (
-      <Editor
-        file={activeFile}
-        onChange={(content) => updateFile(activeFile.id, content)}
-        apiKeys={ide.apiKeys}
-        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-      />
+      <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+        <Editor
+          file={activeFile}
+          onChange={(content) => updateFile(activeFile.id, content)}
+          apiKeys={ide.apiKeys}
+          onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+        />
+      </Suspense>
     ) : null;
 
     const vscodeBottomContent = (
@@ -771,12 +782,14 @@ export default function App() {
                 </div>
                 <div className="flex-1 flex flex-col overflow-hidden">
                   {activeFile ? (
-                    <Editor
-                      file={activeFile}
-                      onChange={(content) => updateFile(activeFile.id, content)}
-                      apiKeys={ide.apiKeys}
-                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-                    />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                      <Editor
+                        file={activeFile}
+                        onChange={(content) => updateFile(activeFile.id, content)}
+                        apiKeys={ide.apiKeys}
+                        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                      />
+                    </Suspense>
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                       <div className="beginner-welcome-icon">
@@ -818,12 +831,14 @@ export default function App() {
               <div className="flex-1 flex flex-col overflow-hidden">
                 {activeFile ? (
                   <>
-                    <Editor
-                      file={activeFile}
-                      onChange={(content) => updateFile(activeFile.id, content)}
-                      apiKeys={ide.apiKeys}
-                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-                    />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                      <Editor
+                        file={activeFile}
+                        onChange={(content) => updateFile(activeFile.id, content)}
+                        apiKeys={ide.apiKeys}
+                        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                      />
+                    </Suspense>
                     {ide.showTerminal && (
                       <div className="h-64 border-t border-nexus-border bg-nexus-bg">
                         <Terminal files={files} onClose={() => ide.setShowTerminal(false)} onPreview={() => ide.setShowPreview(true)} />
@@ -935,16 +950,22 @@ export default function App() {
                     }}
                   />
                 )}
-                {beginnerTool === 'themes' && <ThemeStudio />}
+                {beginnerTool === 'themes' && (
+                  <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                    <ThemeStudio />
+                  </Suspense>
+                )}
                 {beginnerTool === 'minecraft' && <MinecraftView sessionId={ide.sessionId} />}
                 {beginnerTool === 'webcontainer' && (
-                  <WebContainerTerminal
-                    files={files}
-                    onFileUpdate={(path, content) => {
-                      const file = files.find(f => f.name === path);
-                      if (file) updateFile(file.id, content);
-                    }}
-                  />
+                  <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                    <WebContainerTerminal
+                      files={files}
+                      onFileUpdate={(path, content) => {
+                        const file = files.find(f => f.name === path);
+                        if (file) updateFile(file.id, content);
+                      }}
+                    />
+                  </Suspense>
                 )}
                 {beginnerTool === 'terminal' && (
                   <Terminal files={files} onClose={() => setBeginnerTool('search')} onPreview={() => ide.setShowPreview(true)} />
@@ -1306,7 +1327,9 @@ export default function App() {
             )}
             {ide.activeActivity === 'themes' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <ThemeStudio />
+                <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                  <ThemeStudio />
+                </Suspense>
               </div>
             )}
             {ide.activeActivity === 'deps' && (
@@ -1331,13 +1354,15 @@ export default function App() {
             )}
             {ide.activeActivity === 'webcontainer' && (
               <div className="flex-1 flex flex-col min-w-0 bg-nexus-sidebar overflow-hidden">
-                <WebContainerTerminal 
-                  files={files} 
-                  onFileUpdate={(path, content) => {
-                    const file = files.find(f => f.name === path);
-                    if (file) updateFile(file.id, content);
-                  }}
-                />
+                <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                  <WebContainerTerminal 
+                    files={files} 
+                    onFileUpdate={(path, content) => {
+                      const file = files.find(f => f.name === path);
+                      if (file) updateFile(file.id, content);
+                    }}
+                  />
+                </Suspense>
               </div>
             )}
             {ide.activeActivity === 'linux' && (
@@ -1417,12 +1442,14 @@ export default function App() {
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-1 relative">
                   {activeFile ? (
-                    <Editor
-                      file={activeFile}
-                      onChange={(content) => updateFile(activeFile.id, content)}
-                      apiKeys={ide.apiKeys}
-                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-                    />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                      <Editor
+                        file={activeFile}
+                        onChange={(content) => updateFile(activeFile.id, content)}
+                        apiKeys={ide.apiKeys}
+                        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                      />
+                    </Suspense>
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-nexus-text-muted gap-4">
                       <Zap size={48} className="opacity-10" />
@@ -1563,20 +1590,22 @@ export default function App() {
             <div className="flex-1 flex overflow-hidden">
               {/* ── Linux Terminal: full-width panel ──────────────────── */}
               {ide.activeActivity === 'linux' ? (
-                <LinuxTerminal
-                  files={files.map(f => ({ name: f.name, content: f.content }))}
-                  onPullFiles={(pulledFiles) => {
-                    pulledFiles.forEach(pf => {
-                      const existing = files.find(ef => ef.name === pf.name);
-                      if (existing) {
-                        updateFile(existing.id, pf.content);
-                      } else {
-                        addFile(pf.name, pf.content);
-                      }
-                    });
-                    notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Linux`);
-                  }}
-                />
+                <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                  <LinuxTerminal
+                    files={files.map(f => ({ name: f.name, content: f.content }))}
+                    onPullFiles={(pulledFiles) => {
+                      pulledFiles.forEach(pf => {
+                        const existing = files.find(ef => ef.name === pf.name);
+                        if (existing) {
+                          updateFile(existing.id, pf.content);
+                        } else {
+                          addFile(pf.name, pf.content);
+                        }
+                      });
+                      notificationService.success('Files Pulled', `${pulledFiles.length} file(s) imported from Linux`);
+                    }}
+                  />
+                </Suspense>
               ) : (
               <React.Fragment>
               <div className="flex-1 flex flex-col overflow-hidden">
@@ -1596,12 +1625,14 @@ export default function App() {
                       onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
                     />
                   ) : activeFile ? (
-                    <Editor
-                      file={activeFile}
-                      onChange={(content) => updateFile(activeFile.id, content)}
-                      apiKeys={ide.apiKeys}
-                      onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
-                    />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full text-nexus-text-muted text-xs">Loading...</div>}>
+                      <Editor
+                        file={activeFile}
+                        onChange={(content) => updateFile(activeFile.id, content)}
+                        apiKeys={ide.apiKeys}
+                        onToggleTerminal={() => ide.setShowTerminal(!ide.showTerminal)}
+                      />
+                    </Suspense>
                   ) : (
                     <WelcomeTab
                       onNewFile={() => addFile('index.html', '<!DOCTYPE html>\n<html>\n<head>\n  <title>My Project</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>')}

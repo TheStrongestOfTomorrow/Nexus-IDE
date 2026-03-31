@@ -131,6 +131,9 @@ export default function LinuxTerminal({
   const historyIndexRef = useRef<number>(-1);
   const currentInputRef = useRef<string>('');
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const installSuggestionRef = useRef<{ packageName: string } | null>(null);
+  const dismissedSuggestionsRef = useRef<Set<string>>(new Set());
+  const recentOutputRef = useRef<string>('');
 
   // ── Core State ────────────────────────────────────────────────────────────────
   const [status, setStatus] = useState<V86Status>(v86Service.status);
@@ -185,6 +188,9 @@ export default function LinuxTerminal({
   const [wizardPassword, setWizardPassword] = useState('');
   const [isWizardCreating, setIsWizardCreating] = useState(false);
 
+  // ── Install Suggestion State ──────────────────────────────────────────
+  const [installSuggestion, setInstallSuggestion] = useState<{ packageName: string } | null>(null);
+
   // ── Subscribe to v86 status changes ───────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
@@ -228,6 +234,35 @@ export default function LinuxTerminal({
     });
     return () => unsub();
   }, []);
+
+  // ── Command-not-found detection ──────────────────────────────────────
+  useEffect(() => {
+    if (status !== 'running' || mode !== 'serial') return;
+
+    const unsub = v86Service.onOutput((text: string) => {
+      recentOutputRef.current += text;
+      // Keep buffer manageable
+      if (recentOutputRef.current.length > 1000) {
+        recentOutputRef.current = recentOutputRef.current.slice(-500);
+      }
+
+      // Detect "command not found" patterns (BusyBox ash format: "sh: git: not found")
+      const match = recentOutputRef.current.match(
+        /(?:sh|ash|bash|\/bin\/(?:sh|ash|bash)):\s*(\S+):\s*not found/i
+      );
+
+      if (match) {
+        const pkg = match[1];
+        if (pkg && !dismissedSuggestionsRef.current.has(pkg) && installSuggestionRef.current?.packageName !== pkg) {
+          installSuggestionRef.current = { packageName: pkg };
+          setInstallSuggestion({ packageName: pkg });
+          recentOutputRef.current = '';
+        }
+      }
+    });
+
+    return () => unsub();
+  }, [status, mode]);
 
   // ── Initialize xterm.js terminal ──────────────────────────────────────────────
   useEffect(() => {
@@ -394,6 +429,7 @@ export default function LinuxTerminal({
 
       // Enter key — save to history
       if (data === '\r') {
+        recentOutputRef.current = '';
         const cmd = currentInputRef.current.trim();
         if (cmd.length > 0) {
           // Don't add duplicates consecutively
@@ -496,10 +532,11 @@ export default function LinuxTerminal({
       setBootProgress(35);
 
       // Boot with custom image or default bundled image
+      const networkRelay = localStorage.getItem('nexus_vm_network_relay') || undefined;
       if (customImage) {
-        await v86Service.bootCustomImage(customImage);
+        await v86Service.bootCustomImage(customImage, networkRelay);
       } else {
-        await v86Service.boot();
+        await v86Service.boot(undefined, networkRelay);
       }
 
       clearInterval(progressTimer);
@@ -753,20 +790,7 @@ export default function LinuxTerminal({
     if (status !== 'running') return;
     setPkgInfo(prev => ({ ...prev, refreshing: true, error: null }));
     try {
-      // Use apk info to get installed packages
-      const output = await new Promise<string>((resolve, reject) => {
-        let result = '';
-        const unsub = v86Service.onOutput((text: string) => {
-          result += text;
-        });
-        // Send command to Alpine
-        v86Service.sendInput('apk info 2>/dev/null\n');
-        // Wait for output
-        setTimeout(() => {
-          unsub();
-          resolve(result);
-        }, 2000);
-      });
+      const output = await v86Service.runCommand('apk info 2>/dev/null');
 
       // Parse package names from output (one per line)
       const packages = output
@@ -795,14 +819,17 @@ export default function LinuxTerminal({
     const name = pkgName.trim();
     setPkgInfo(prev => ({ ...prev, installing: name, error: null }));
 
-    // Send install command
-    v86Service.sendInput(`apk add ${name}\n`);
-
-    // Wait for installation to complete
-    setTimeout(() => {
+    try {
+      await v86Service.runCommand(`apk add ${name}`, 30_000);
       setPkgInfo(prev => ({ ...prev, installing: null }));
       refreshInstalledPackages();
-    }, 5000);
+    } catch (err: any) {
+      setPkgInfo(prev => ({
+        ...prev,
+        installing: null,
+        error: `Failed to install ${name}: ${err.message}`,
+      }));
+    }
   }, [status, refreshInstalledPackages]);
 
   // ── Package Manager: Remove package ───────────────────────────────────────────
@@ -812,12 +839,17 @@ export default function LinuxTerminal({
     const name = pkgName.trim();
     setPkgInfo(prev => ({ ...prev, removing: name, error: null }));
 
-    v86Service.sendInput(`apk del ${name}\n`);
-
-    setTimeout(() => {
+    try {
+      await v86Service.runCommand(`apk del ${name}`, 30_000);
       setPkgInfo(prev => ({ ...prev, removing: null }));
       refreshInstalledPackages();
-    }, 5000);
+    } catch (err: any) {
+      setPkgInfo(prev => ({
+        ...prev,
+        removing: null,
+        error: `Failed to remove ${name}: ${err.message}`,
+      }));
+    }
   }, [status, refreshInstalledPackages]);
 
   // ── Package Manager: Submit from input ────────────────────────────────────────
@@ -835,6 +867,19 @@ export default function LinuxTerminal({
   // ── Toggle side panel ─────────────────────────────────────────────────────────
   const toggleSidePanel = useCallback((panel: 'files' | 'packages') => {
     setActiveSidePanel(prev => prev === panel ? null : panel);
+  }, []);
+
+  // ── Install Suggestion handlers ──────────────────────────────────────────
+  const handleInstallSuggestion = useCallback(async (packageName: string) => {
+    installSuggestionRef.current = null;
+    setInstallSuggestion(null);
+    await installPackage(packageName);
+  }, [installPackage]);
+
+  const dismissSuggestion = useCallback((packageName: string) => {
+    dismissedSuggestionsRef.current.add(packageName);
+    installSuggestionRef.current = null;
+    setInstallSuggestion(null);
   }, []);
 
   // ── Setup Wizard: Skip setup (stay as root, close immediately) ───────────────
@@ -1178,6 +1223,29 @@ export default function LinuxTerminal({
           <div className="flex items-center gap-2 px-4 py-1 bg-blue-900/20 border-b border-blue-500/20">
             <Loader2 size={10} className={cn(syncing ? 'animate-spin' : 'text-blue-400')} />
             <span className="text-[10px] text-blue-400">{syncStatus}</span>
+          </div>
+        )}
+
+        {/* ─── Install Suggestion Banner ─────────────────────────────────── */}
+        {installSuggestion && (
+          <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-900/20 border-b border-amber-500/20">
+            <Package size={12} className="text-amber-400 flex-shrink-0" />
+            <span className="text-[10px] text-amber-400 flex-1">
+              Command not found: <strong>{installSuggestion.packageName}</strong> — Install it?
+            </span>
+            <button
+              onClick={() => handleInstallSuggestion(installSuggestion.packageName)}
+              className="flex items-center gap-1 px-2 py-0.5 bg-amber-600/40 hover:bg-amber-600/60 text-amber-300 rounded text-[10px] font-bold transition-colors"
+            >
+              <Upload size={9} />
+              Install
+            </button>
+            <button
+              onClick={() => dismissSuggestion(installSuggestion.packageName)}
+              className="text-amber-400/60 hover:text-amber-400 transition-colors"
+            >
+              <X size={10} />
+            </button>
           </div>
         )}
 

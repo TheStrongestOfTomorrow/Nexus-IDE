@@ -245,6 +245,19 @@ class SocketService {
     this.send({ type: 'minecraft:subscribe', sessionId, eventName });
   }
 
+  /**
+   * Request server-side password validation for a session.
+   * Emits a session:validate-password message and the server should
+   * respond with either session:password-valid or session:password-invalid.
+   */
+  validatePassword(sessionId: string, passwordHash: string): void {
+    this.send({
+      type: 'session:validate-password',
+      sessionId,
+      passwordHash,
+    });
+  }
+
   subscribe(handler: MessageHandler) {
     this.handlers.add(handler);
     return () => { this.handlers.delete(handler); };

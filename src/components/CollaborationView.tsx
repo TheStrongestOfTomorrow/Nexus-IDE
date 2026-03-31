@@ -221,6 +221,10 @@ export default function CollaborationView({
         if (msg.locked !== undefined) setIsLocked(msg.locked);
       } else if (msg.type === 'session:timeout') {
         if (msg.timeoutMinutes) setSessionTimeout(msg.timeoutMinutes);
+      } else if (msg.type === 'session:password-valid') {
+        // Server confirmed password is valid — can be used by the validation flow
+      } else if (msg.type === 'session:password-invalid') {
+        // Server rejected password — can be used by the validation flow
       }
     });
     return () => unsubscribe();
@@ -383,6 +387,37 @@ export default function CollaborationView({
       p.id === newHostId ? { ...p, isHost: true } : { ...p, isHost: false }
     ));
   };
+
+  // ── Server-side password validation ────────────────────────────────────────
+  const validateSessionPassword = useCallback(async (passwordHash: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const currentSessionId = sessionId || internalJoinId;
+      if (!currentSessionId) {
+        resolve(false);
+        return;
+      }
+
+      // Send the validation request via WebSocket
+      socketService.validatePassword(currentSessionId, passwordHash);
+
+      // Set up a one-time listener for the response
+      const unsubscribe = socketService.subscribe((msg) => {
+        if (msg.type === 'session:password-valid' && msg.sessionId === currentSessionId) {
+          unsubscribe();
+          resolve(true);
+        } else if (msg.type === 'session:password-invalid' && msg.sessionId === currentSessionId) {
+          unsubscribe();
+          resolve(false);
+        }
+      });
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        unsubscribe();
+        resolve(false);
+      }, 10000);
+    });
+  }, [sessionId, internalJoinId]);
 
   // ── Join with password ────────────────────────────────────────────────────
   const handleInternalJoin = (e: React.FormEvent) => {

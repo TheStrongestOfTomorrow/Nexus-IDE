@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 5.1.0)'
+        description: 'Version to release (e.g., 5.5.0)'
         required: true
-        default: '5.1.0'
+        default: '5.5.0'
 
 jobs:
   # Build and Release Tauri Desktop Apps
@@ -54,7 +54,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
@@ -81,7 +81,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build frontend
         run: npm run build

@@ -1,6 +1,6 @@
 {
   "name": "@TheStrongestOfTomorrow/nexus-ide",
-  "version": "5.4.0",
+  "version": "5.5.0",
   "description": "The AI-First, Browser-Based IDE - A modern, high-performance web-based IDE with AI integration, VS Code-like experience, and support for multiple AI providers.",
   "author": "TheStrongestOfTomorrow",
   "license": "MIT",
@@ -56,6 +56,8 @@
     "dev": "tsx server.ts",
     "start": "tsx server.ts",
     "build": "vite build",
+    "build:ci": "vite build",
+    "install:legacy": "npm install --legacy-peer-deps",
     "preview": "vite preview",
     "serve": "npm run build && npx serve dist -p 3000",
     "deploy": "npm run build && npx gh-pages -d dist",

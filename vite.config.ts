@@ -33,6 +33,8 @@ export default defineConfig(({mode}) => {
       },
     },
     preview: {
+      // Ensure correct base path for GitHub Pages deployment testing
+      base: '/Nexus-IDE/',
       headers: {
         'Cross-Origin-Embedder-Policy': 'require-corp',
         'Cross-Origin-Opener-Policy': 'same-origin',

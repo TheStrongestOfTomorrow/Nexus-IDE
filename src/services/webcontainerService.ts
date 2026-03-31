@@ -459,6 +459,90 @@ class WebContainerService {
     }
   }
 
+  // ── Interactive Shell ───────────────────────────────────────────────────────
+
+  /**
+   * Start an interactive shell session (/bin/bash or /bin/sh).
+   * Spawns the shell with output piped to listeners and stdin ready for input.
+   * Returns the process and its exit code promise for the caller to monitor.
+   */
+  async startShell(shellPath?: string): Promise<{
+    process: WebContainerProcess;
+    exitCode: Promise<number>;
+  }> {
+    if (!this.instance) {
+      throw new Error('WebContainer is not booted. Call boot() first.');
+    }
+
+    // Kill any existing process before starting a new shell
+    if (this.currentProcess) {
+      this.killProcess();
+    }
+
+    // Try bash first, fall back to sh
+    const shell = shellPath || '/bin/bash';
+    this.emitOutput(`\x1b[90m[WebContainer] Starting interactive shell: ${shell}\x1b[0m\n`);
+
+    try {
+      const { process, exitCode } = await this.spawnInteractive(shell, []);
+
+      // Pipe stdout to listeners automatically
+      process.output.pipeTo(
+        new WritableStream({
+          write: (data) => {
+            this.emitOutput(data);
+          },
+        })
+      );
+
+      // Clean up on exit
+      exitCode.then((code) => {
+        const msg = code === 0
+          ? '\x1b[32m[WebContainer] Shell exited normally (code 0)\x1b[0m\n'
+          : `\x1b[33m[WebContainer] Shell exited with code ${code}\x1b[0m\n`;
+        this.emitOutput(msg);
+      }).catch(() => {
+        this.emitOutput('\x1b[33m[WebContainer] Shell exited unexpectedly\x1b[0m\n');
+      });
+
+      return { process, exitCode };
+    } catch (error: any) {
+      // If /bin/bash fails, try /bin/sh as fallback
+      if (shell === '/bin/bash') {
+        this.emitOutput('\x1b[33m[WebContainer] /bin/bash not available, falling back to /bin/sh\x1b[0m\n');
+        return this.startShell('/bin/sh');
+      }
+      const msg = error?.message || 'Unknown error starting shell';
+      this.emitOutput(`\x1b[31m[WebContainer Error] Failed to start shell: ${msg}\x1b[0m\n`);
+      throw new Error(`Failed to start shell: ${msg}`);
+    }
+  }
+
+  /**
+   * Get the last N characters of buffered output from the output state.
+   * Useful for terminal integrations that need to read recent output.
+   */
+  getProcessOutput(charCount: number = 5000): string {
+    const totalChars = this.state.output.reduce((sum, line) => sum + line.length, 0);
+    const slice = Math.min(charCount, totalChars);
+
+    if (slice >= totalChars) {
+      return this.state.output.join('');
+    }
+
+    // Walk backwards through lines to collect at least `slice` characters
+    let collected = '';
+    for (let i = this.state.output.length - 1; i >= 0; i--) {
+      const line = this.state.output[i];
+      if (collected.length + line.length > slice) {
+        collected = line.slice(-(slice - collected.length)) + collected;
+        break;
+      }
+      collected = line + collected;
+    }
+    return collected;
+  }
+
   // ── Package Management ───────────────────────────────────────────────────────
 
   /**

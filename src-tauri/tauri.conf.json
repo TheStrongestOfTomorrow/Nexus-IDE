@@ -7,10 +7,11 @@
   },
   "package": {
     "productName": "Nexus IDE",
-    "version": "5.1.0"
+    "version": "5.5.0"
   },
   "tauri": {
-    "allowlist": {
+    "capabilities": {
+      "$schema": "../gen/schemas/desktop-schema.json",
       "all": true,
       "fs": {
         "all": true,
@@ -80,7 +81,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.nexus-ide.app",
-      "longDescription": "Nexus IDE v5.1 — The AI-First, Browser-Based IDE. A modern, high-performance development environment with AI integration from 12+ providers, WebContainer support, workspace persistence via IndexedDB, beginner-friendly UI mode, VS Code-like experience, and cross-platform support for Web, Tauri Desktop, and Capacitor Mobile.",
+      "longDescription": "Nexus IDE v5.5.0 — The Freedom Update. AI streaming, 36 AI tools, secure collaboration, mobile UI, terminal freedom, and redesigned settings.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
