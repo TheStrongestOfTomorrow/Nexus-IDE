@@ -69,8 +69,14 @@ class AIProviderService {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || `${provider} API error: ${response.statusText}`);
+      let errorMsg = `${provider} API error: ${response.statusText}`;
+      try {
+        const error = await response.json();
+        errorMsg = error.error?.message || error.error || errorMsg;
+      } catch {
+        // Response body is not JSON, use status text
+      }
+      throw new Error(errorMsg);
     }
 
     return response.json();
@@ -143,8 +149,14 @@ class AIProviderService {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || error.error || `${provider} API error: ${response.statusText}`);
+      let errorMsg = `${provider} API error: ${response.statusText}`;
+      try {
+        const error = await response.json();
+        errorMsg = error.error?.message || error.error || errorMsg;
+      } catch {
+        // Response body is not JSON, use status text
+      }
+      throw new Error(errorMsg);
     }
 
     return response.json();
@@ -157,9 +169,41 @@ class AIProviderService {
         { role: 'system', content: config.systemPrompt },
         { role: 'user', content: prompt }
       ],
-      temperature: config.temperature || 0.2,
-      max_tokens: config.maxTokens || 2048,
+      temperature: config.temperature ?? 0.2,
+      max_tokens: config.maxTokens ?? 2048,
     };
+
+    // Special handling for Gemini (uses Google's Generative AI REST API)
+    if (provider === 'gemini') {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${config.apiKey}`;
+      const geminiBody = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: config.systemPrompt }] },
+        generationConfig: {
+          temperature: config.temperature ?? 0.2,
+          maxOutputTokens: config.maxTokens ?? 2048,
+        },
+      };
+      const data = await this.callProxy(provider, config, geminiBody);
+      // Fallback: try direct call for static hosting
+      let geminiData = data;
+      if (window.location.host.includes('github.io') || window.location.host.includes('vercel.app')) {
+        const directResp = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geminiBody),
+        });
+        if (directResp.ok) geminiData = await directResp.json();
+      }
+      return {
+        text: geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '',
+        usage: {
+          inputTokens: geminiData.usageMetadata?.promptTokenCount || 0,
+          outputTokens: geminiData.usageMetadata?.candidatesTokenCount || 0,
+          totalTokens: geminiData.usageMetadata?.totalTokenCount || 0,
+        },
+      };
+    }
 
     // Special handling for Anthropic structure
     if (provider === 'anthropic') {
@@ -167,8 +211,8 @@ class AIProviderService {
         model: config.model,
         messages: [{ role: 'user', content: prompt }],
         system: config.systemPrompt,
-        max_tokens: config.maxTokens || 4096,
-        temperature: config.temperature || 0.2
+        max_tokens: config.maxTokens ?? 4096,
+        temperature: config.temperature ?? 0.2
       };
       const data = await this.callProxy(provider, config, anthropicBody);
       return {
@@ -189,8 +233,8 @@ class AIProviderService {
           { role: 'system', content: config.systemPrompt },
           { role: 'user', content: prompt }
         ],
-        temperature: config.temperature || 0.2,
-        max_tokens: config.maxTokens || 2048,
+        temperature: config.temperature ?? 0.2,
+        max_tokens: config.maxTokens ?? 2048,
       };
       const data = await this.callProxy(provider, config, cohereBody);
       return {
@@ -213,8 +257,8 @@ class AIProviderService {
         ],
         stream: false,
         options: {
-          temperature: config.temperature || 0.2,
-          num_predict: config.maxTokens || 2048,
+          temperature: config.temperature ?? 0.2,
+          num_predict: config.maxTokens ?? 2048,
         }
       };
       const data = await this.callProxy(provider, config, ollamaBody);

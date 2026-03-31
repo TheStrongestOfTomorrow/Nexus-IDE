@@ -329,13 +329,13 @@ export const gitService = {
     if (!fromBranch) {
       const repoInfo = await this.getRepoInfo(token, owner, repo);
       const refRes = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${repoInfo.default_branch}`,
+        `${API_BASE}/repos/${owner}/${repo}/git/refs/heads/${repoInfo.default_branch}`,
         { headers: headers(token) }
       );
       sha = refRes.data.object.sha;
     } else {
       const refRes = await axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${fromBranch}`,
+        `${API_BASE}/repos/${owner}/${repo}/git/refs/heads/${fromBranch}`,
         { headers: headers(token) }
       );
       sha = refRes.data.object.sha;

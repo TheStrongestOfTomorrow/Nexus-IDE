@@ -40,7 +40,7 @@ class ChatHistoryService {
     } else {
       localStorage.removeItem(this.ENABLED_KEY);
       // Clear all history when disabled
-      this.clearAllChats();
+      this.clearAllChats().catch((err) => console.error('Failed to clear chat history:', err));
     }
   }
 
@@ -103,9 +103,15 @@ class ChatHistoryService {
     if (!this.isEnabled()) return null;
 
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME);
+      const request = indexedDB.open(this.DB_NAME, 1);
 
       request.onerror = () => reject(request.error);
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction(this.STORE_NAME, 'readonly');
@@ -128,9 +134,15 @@ class ChatHistoryService {
     if (!this.isEnabled()) return [];
 
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME);
+      const request = indexedDB.open(this.DB_NAME, 1);
 
       request.onerror = () => reject(request.error);
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction(this.STORE_NAME, 'readonly');
@@ -151,9 +163,15 @@ class ChatHistoryService {
    */
   async deleteChatSession(sessionId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME);
+      const request = indexedDB.open(this.DB_NAME, 1);
 
       request.onerror = () => reject(request.error);
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction(this.STORE_NAME, 'readwrite');
@@ -174,8 +192,15 @@ class ChatHistoryService {
    */
   async clearAllChats(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME);
+      const request = indexedDB.open(this.DB_NAME, 1);
 
+      request.onerror = () => reject(request.error);
+      request.onupgradeneeded = (event) => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+          db.createObjectStore(this.STORE_NAME, { keyPath: 'id' });
+        }
+      };
       request.onsuccess = () => {
         const db = request.result;
         const transaction = db.transaction(this.STORE_NAME, 'readwrite');

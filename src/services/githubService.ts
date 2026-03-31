@@ -276,7 +276,7 @@ export const githubService = {
     message: string,
     sha?: string,
   ) => {
-    const body: Record<string, unknown> = { message, content };
+    const body: Record<string, unknown> = { message, content: btoa(unescape(encodeURIComponent(content))) };
     if (sha) body.sha = sha;
     const response = await axios.put(
       `${API_BASE}/repos/${owner}/${repo}/contents/${path}`,
@@ -337,6 +337,10 @@ export const githubService = {
       for (const item of items) {
         try {
           if (item.type === 'file') {
+            if (!item.download_url) {
+              console.warn(`Skipping ${item.path}: download_url is null`);
+              continue;
+            }
             const fileData = await axios.get(item.download_url);
             files.push({
               name: item.name,

@@ -806,9 +806,17 @@ class V86Service {
       const char = String.fromCharCode(byte);
       this.outputCallbacks.forEach(cb => cb(char));
 
-      // Accumulate output for runCommand
+      // Accumulate output for runCommand and detect completion marker
       if (this.commandResolve) {
         this.commandBuffer += char;
+        // Check if the output contains the end-of-command marker
+        const markerIdx = this.commandBuffer.indexOf(this.commandMarker);
+        if (markerIdx !== -1) {
+          // Extract output before the marker line (including the echo of the marker itself)
+          const output = this.commandBuffer.substring(0, markerIdx);
+          const resolve = this.commandResolve;
+          resolve(output);
+        }
       }
     });
 

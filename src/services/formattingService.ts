@@ -29,11 +29,10 @@ export class FormattingService {
   }
 
   private static formatJS(code: string): string {
+    // Basic JS formatting — avoid breaking template literals and regex
     let formatted = code;
-    // Normalize spacing
-    formatted = formatted.replace(/\{\s*/g, '{ ').replace(/\s*\}/g, ' }');
-    formatted = formatted.replace(/\(\s*/g, '(').replace(/\s*\)/g, ')');
-    // Fix indentation (basic)
+    // Only add spaces around braces that are NOT inside template literals
+    // Use a simpler approach: normalize indentation only
     const lines = formatted.split('\n');
     let indent = 0;
     return lines.map(line => {
@@ -41,11 +40,11 @@ export class FormattingService {
       if (trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
         indent = Math.max(0, indent - 1);
       }
-      const formatted = '  '.repeat(indent) + trimmed;
+      const result = '  '.repeat(indent) + trimmed;
       if (trimmed.endsWith('{') || trimmed.endsWith('[') || trimmed.endsWith('(')) {
         indent++;
       }
-      return formatted;
+      return result;
     }).join('\n');
   }
 
@@ -60,7 +59,6 @@ export class FormattingService {
   private static formatHTML(code: string): string {
     let formatted = code;
     formatted = formatted.replace(/>\s*</g, '>\n<');
-    formatted = formatted.replace(/>\s+</g, '>\n<');
     return formatted;
   }
 
@@ -73,11 +71,15 @@ export class FormattingService {
   }
 
   private static formatPython(code: string): string {
-    // Basic Python formatting
+    // Python formatting — preserve indentation (critical for Python syntax)
     const lines = code.split('\n');
     return lines.map(line => {
-      const trimmed = line.trim();
-      return trimmed;
+      const trimmed = line.trimEnd();
+      // Preserve leading whitespace for Python indentation
+      const leadingWhitespace = line.match(/^(\s*)/)?.[1] || '';
+      // Normalize tabs to 4 spaces
+      const normalizedIndent = leadingWhitespace.replace(/\t/g, '    ');
+      return normalizedIndent + trimmed;
     }).join('\n');
   }
 
@@ -97,8 +99,26 @@ export class FormattingService {
       if (language === 'json') {
         return JSON.stringify(JSON.parse(code));
       }
-      // Remove comments and extra whitespace
-      let minified = code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '');
+      // Remove block comments first, then line comments (but not inside strings)
+      // Simple approach: remove block comments, then remove line comments that aren't inside strings
+      let minified = code.replace(/\/\*[\s\S]*?\*\//g, '');
+      // Remove line comments — avoid matching // inside strings by checking for quotes
+      minified = minified.replace(/(?:(?:(?:"(?:[^"\\]|\\.)*")|(?:'(?:[^'\\]|\\.)*')|[^"'\/])|(\/\/.*$))/gm, (match, _p1, _p2, p3, offset, str) => {
+        // If this is a line comment (starts with //)
+        if (match.startsWith('//')) {
+          // Check if it's inside a string by counting unescaped quotes before this position
+          let inDouble = false;
+          let inSingle = false;
+          for (let i = 0; i < offset; i++) {
+            if (str[i] === '\\' && !inDouble) continue;
+            if (str[i] === '"' && !inSingle) inDouble = !inDouble;
+            if (str[i] === "'" && !inDouble) inSingle = !inSingle;
+          }
+          if (inDouble || inSingle) return match; // Inside a string, keep it
+          return ''; // Outside a string, strip it
+        }
+        return match;
+      });
       minified = minified.replace(/\s+/g, ' ').trim();
       return minified;
     } catch {

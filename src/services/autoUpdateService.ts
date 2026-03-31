@@ -201,9 +201,11 @@ class AutoUpdateService {
   }
 
   private compareVersions(a: string, b: string): number {
-    const pa = a.split('.').map(Number);
-    const pb = b.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
+    // Strip pre-release suffixes (e.g. "-beta", "-alpha.1") for comparison
+    const stripPrerelease = (v: string) => v.replace(/[-+].*$/, '');
+    const pa = stripPrerelease(a).split('.').map(n => parseInt(n, 10) || 0);
+    const pb = stripPrerelease(b).split('.').map(n => parseInt(n, 10) || 0);
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
       const na = pa[i] || 0;
       const nb = pb[i] || 0;
       if (na > nb) return 1;

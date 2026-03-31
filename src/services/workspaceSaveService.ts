@@ -232,7 +232,7 @@ class WorkspaceSaveService {
       return {
         used,
         quota,
-        percentage: Math.round((used / quota) * 100),
+        percentage: quota > 0 ? Math.round((used / quota) * 100) : 0,
         estimateAvailable: quota - used,
       };
     }
