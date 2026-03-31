@@ -6,12 +6,102 @@ class SocketService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private binaryMode = false;
+  private currentPasswordHash: string | null = null;
 
   setBinaryMode(enabled: boolean) {
     this.binaryMode = enabled;
     if (this.socket) {
       this.socket.binaryType = enabled ? 'arraybuffer' : 'blob';
     }
+  }
+
+  /**
+   * Hash a password using SHA-256 (browser's crypto.subtle).
+   * Used client-side before sending any password data over the wire.
+   */
+  async hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  /**
+   * Store a session password. The plain text is immediately hashed
+   * and only the hash is kept in memory.
+   */
+  async setSessionPassword(password: string): Promise<string> {
+    const hash = await this.hashPassword(password);
+    this.currentPasswordHash = hash;
+    return hash;
+  }
+
+  /** Clear the stored session password (e.g. when unlocking). */
+  clearSessionPassword(): void {
+    this.currentPasswordHash = null;
+  }
+
+  /** Check whether a password is currently set for this session. */
+  isSessionLocked(): boolean {
+    return this.currentPasswordHash !== null;
+  }
+
+  /**
+   * Verify a plain-text password against a stored SHA-256 hash.
+   * Returns true only if the hashes match exactly.
+   */
+  async verifyPassword(password: string, hash: string): Promise<boolean> {
+    const passwordHash = await this.hashPassword(password);
+    return passwordHash === hash;
+  }
+
+  /**
+   * Send a session:auth message with a password hash for verification.
+   * Used when a join attempt receives session:password_required.
+   */
+  authenticateSession(sessionId: string, passwordHash: string) {
+    this.send({
+      type: 'session:auth',
+      sessionId,
+      password_hash: passwordHash,
+    });
+  }
+
+  /**
+   * Kick a participant from the session. Only the host may do this.
+   */
+  kickParticipant(sessionId: string, participantId: string) {
+    this.send({
+      type: 'session:kick',
+      sessionId,
+      participantId,
+    });
+  }
+
+  /**
+   * Transfer the host role to another participant.
+   * The current host sends this to promote someone else.
+   */
+  transferHost(sessionId: string, newHostId: string) {
+    this.send({
+      type: 'session:transfer_host',
+      sessionId,
+      newHostId,
+    });
+  }
+
+  /**
+   * Notify the server of the session timeout setting (in minutes).
+   * Read from localStorage (nexus_collab_timeout) and sent on session create/update.
+   */
+  sendSessionTimeout(sessionId: string, timeoutMinutes: number) {
+    this.send({
+      type: 'session:timeout',
+      sessionId,
+      timeoutMinutes,
+    });
   }
 
   connect() {
@@ -84,14 +174,49 @@ class SocketService {
     }
   }
 
-  createSession() {
+  /**
+   * Create a new collaboration session, optionally protected with a password hash.
+   * If collabTimeout is set in localStorage, the timeout is sent automatically.
+   */
+  createSession(passwordHash?: string | null) {
     const sessionId = Math.random().toString(36).substring(2, 10).toUpperCase();
-    this.send({ type: 'session:create', sessionId });
+    this.send({
+      type: 'session:create',
+      sessionId,
+      ...(passwordHash ? { password_hash: passwordHash } : {}),
+    });
+    // Auto-send timeout setting from localStorage
+    const timeout = localStorage.getItem('nexus_collab_timeout');
+    if (timeout) {
+      this.sendSessionTimeout(sessionId, parseInt(timeout, 10) || 30);
+    }
     return sessionId;
   }
 
-  joinSession(sessionId: string) {
-    this.send({ type: 'session:join', sessionId });
+  /**
+   * Join a session with optional password authentication.
+   * If the session is locked, the server will compare the provided hash.
+   * If no password is provided and the session requires one, the server
+   * will reply with session:password_required.
+   */
+  joinSession(sessionId: string, passwordHash?: string | null) {
+    this.send({
+      type: 'session:join',
+      sessionId,
+      ...(passwordHash ? { password_hash: passwordHash } : {}),
+    });
+  }
+
+  /**
+   * Emit a join-request that carries an auth hash for locked sessions.
+   * Used as an explicit auth flow before the standard join.
+   */
+  requestJoin(sessionId: string, passwordHash: string) {
+    this.send({
+      type: 'join-request',
+      sessionId,
+      password_hash: passwordHash,
+    });
   }
 
   hostWorkspace(sessionId: string, files: { name: string, content: string }[]) {

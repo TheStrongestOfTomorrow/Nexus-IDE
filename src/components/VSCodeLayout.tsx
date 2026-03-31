@@ -171,7 +171,7 @@ function getFileLanguage(fileName: string): string {
 }
 
 // ─── Menu Bar Component ──────────────────────────────────────────────────────
-function VSCodeMenuBar() {
+function VSCodeMenuBar({ onQuickOpen }: { onQuickOpen?: () => void }) {
   const menuItems = ['File', 'Edit', 'Selection', 'View', 'Run', 'Terminal', 'Help'];
 
   return (
@@ -181,7 +181,7 @@ function VSCodeMenuBar() {
           <Sparkles size={11} className="text-white" />
         </div>
         <span className="text-[12px] font-semibold text-white tracking-tight">
-          Nexus IDE 5.4.0
+          Nexus IDE 5.5.0
         </span>
       </div>
 
@@ -194,6 +194,17 @@ function VSCodeMenuBar() {
             {item}
           </button>
         ))}
+      </div>
+
+      {/* Quick Open Search Bar */}
+      <div className="ml-4 flex-1 max-w-md">
+        <button
+          onClick={() => onQuickOpen?.()}
+          className="w-full flex items-center gap-2 px-3 py-1 bg-[#3c3c3c] rounded text-[12px] text-[#858585] hover:bg-[#4c4c4c] transition-colors"
+        >
+          <Search size={12} />
+          <span>Search files (Ctrl+P)</span>
+        </button>
       </div>
     </div>
   );
@@ -319,7 +330,7 @@ function VSCodeFileTabs({
   if (openFileIds.length === 0) return null;
 
   return (
-    <div className="flex items-center bg-[#2d2d2d] h-9 overflow-x-auto flex-shrink-0 border-b border-[#252526] no-scrollbar">
+    <div className="flex items-center bg-[#2d2d2d] h-9 overflow-x-auto flex-shrink-0 border-b border-[#252526] relative" style={{ scrollbarWidth: 'none' }}>
       {openFileIds.map((id) => {
         const file = files.find((f) => f.id === id);
         if (!file) return null;
@@ -363,6 +374,10 @@ function VSCodeFileTabs({
           </div>
         );
       })}
+      {/* Fade indicator when tabs overflow */}
+      {openFileIds.length > 4 && (
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#2d2d2d] to-transparent pointer-events-none z-10" />
+      )}
     </div>
   );
 }
@@ -417,6 +432,7 @@ function VSCodeBottomPanel({
   onClose,
   content,
   onResize,
+  panelHeight,
 }: {
   showTerminal: boolean;
   activeTab: BottomPanelTab;
@@ -425,48 +441,77 @@ function VSCodeBottomPanel({
   onClose: () => void;
   content?: React.ReactNode;
   onResize: (delta: number) => void;
+  panelHeight: number;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const startY = useRef(0);
   const startHeight = useRef(0);
+  const rafId = useRef<number>(0);
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const handleDragEnd = useCallback(() => {
+    isDragging.current = false;
+    if (rafId.current) {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = 0;
+    }
+    document.removeEventListener('mousemove', handleDragMove);
+    document.removeEventListener('mouseup', handleDragEnd);
+    document.removeEventListener('touchmove', handleDragMove);
+    document.removeEventListener('touchend', handleDragEnd);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }, []);
+
+  const handleDragMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (!isDragging.current) return;
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+    rafId.current = requestAnimationFrame(() => {
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const delta = startY.current - clientY;
+      onResize(delta);
+    });
+  }, [onResize]);
+
+  const handleDragStart = useCallback(
+    (clientY: number) => {
       isDragging.current = true;
-      startY.current = e.clientY;
+      startY.current = clientY;
       startHeight.current = panelRef.current?.offsetHeight || 200;
 
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!isDragging.current) return;
-        const delta = startY.current - e.clientY;
-        onResize(delta);
-      };
-
-      const handleMouseUp = () => {
-        isDragging.current = false;
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleDragMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleDragMove, { passive: true });
+      document.addEventListener('touchend', handleDragEnd);
       document.body.style.cursor = 'ns-resize';
       document.body.style.userSelect = 'none';
     },
-    [onResize]
+    [handleDragMove, handleDragEnd]
+  );
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      handleDragStart(e.clientY);
+    },
+    [handleDragStart]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      handleDragStart(e.touches[0].clientY);
+    },
+    [handleDragStart]
   );
 
   if (!showTerminal) return null;
 
   return (
-    <div className="flex flex-col bg-[#1e1e1e] border-t border-[#252526]" style={{ height: '200px' }} ref={panelRef}>
+    <div className="flex flex-col bg-[#1e1e1e] border-t border-[#252526]" style={{ height: `${panelHeight}px` }} ref={panelRef}>
       {/* Resize handle */}
       <div
         className="h-1 cursor-ns-resize hover:bg-[#007acc]/50 transition-colors flex-shrink-0"
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       />
 
       {/* Panel Header */}
@@ -616,7 +661,7 @@ function VSCodeWelcomeTab() {
         <div className="w-20 h-20 mx-auto rounded-2xl bg-[#007acc]/20 flex items-center justify-center">
           <Sparkles size={36} className="text-[#007acc]" />
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.4.0</h1>
+        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.5.0</h1>
         <p className="text-sm text-[#858585] leading-relaxed">
           AI-powered code editor with real Alpine Linux, split view, and enhanced editor features.
         </p>
@@ -744,7 +789,11 @@ export default function VSCodeLayout({
 
   // Bottom panel resize
   const handleBottomPanelResize = useCallback((delta: number) => {
-    setBottomPanelHeight((prev) => Math.max(100, Math.min(500, prev + delta)));
+    setBottomPanelHeight((prev) => {
+      const viewportHeight = window.innerHeight;
+      const maxH = Math.floor(viewportHeight * 0.6);
+      return Math.max(100, Math.min(maxH, prev + delta));
+    });
   }, []);
 
   // Get the active file
@@ -797,12 +846,12 @@ export default function VSCodeLayout({
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc] select-none">
+    <div className="nexus-vscode-root flex flex-col h-screen w-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc] select-none" style={{ gridTemplateRows: 'auto 1fr auto', display: 'grid' }}>
       {/* ─── Menu Bar ──────────────────────────────────────────── */}
-      <VSCodeMenuBar />
+      <VSCodeMenuBar onQuickOpen={isCommandPaletteOpen ? undefined : () => onSetIsCommandPaletteOpen(true)} />
 
       {/* ─── Main Body ─────────────────────────────────────────── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex overflow-hidden min-h-0">
         {/* ─── Activity Bar (Left Icons) ───────────────────────── */}
         <VSCodeActivityBar
           activeItem={sidebarVisible ? activeActivity : null}
@@ -845,9 +894,9 @@ export default function VSCodeLayout({
           <VSCodeBreadcrumbs files={files} activeFileId={activeFileId} />
 
           {/* Editor + AI Split */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex overflow-hidden min-h-0">
             {/* Editor / Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            <div className="flex-1 flex flex-col overflow-hidden min-w-0 min-h-0">
               {editorContent ? (
                 <div className="flex-1 overflow-hidden">{editorContent}</div>
               ) : activeFile ? (
@@ -938,6 +987,7 @@ export default function VSCodeLayout({
             onToggleTerminal={onToggleTerminal}
             onClose={onToggleTerminal}
             onResize={handleBottomPanelResize}
+            panelHeight={bottomPanelHeight}
             content={
               bottomPanelContent || (
                 <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-[#858585]">

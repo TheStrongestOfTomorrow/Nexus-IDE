@@ -7,7 +7,7 @@
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.4.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.5.0-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![Linux](https://img.shields.io/badge/Linux-Alpine_Linux_in_Browser-emerald?style=for-the-badge&labelColor=1e293b)](https://github.com/nickvdp/nickvdp)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
@@ -16,6 +16,65 @@
 *A modern, high-performance IDE with AI integration, VS Code-like experience, real Alpine Linux in your browser, and the power to run Node.js entirely in the browser.*
 
 </div>
+
+---
+
+## 🚀 v5.5.0 — The Freedom Update
+
+The biggest feature release ever. Real AI streaming, 36-tool system, password-protected collaboration, terminal freedom, and a completely redesigned Settings page with mobile UI for both portrait and landscape.
+
+### 🤖 AI Streaming & Tools (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Real-Time Streaming** | AI responses stream token-by-token via SSE for all 12 providers |
+| **Stop Button** | Abort streaming mid-response with one click |
+| **Streaming Toggle** | Enable/disable streaming per session |
+| **36 AI Tools** | AI can read/write files, run terminal commands, manage git, and more |
+| **File Tools** | read_file, write_file, delete_file, list_files, search_files, and more |
+| **Git Tools** | git_status, git_diff, git_log, git_commit, git_branch, git_push, and more |
+| **GitHub Tools** | create_issue, create_pr, search_repos, read_file, and more |
+| **Terminal Tools** | run_terminal_command, get_terminal_output, clear_terminal |
+| **Code Analysis** | analyze_code, find_references, count_lines_of_code |
+| **Tool Results UI** | Tool calls shown inline in chat with collapsible results |
+
+### 🔒 Secure Collaboration (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Password Protection** | SHA-256 hashed passwords for sessions |
+| **Session Timeout** | Configurable session expiry |
+| **Max Participants** | Limit session size |
+| **Host Controls** | Kick participants, transfer host role |
+| **Mutual Backup** | Both host and visitor save workspace to IndexedDB |
+| **Conflict Resolution** | Restore from backup on reconnect |
+
+### ⚙️ Redesigned Settings (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Sidebar Navigation** | 9 organized categories instead of infinite scroll |
+| **Terminal Config** | RAM allocation, disk size, network relay, boot-on-start |
+| **Linux User Mode** | Root / User+Sudo / User-only configuration |
+| **Collab Settings** | Password, timeout, max participants |
+| **Editor Settings** | Minimap, word wrap, font size, tab size |
+| **Mobile Settings** | Touch mode, UI preferences |
+
+### 📱 Mobile UI (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Portrait Mode** | Bottom tab bar with Files, Search, AI, Terminal, Git |
+| **Landscape Mode** | Activity sidebar + editor split view |
+| **Swipe Gestures** | Swipe between tabs in portrait mode |
+| **Full-Screen Editor** | Tap file to open in full-screen overlay |
+| **Responsive Detection** | Auto-detect orientation and device type |
+
+### 🐧 Terminal Freedom (NEW!)
+| Feature | Description |
+|---------|-------------|
+| **Setup Wizard** | First-boot configuration with user creation options |
+| **Skip User Setup** | Option to stay as root, no user created |
+| **User Creation** | Create user with sudo or restricted access |
+| **Custom Images** | Upload ISO/IMG files (Windows, Ubuntu, etc.) |
+| **Package Manager** | Quick-install common Alpine packages |
+| **File Browser** | Navigate Alpine filesystem from within Nexus |
 
 ---
 
@@ -312,7 +371,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🐧 Latest with Alpine Linux (v5.4.0) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🚀 Latest with AI Streaming & Tools (v5.5.0) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -404,6 +463,7 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
+| 🚀 **v5.5.0** | [The Freedom Update](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.5.0) |
 | 🐧 **v5.4.0** | [Alpine Linux in Your Browser](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.4.0) |
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
 | 🔀 **v5.3.0** | [Editor Polish Blitz](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.3.0) |
@@ -421,7 +481,22 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.4.0 (Current - Beta)
+### v5.5.0 (Current - Beta)
+- 🤖 **AI Streaming** — Real-time token-by-token streaming for all 12 providers via SSE
+- 🤖 **AI Tool System** — 36 tools for file ops, git, GitHub, terminal, and code analysis
+- 🔒 **Password-Protected Sessions** — SHA-256 hashed passwords for collaboration
+- 🔒 **Session Management** — Timeout, max participants, kick, host transfer
+- 💾 **Mutual Collab Backup** — Both host and visitor save workspace to IndexedDB
+- ⚙️ **Settings Overhaul** — Sidebar navigation with 9 organized categories
+- ⚙️ **Terminal Config** — RAM, disk, network relay, boot-on-start in Settings
+- 📱 **Mobile Portrait UI** — Bottom tab bar, swipe gestures, full-screen editor
+- 📱 **Mobile Landscape UI** — Activity sidebar, split panel, resizable bottom panel
+- 🐧 **Setup Wizard** — First-boot user configuration (Root/Sudo/Restricted/Skip)
+- 🐧 **Custom Image Upload** — Load ISO/IMG files into v86 emulator
+- 🛡️ **FileBridge Security** — Path sanitization against shell injection
+- 🔧 **VS Code UI Polish** — Scrollable tabs, better resize handling, search bar
+
+### v5.4.0
 - 🐧 **Alpine Linux Terminal** — Real Linux via v86 x86 emulation in your browser
 - 🐧 **v86 Emulator** — WebAssembly-powered x86 emulator boots Alpine Linux
 - 📂 **File Bridge** — Push/pull files between Nexus workspace and Alpine filesystem
@@ -516,6 +591,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.4.0 — Alpine Linux in Your Browser**
+**v5.5.0 — The Freedom Update**
 
 </div>

@@ -46,6 +46,7 @@ import { airplaneModeService } from './services/airplaneModeService';
 import sessionPersistenceService from './services/sessionPersistenceService';
 import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
+import { MobilePortraitLayout, MobileLandscapeLayout } from './components/MobileLayout';
 import { cn } from './lib/utils';
 import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight, Terminal as TerminalIcon } from 'lucide-react';
 import JSZip from 'jszip';
@@ -118,6 +119,31 @@ export default function App() {
 
   // Keyboard shortcuts panel state
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+
+  // Mobile orientation detection (used when isTouchMode is true)
+  const [mobileOrientation, setMobileOrientation] = useState<'portrait' | 'landscape'>(() => {
+    if (typeof window !== 'undefined' && window.innerWidth > window.innerHeight) return 'landscape';
+    return 'portrait';
+  });
+  useEffect(() => {
+    const mq = window.matchMedia('(orientation: portrait)');
+    const updateOrientation = () => {
+      setMobileOrientation(mq.matches ? 'portrait' : 'landscape');
+    };
+    updateOrientation();
+    mq.addEventListener('change', updateOrientation);
+    const handleOrientationChange = () => {
+      const screenOrientation = (screen.orientation as any)?.type;
+      if (screenOrientation) {
+        setMobileOrientation(screenOrientation.includes('portrait') ? 'portrait' : 'landscape');
+      }
+    };
+    (screen.orientation as any)?.addEventListener('change', handleOrientationChange);
+    return () => {
+      mq.removeEventListener('change', updateOrientation);
+      (screen.orientation as any)?.removeEventListener('change', handleOrientationChange);
+    };
+  }, []);
 
   // Beginner UI state
   const [beginnerActivity, setBeginnerActivity] = useState<string>('files');
@@ -895,8 +921,18 @@ export default function App() {
                 {beginnerTool === 'collab' && (
                   <CollaborationView
                     sessionId={ide.sessionId} isJoining={false} joinId="" setJoinId={() => {}}
-                    onCreateSession={() => ide.setSessionId(socketService.createSession())}
+                    onCreateSession={(passwordHash?: string) => ide.setSessionId(socketService.createSession(passwordHash))}
                     onJoinSession={() => {}} onHostProject={() => {}} hostedUrl={ide.hostedUrl}
+                    files={files.map(f => ({ name: f.name, content: f.content }))}
+                    onRestoreFiles={(restoredFiles) => {
+                      restoredFiles.forEach(rf => {
+                        if (!files.find(ef => ef.name === rf.name)) addFile(rf.name, rf.content);
+                        else {
+                          const existing = files.find(ef => ef.name === rf.name);
+                          if (existing) updateFile(existing.id, rf.content);
+                        }
+                      });
+                    }}
                   />
                 )}
                 {beginnerTool === 'themes' && <ThemeStudio />}
@@ -985,6 +1021,100 @@ export default function App() {
           />
           <NotificationToasts />
         </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // === MOBILE TOUCH MODE (Portrait & Landscape) ===
+  if (ide.isTouchMode) {
+    const isNarrowPortrait = mobileOrientation === 'portrait' && window.innerWidth < 768;
+    const isLandscape = mobileOrientation === 'landscape' && window.innerWidth < 1024;
+
+    const mobileLayoutProps = {
+      files,
+      activeFileId: ide.activeFileId,
+      openFileIds: ide.openFileIds,
+      activeActivity: ide.activeActivity as string,
+      showSettings: ide.showSettings,
+      showTerminal: ide.showTerminal,
+      showAI: ide.showAI,
+      showSidebar: ide.showSidebar,
+      showPreview: ide.showPreview,
+      apiKeys: ide.apiKeys,
+      selectedAIProvider: ide.selectedAIProvider,
+      selectedModels: ide.selectedModels,
+      githubToken: ide.githubToken,
+      githubClientId: ide.githubClientId,
+      githubClientSecret: ide.githubClientSecret,
+      isOffline,
+      isFullLock,
+      airplaneModeEnabled,
+      ollamaUrl,
+      sessionSavedAt,
+      gitBranch: ide.gitBranch,
+      gitRepoName: ide.gitRepoName,
+      onHandleSelectFile: ide.handleSelectFile,
+      onCloseFile: ide.closeFile,
+      onAddFile: addFile,
+      onUpdateFile: (id: string, content: string, silent?: boolean) => updateFile(id, content, silent),
+      onDeleteFile: deleteFile,
+      onRenameFile: renameFile,
+      onOpenFolder: openDirectory,
+      onExport: exportAsZip,
+      onClearWorkspace: handleClearWorkspace,
+      onSaveWorkspace: () => handleSaveWorkspace(),
+      onShowSettings: () => ide.setShowSettings(true),
+      onCloseSettings: () => ide.setShowSettings(false),
+      setShowSidebar: ide.setShowSidebar,
+      setShowTerminal: ide.setShowTerminal,
+      setShowAI: ide.setShowAI,
+      setShowPreview: ide.setShowPreview,
+      setActiveActivity: (a: string) => ide.setActiveActivity(a as any),
+      setApiKey: ide.setApiKey,
+      setSelectedAIProvider: ide.setSelectedAIProvider,
+      setSelectedModels: ide.setSelectedModels,
+      setGithubToken: ide.setGithubToken,
+      setGithubClientId: ide.setGithubClientId,
+      setGithubClientSecret: ide.setGithubClientSecret,
+      setOllamaUrl,
+      onToggleAirplaneMode: handleToggleAirplaneMode,
+      onToggleFullLock: handleToggleFullLock,
+      setGitBranch: ide.setGitBranch,
+      setGitRepoName: ide.setGitRepoName,
+      setUiMode: ide.setUiMode,
+      toggleTouchMode: ide.toggleTouchMode,
+      aiAssistantRef,
+      onPendingActions: setPendingAiActions,
+      pendingAiActions,
+      onAcceptAiActions: async (actions: any[]) => {
+        if (aiAssistantRef.current) {
+          await aiAssistantRef.current.applyChanges(actions);
+          setPendingAiActions(null);
+        }
+      },
+      onRejectAiActions: () => setPendingAiActions(null),
+      onSetDiffData: ide.setDiffData,
+      activeFolder: ide.activeFolder,
+      setActiveFolder: ide.setActiveFolder,
+    };
+
+    if (isNarrowPortrait) {
+      return (
+        <ErrorBoundary>
+          <MobilePortraitLayout {...mobileLayoutProps} />
+        </ErrorBoundary>
+      );
+    } else if (isLandscape) {
+      return (
+        <ErrorBoundary>
+          <MobileLandscapeLayout {...mobileLayoutProps} />
+        </ErrorBoundary>
+      );
+    }
+    // Fallback: on larger screens in touch mode, use the landscape layout
+    return (
+      <ErrorBoundary>
+        <MobileLandscapeLayout {...mobileLayoutProps} />
       </ErrorBoundary>
     );
   }
@@ -1152,10 +1282,20 @@ export default function App() {
                   isJoining={false}
                   joinId=""
                   setJoinId={() => {}}
-                  onCreateSession={() => ide.setSessionId(socketService.createSession())}
+                  onCreateSession={(passwordHash?: string) => ide.setSessionId(socketService.createSession(passwordHash))}
                   onJoinSession={() => {}}
                   onHostProject={() => {}}
                   hostedUrl={ide.hostedUrl}
+                  files={files.map(f => ({ name: f.name, content: f.content }))}
+                  onRestoreFiles={(restoredFiles) => {
+                    restoredFiles.forEach(rf => {
+                      if (!files.find(ef => ef.name === rf.name)) addFile(rf.name, rf.content);
+                      else {
+                        const existing = files.find(ef => ef.name === rf.name);
+                        if (existing) updateFile(existing.id, rf.content);
+                      }
+                    });
+                  }}
                 />
               </div>
             )}

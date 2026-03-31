@@ -172,12 +172,25 @@ class FileBridgeService {
   // ─── Path Mapping ───────────────────────────────────────────────────────
 
   /**
+   * Sanitize a path segment to prevent shell injection.
+   * Strips characters that could be interpreted by the shell.
+   */
+  private sanitizePath(path: string): string {
+    return path.replace(/[;&|`$(){}<>!#'\"\\\n\r]/g, '');
+  }
+
+  /**
    * Map a local workspace-relative path to the full Alpine path.
+   * Sanitizes the path to prevent shell injection.
    *
    * Example: `src/App.tsx` → `/home/nexus/workspace/src/App.tsx`
    */
   mapToAlpine(localPath: string): string {
-    const normalized = normalizePath(localPath);
+    const normalized = this.sanitizePath(normalizePath(localPath));
+    if (normalized.includes('..')) {
+      this.warn('mapToAlpine> Path traversal blocked');
+      return `${this.config.alpineBasePath}/`;
+    }
     return `${this.config.alpineBasePath}/${normalized}`;
   }
 
@@ -233,6 +246,13 @@ class FileBridgeService {
    */
   private async executeCommand(command: string, timeout = 10000): Promise<string> {
     this.ensureRunning();
+
+    // Block dangerous shell metacharacters
+    const dangerous = /[;&|`$(){}<>!]/;
+    if (dangerous.test(command)) {
+      this.warn('executeCommand> Dangerous characters detected, sanitizing');
+      command = command.replace(/[;&|`$(){}<>!]/g, '');
+    }
 
     const id =
       Date.now().toString(36) +
@@ -312,8 +332,8 @@ class FileBridgeService {
     const dirs = extractDirectories(alpinePaths);
     if (dirs.length === 0) return;
 
-    const fullPaths = dirs.map(d => `${this.config.alpineBasePath}/${d}`);
-    const cmd = `mkdir -p ${fullPaths.join(' ')}`;
+    const fullPaths = dirs.map(d => `${this.config.alpineBasePath}/${this.sanitizePath(d)}`);
+    const cmd = `mkdir -p ${fullPaths.map(p => `"${p}"`).join(' ')}`;
     v86Service.sendInput(cmd + '\n');
     this.log(`Created directories for ${dirs.length} path(s)`);
   }
@@ -335,7 +355,7 @@ class FileBridgeService {
     // Ensure parent directory exists
     const dirPart = alpinePath.substring(0, alpinePath.lastIndexOf('/'));
     if (dirPart.length > 0) {
-      v86Service.sendInput(`mkdir -p ${dirPart}\n`);
+      v86Service.sendInput(`mkdir -p "${dirPart}"\n`);
     }
 
     v86Service.writeFile(alpinePath, content);
@@ -442,8 +462,9 @@ class FileBridgeService {
   deleteAlpineFile(alpinePath: string): void {
     this.ensureRunning();
 
-    this.log(`deleteAlpineFile> ${alpinePath}`);
-    v86Service.sendInput(`rm -f ${alpinePath}\n`);
+    const safePath = this.sanitizePath(alpinePath);
+    this.log(`deleteAlpineFile> ${safePath}`);
+    v86Service.sendInput(`rm -f "${safePath}"\n`);
   }
 
   // ─── Auto-Sync ──────────────────────────────────────────────────────────
@@ -527,9 +548,9 @@ class FileBridgeService {
   mkdir(path: string): void {
     this.ensureRunning();
 
-    const alpinePath = path.startsWith('/') ? path : this.mapToAlpine(path);
+    const alpinePath = path.startsWith('/') ? this.sanitizePath(path) : this.mapToAlpine(path);
     this.log(`mkdir> ${alpinePath}`);
-    v86Service.sendInput(`mkdir -p ${alpinePath}\n`);
+    v86Service.sendInput(`mkdir -p "${alpinePath}"\n`);
   }
 
   /**
@@ -541,10 +562,10 @@ class FileBridgeService {
   async listFiles(path?: string): Promise<DirectoryEntry[]> {
     this.ensureRunning();
 
-    const target = path ? (path.startsWith('/') ? path : this.mapToAlpine(path)) : this.config.alpineBasePath;
+    const target = path ? (path.startsWith('/') ? this.sanitizePath(path) : this.mapToAlpine(path)) : this.config.alpineBasePath;
     this.log(`listFiles> ${target}`);
 
-    const output = await this.executeCommand(`ls -la ${target}`);
+    const output = await this.executeCommand(`ls -la "${target}"`);
 
     // Parse `ls -la` output
     // Typical busybox ls -la line:

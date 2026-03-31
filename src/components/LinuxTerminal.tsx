@@ -28,6 +28,11 @@ import {
   Terminal as TerminalIcon,
   ImagePlus,
   Trash2,
+  Zap,
+  Shield,
+  Lock,
+  ArrowRight,
+  Check,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -172,6 +177,14 @@ export default function LinuxTerminal({
   // ── Disk Usage ────────────────────────────────────────────────────────────────
   const [diskUsage, setDiskUsage] = useState<{ used: string; total: string; percent: number } | null>(null);
 
+  // ── Setup Wizard State ──────────────────────────────────────────────────────────
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1);
+  const [selectedUserMode, setSelectedUserMode] = useState<'root' | 'sudo' | 'restricted'>('root');
+  const [wizardUsername, setWizardUsername] = useState('');
+  const [wizardPassword, setWizardPassword] = useState('');
+  const [isWizardCreating, setIsWizardCreating] = useState(false);
+
   // ── Subscribe to v86 status changes ───────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
@@ -186,6 +199,18 @@ export default function LinuxTerminal({
       }
     }, 500);
     return () => clearInterval(interval);
+  }, [status]);
+
+  // ── Show setup wizard on first boot ──────────────────────────────────────────
+  useEffect(() => {
+    if (status === 'running') {
+      const setupDone = localStorage.getItem('nexus_linux_setup_done');
+      if (!setupDone) {
+        // Small delay to let terminal settle after boot
+        const timer = setTimeout(() => setShowWizard(true), 800);
+        return () => clearTimeout(timer);
+      }
+    }
   }, [status]);
 
   // ── Subscribe to fileBridge sync events ───────────────────────────────────────
@@ -812,6 +837,59 @@ export default function LinuxTerminal({
     setActiveSidePanel(prev => prev === panel ? null : panel);
   }, []);
 
+  // ── Setup Wizard: Skip setup (stay as root, close immediately) ───────────────
+  const handleSkipSetup = useCallback(() => {
+    localStorage.setItem('nexus_linux_setup_done', 'true');
+    setShowWizard(false);
+  }, []);
+
+  // ── Setup Wizard: Finish setup (create user if needed) ────────────────────────
+  const handleFinishSetup = useCallback(() => {
+    if (selectedUserMode === 'root') {
+      // Root mode — just mark as done and close
+      localStorage.setItem('nexus_linux_setup_done', 'true');
+      setShowWizard(false);
+      return;
+    }
+
+    if (!wizardUsername.trim()) return;
+    setIsWizardCreating(true);
+
+    const uname = wizardUsername.trim();
+    const pwd = wizardPassword;
+
+    // Chain commands with delays for the Alpine shell to process each one
+    setTimeout(() => {
+      // Create user with home directory (no interactive prompt)
+      v86Service.sendInput(`adduser -D ${uname}\n`);
+      setTimeout(() => {
+        // Set password if provided
+        if (pwd) {
+          v86Service.sendInput(`echo '${uname}:${pwd}' | chpasswd\n`);
+        }
+        setTimeout(() => {
+          if (selectedUserMode === 'sudo') {
+            // Install sudo and configure
+            v86Service.sendInput('apk add sudo 2>/dev/null\n');
+            setTimeout(() => {
+              v86Service.sendInput(`echo '${uname} ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers\n`);
+              setTimeout(() => {
+                localStorage.setItem('nexus_linux_setup_done', 'true');
+                setShowWizard(false);
+                setIsWizardCreating(false);
+              }, 1500);
+            }, 3000);
+          } else {
+            // Restricted user — no sudo needed
+            localStorage.setItem('nexus_linux_setup_done', 'true');
+            setShowWizard(false);
+            setIsWizardCreating(false);
+          }
+        }, 1500);
+      }, 1000);
+    }, 500);
+  }, [selectedUserMode, wizardUsername, wizardPassword]);
+
   // ── Format file size ──────────────────────────────────────────────────────────
   const formatFileSize = useCallback((bytes?: number) => {
     if (bytes === undefined || bytes === null) return '—';
@@ -1258,6 +1336,23 @@ export default function LinuxTerminal({
               <span className="text-[9px] text-emerald-400 font-bold">Running</span>
             </div>
           )}
+
+          {/* ─── First-Boot Setup Wizard ─────────────────────────────────────── */}
+          {showWizard && status === 'running' && (
+            <SetupWizard
+              step={wizardStep}
+              setStep={setWizardStep}
+              selectedUserMode={selectedUserMode}
+              setSelectedUserMode={setSelectedUserMode}
+              username={wizardUsername}
+              setUsername={setWizardUsername}
+              password={wizardPassword}
+              setPassword={setWizardPassword}
+              isCreating={isWizardCreating}
+              onSkip={handleSkipSetup}
+              onFinish={handleFinishSetup}
+            />
+          )}
         </div>
       </div>
 
@@ -1641,5 +1736,263 @@ function FileIcon({ name }: { name: string }) {
     <svg className={cn('w-3 h-3 flex-shrink-0', color)} viewBox="0 0 24 24" fill="currentColor">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z" />
     </svg>
+  );
+}
+
+/** First-boot setup wizard — shown as overlay on the terminal after first VM boot */
+function SetupWizard({
+  step,
+  setStep,
+  selectedUserMode,
+  setSelectedUserMode,
+  username,
+  setUsername,
+  password,
+  setPassword,
+  isCreating,
+  onSkip,
+  onFinish,
+}: {
+  step: number;
+  setStep: (s: number) => void;
+  selectedUserMode: 'root' | 'sudo' | 'restricted';
+  setSelectedUserMode: (m: 'root' | 'sudo' | 'restricted') => void;
+  username: string;
+  setUsername: (u: string) => void;
+  password: string;
+  setPassword: (p: string) => void;
+  isCreating: boolean;
+  onSkip: () => void;
+  onFinish: () => void;
+}) {
+  const modes: Array<{
+    id: 'root' | 'sudo' | 'restricted';
+    icon: React.ReactNode;
+    label: string;
+    description: string;
+    activeBorder: string;
+    activeBg: string;
+  }> = [
+    {
+      id: 'root',
+      icon: <Zap size={20} className="text-gray-400" />,
+      label: 'Stay as Root',
+      description: 'No user created. Full system access as root.',
+      activeBorder: 'border-emerald-500/60',
+      activeBg: 'bg-emerald-950/30',
+    },
+    {
+      id: 'sudo',
+      icon: <Shield size={20} className="text-amber-400" />,
+      label: 'Create User with sudo',
+      description: 'User gets full admin rights via sudo.',
+      activeBorder: 'border-amber-500/60',
+      activeBg: 'bg-amber-950/30',
+    },
+    {
+      id: 'restricted',
+      icon: <Lock size={20} className="text-cyan-400" />,
+      label: 'Create User without sudo',
+      description: 'Standard user, no admin privileges.',
+      activeBorder: 'border-cyan-500/60',
+      activeBg: 'bg-cyan-950/30',
+    },
+  ];
+
+  const needsUserFields = selectedUserMode !== 'root';
+  const canContinue = selectedUserMode === 'root' || username.trim().length > 0;
+
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="w-full max-w-md mx-4 bg-[#12121e] border border-nexus-border rounded-xl shadow-2xl overflow-hidden">
+        {/* ── Header ── */}
+        <div className="px-6 pt-5 pb-4 border-b border-nexus-border bg-[#0f0f1a]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+              <Monitor size={20} className="text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-white text-sm font-bold leading-tight">Nexus Linux Setup</h2>
+              <p className="text-[10px] text-nexus-text-muted mt-0.5">
+                Step {step} of 2 &mdash; {step === 1 ? 'User Setup' : 'All Done'}
+              </p>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-emerald-500 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${step === 1 ? 50 : 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* ── Body ── */}
+        <div className="p-6">
+          {/* ──────── STEP 1: User Setup ──────── */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-white text-sm font-bold mb-1">Choose your user mode</h3>
+                <p className="text-[11px] text-nexus-text-muted leading-relaxed">
+                  Select how you want to use your Linux environment. You can always create users manually later.
+                </p>
+              </div>
+
+              {/* Mode cards */}
+              <div className="space-y-2">
+                {modes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setSelectedUserMode(mode.id)}
+                    className={cn(
+                      'w-full flex items-start gap-3 p-3 rounded-lg border transition-all text-left',
+                      selectedUserMode === mode.id
+                        ? `${mode.activeBorder} ${mode.activeBg} ring-1 ring-nexus-border/30`
+                        : 'border-nexus-border/40 bg-nexus-bg/40 hover:bg-nexus-border/10'
+                    )}
+                  >
+                    <div className="mt-0.5 flex-shrink-0">{mode.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-xs font-bold">{mode.label}</p>
+                      <p className="text-[10px] text-nexus-text-muted mt-0.5 leading-relaxed">{mode.description}</p>
+                    </div>
+                    {/* Radio indicator */}
+                    <div
+                      className={cn(
+                        'w-4 h-4 rounded-full border-2 mt-0.5 flex-shrink-0 flex items-center justify-center transition-all',
+                        selectedUserMode === mode.id ? 'border-emerald-500 bg-emerald-500' : 'border-gray-600'
+                      )}
+                    >
+                      {selectedUserMode === mode.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Username & password fields (when a user mode is selected) */}
+              {needsUserFields && (
+                <div className="space-y-3 p-3 rounded-lg bg-nexus-bg/50 border border-nexus-border/30">
+                  <div>
+                    <label className="block text-[10px] font-bold text-nexus-text-muted uppercase tracking-wider mb-1.5">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                      placeholder="e.g. nexus"
+                      autoComplete="off"
+                      spellCheck={false}
+                      className="w-full bg-[#0a0a0f] border border-nexus-border rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-nexus-text-muted uppercase tracking-wider mb-1.5">
+                      Password <span className="text-gray-600 normal-case tracking-normal">(optional)</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Leave empty for no password"
+                      className="w-full bg-[#0a0a0f] border border-nexus-border rounded-lg px-3 py-2 text-xs text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500/50 transition-colors"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-1">
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  className="text-[11px] text-nexus-text-muted hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Don't want user setup
+                  <ArrowRight size={10} className="rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  disabled={!canContinue}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  Continue
+                  <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ──────── STEP 2: Welcome Screen ──────── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              {/* Success icon & message */}
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-600/20 border-2 border-emerald-500/40 flex items-center justify-center mb-4">
+                  <Check size={32} className="text-emerald-400" />
+                </div>
+                <h3 className="text-white text-lg font-bold">Nexus Linux is Ready!</h3>
+                <p className="text-[11px] text-nexus-text-muted mt-1.5 leading-relaxed max-w-xs">
+                  {selectedUserMode === 'root'
+                    ? 'You are running as root with full system access. Be careful with administrative commands.'
+                    : selectedUserMode === 'sudo'
+                      ? `User "${username}" will be created with sudo privileges. You can run admin commands with sudo.`
+                      : `User "${username}" will be created as a standard user with limited privileges.`}
+                </p>
+              </div>
+
+              {/* Tips card */}
+              <div className="space-y-2.5 p-4 rounded-lg bg-nexus-bg/50 border border-nexus-border/30">
+                <p className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-wider">Quick Tips</p>
+                <div className="space-y-2">
+                  <TipItem text="Use apk add &lt;pkg&gt; to install packages" />
+                  <TipItem text="Push files from workspace using the Push button in the toolbar" />
+                  <TipItem text="Toggle the side panels for file browser and package manager" />
+                  {selectedUserMode === 'sudo' && (
+                    <TipItem text={`Switch user with: su - ${username}`} />
+                  )}
+                  {selectedUserMode === 'restricted' && (
+                    <TipItem text="Contact root for any admin operations you may need" />
+                  )}
+                </div>
+              </div>
+
+              {/* Finish button */}
+              <button
+                type="button"
+                onClick={onFinish}
+                disabled={isCreating}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-60 disabled:cursor-wait shadow-sm"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Creating user…
+                  </>
+                ) : (
+                  <>
+                    <Check size={14} />
+                    Finish Setup
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Small tip item for the setup wizard welcome screen */
+function TipItem({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <div className="w-1 h-1 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0" />
+      <p className="text-[11px] text-gray-400 leading-relaxed" dangerouslySetInnerHTML={{ __html: text }} />
+    </div>
   );
 }
