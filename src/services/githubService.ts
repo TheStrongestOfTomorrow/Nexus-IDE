@@ -196,14 +196,53 @@ export const githubService = {
   // Auth
   // --------------------------------------------------------
 
+  /** OAuth Device Flow — Step 1: Request device code */
+  startDeviceFlow: async (clientId: string): Promise<{ userCode: string; verificationUri: string; deviceCode: string; interval: number }> => {
+    const response = await axios.post('https://github.com/login/device/code', {
+      client_id: clientId,
+      scope: 'repo,user,read:org',
+    }, {
+      headers: { Accept: 'application/json' },
+    });
+    return {
+      userCode: response.data.user_code,
+      verificationUri: response.data.verification_uri,
+      deviceCode: response.data.device_code,
+      interval: response.data.interval || 5,
+    };
+  },
+
+  /** OAuth Device Flow — Step 2: Poll for access token */
+  pollDeviceToken: async (clientId: string, deviceCode: string): Promise<string> => {
+    const response = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: clientId,
+      device_code: deviceCode,
+      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+    }, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (response.data.error) {
+      if (response.data.error === 'authorization_pending') {
+        throw new Error('pending');
+      }
+      if (response.data.error === 'slow_down') {
+        throw new Error('slow_down');
+      }
+      throw new Error(response.data.error_description || response.data.error);
+    }
+
+    return response.data.access_token;
+  },
+
   /** Get the GitHub OAuth authorization URL (only works with a backend server) */
   getAuthUrl: async (): Promise<string> => {
     try {
       const response = await axios.get('/api/auth/github/url');
       return response.data.url;
     } catch {
-      // No backend server (GitHub Pages, etc.) — OAuth not available
-      throw new Error('OAuth requires a backend server. Use a Personal Access Token (PAT) instead.');
+      // No backend server — fall back to Device Flow
+      throw new Error('OAuth requires a backend server. Use a Personal Access Token (PAT) or Device Flow instead.');
     }
   },
 

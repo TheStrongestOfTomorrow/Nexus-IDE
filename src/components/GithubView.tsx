@@ -255,11 +255,16 @@ export default function GithubView({
   const [patInput, setPatInput] = useState('');
   const [patError, setPatError] = useState('');
 
+  // Device Flow state
+  const [deviceState, setDeviceState] = useState<'idle' | 'pending' | 'polling' | 'success' | 'error'>('idle');
+  const [deviceUserCode, setDeviceUserCode] = useState('');
+  const [deviceVerificationUri, setDeviceVerificationUri] = useState('');
+  const [deviceError, setDeviceError] = useState('');
+
   const handleConnectPAT = async () => {
     if (!patInput.trim()) return;
     setPatError('');
     try {
-      // Validate the token by fetching user info
       const userData = await githubService.getUser(patInput.trim());
       localStorage.setItem('nexus_github_token', patInput.trim());
       setToken(patInput.trim());
@@ -270,6 +275,54 @@ export default function GithubView({
       setPatInput('');
     } catch {
       setPatError('Invalid token. Check your PAT and try again.');
+    }
+  };
+
+  const handleDeviceFlow = async () => {
+    const clientId = localStorage.getItem('nexus_github_client_id') || '';
+    if (!clientId) {
+      setDeviceError('Set a GitHub OAuth Client ID in Settings → General first.');
+      return;
+    }
+    setDeviceError('');
+    setDeviceState('pending');
+    try {
+      const { userCode, verificationUri, deviceCode, interval } = await githubService.startDeviceFlow(clientId);
+      setDeviceUserCode(userCode);
+      setDeviceVerificationUri(verificationUri);
+      setDeviceState('polling');
+
+      // Open the verification page
+      window.open(verificationUri, '_blank');
+
+      // Poll for token
+      const poll = async () => {
+        try {
+          const accessToken = await githubService.pollDeviceToken(clientId, deviceCode);
+          localStorage.setItem('nexus_github_token', accessToken);
+          setToken(accessToken);
+          setDeviceState('success');
+          // Fetch user data
+          const userData = await githubService.getUser(accessToken);
+          setUser(userData);
+          onUserUpdate(userData);
+          const reposData = await githubService.getRepos(accessToken);
+          setRepos(reposData);
+        } catch (err: any) {
+          if (err.message === 'pending' || err.message === 'slow_down') {
+            // Keep polling
+            const delay = err.message === 'slow_down' ? (interval + 5) * 1000 : interval * 1000;
+            setTimeout(poll, delay);
+          } else {
+            setDeviceState('error');
+            setDeviceError(err.message || 'Device flow failed');
+          }
+        }
+      };
+      setTimeout(poll, interval * 1000);
+    } catch (err: any) {
+      setDeviceState('error');
+      setDeviceError(err.message || 'Failed to start device flow');
     }
   };
 
@@ -637,8 +690,8 @@ export default function GithubView({
 
   if (!token) {
     return (
-      <div className="p-6 flex flex-col items-center justify-center h-full text-center space-y-4 bg-[#252526]">
-        <div className="w-16 h-16 bg-[#3c3c3c] rounded-2xl flex items-center justify-center border border-[#474747] shadow-xl mb-4">
+      <div className="p-6 flex flex-col items-center justify-center h-full text-center space-y-3 bg-[#252526]">
+        <div className="w-16 h-16 bg-[#3c3c3c] rounded-2xl flex items-center justify-center border border-[#474747] shadow-xl mb-2">
           <Github size={32} className="text-[#cccccc]" />
         </div>
         <h2 className="text-lg font-bold text-white uppercase tracking-wider">Source Control</h2>
@@ -646,7 +699,68 @@ export default function GithubView({
           Connect your GitHub account to clone repositories, commit changes, manage branches, and more.
         </p>
 
-        {/* PAT Input — works everywhere including GitHub Pages */}
+        {/* OAuth Device Flow — works on GitHub Pages, no backend needed */}
+        {deviceState === 'idle' || deviceState === 'error' ? (
+          <button
+            onClick={handleDeviceFlow}
+            className="w-full max-w-[280px] bg-[#2ea44f] hover:bg-[#2c974b] text-white px-6 py-2.5 rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg text-sm"
+          >
+            <Github size={18} />
+            Sign in with GitHub
+          </button>
+        ) : null}
+
+        {/* Device Flow polling state */}
+        {deviceState === 'pending' && (
+          <div className="w-full max-w-[280px] space-y-2">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 size={16} className="animate-spin text-[#2ea44f]" />
+              <span className="text-xs text-[#aaa]">Requesting device code...</span>
+            </div>
+          </div>
+        )}
+
+        {deviceState === 'polling' && (
+          <div className="w-full max-w-[280px] bg-[#3c3c3c] border border-[#474747] rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <Loader2 size={14} className="animate-spin text-[#2ea44f]" />
+              <span className="text-xs text-[#aaa]">Waiting for authorization...</span>
+            </div>
+            <div className="bg-[#252526] rounded-lg p-3 border border-[#555]">
+              <p className="text-[10px] text-[#888] mb-1">Enter this code on GitHub:</p>
+              <p className="text-2xl font-mono font-bold text-[#58a6ff] tracking-[0.3em] text-center">{deviceUserCode}</p>
+            </div>
+            <a
+              href={deviceVerificationUri}
+              target="_blank"
+              rel="noopener"
+              className="block text-center text-xs text-[#58a6ff] hover:underline"
+            >
+              Open github.com to authorize →
+            </a>
+          </div>
+        )}
+
+        {deviceState === 'success' && (
+          <div className="w-full max-w-[280px] bg-[#238636]/20 border border-[#2ea44f]/40 rounded-xl p-3 text-center">
+            <p className="text-xs text-[#2ea44f] font-bold">✓ Connected via GitHub OAuth!</p>
+          </div>
+        )}
+
+        {deviceError && deviceState !== 'success' && (
+          <p className="text-[10px] text-red-400 max-w-[280px]">{deviceError}</p>
+        )}
+
+        {/* Divider */}
+        {deviceState === 'idle' || deviceState === 'error' ? (
+          <div className="flex items-center gap-2 w-full max-w-[280px]">
+            <div className="flex-1 h-px bg-[#474747]" />
+            <span className="text-[10px] text-[#666]">or use PAT</span>
+            <div className="flex-1 h-px bg-[#474747]" />
+          </div>
+        ) : null}
+
+        {/* PAT Input — always works */}
         <div className="w-full max-w-[280px] space-y-2">
           <div className="relative">
             <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#858585]" />
@@ -662,7 +776,7 @@ export default function GithubView({
           <button
             onClick={handleConnectPAT}
             disabled={!patInput.trim()}
-            className="w-full bg-[#007acc] hover:bg-[#006abc] disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2"
+            className="w-full bg-[#30363d] hover:bg-[#3c444d] disabled:opacity-40 disabled:cursor-not-allowed text-[#ccc] px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2 border border-[#474747]"
           >
             <Key size={14} />
             Connect with PAT
@@ -670,22 +784,9 @@ export default function GithubView({
           {patError && <p className="text-[10px] text-red-400">{patError}</p>}
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-2 w-full max-w-[280px]">
-          <div className="flex-1 h-px bg-[#474747]" />
-          <span className="text-[10px] text-[#666]">or</span>
-          <div className="flex-1 h-px bg-[#474747]" />
-        </div>
-
-        {/* OAuth — only works with backend server */}
-        <button
-          onClick={handleConnect}
-          className="bg-[#2ea44f] hover:bg-[#2c974b] text-white px-6 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg text-sm"
-        >
-          <Github size={18} />
-          Connect via OAuth
-        </button>
-        <p className="text-[9px] text-[#555] italic">OAuth requires a backend server. Use PAT on GitHub Pages.</p>
+        <p className="text-[9px] text-[#555] italic max-w-[260px]">
+          Device Flow requires an OAuth Client ID in Settings → General. PAT works instantly.
+        </p>
       </div>
     );
   }

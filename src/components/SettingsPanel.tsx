@@ -329,10 +329,10 @@ export default function SettingsPanel({
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#24292e] hover:bg-[#2f363d] text-white rounded-xl text-xs font-bold transition-all shadow-md group"
             >
               <Github size={16} className="group-hover:scale-110 transition-transform" />
-              Connect with GitHub OAuth
+              Sign in with GitHub OAuth
             </button>
             <p className="text-[9px] text-center text-nexus-text-muted mt-2">
-              Connect your GitHub account in seconds for easy repo management.
+              Set a Client ID above, then use &quot;Sign in with GitHub&quot; in the Source Control panel. Uses Device Flow — no backend needed.
             </p>
           </div>
         </div>
