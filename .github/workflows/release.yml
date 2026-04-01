@@ -41,7 +41,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
+          cache: 'npm'
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -78,7 +79,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps
@@ -90,23 +92,27 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          java-version: '17'
 
       - name: Sync Capacitor
-        run: |
-          npx cap add android || echo "Android platform already exists"
-          npx cap sync android
+        run: npx cap sync android
 
-      - name: Build Android APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease
+      - name: Build Android APK (Debug)
+        working-directory: android
+        run: ./gradlew assembleDebug
 
-      - name: Upload APK artifact (unsigned)
+      - name: Build Android APK (Release)
+        working-directory: android
+        run: ./gradlew assembleRelease
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-ide-android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: nexus-ide-android-release

@@ -291,17 +291,21 @@ export default function LinuxTerminal({
     term.open(terminalRef.current);
 
     // CRITICAL: Auto-focus the terminal so keyboard input works immediately
-    // The VS Code layout parent has select-none which can block xterm input
     setTimeout(() => {
       term.focus();
-    }, 100);
+    }, 150);
 
-    // Also focus on click to handle cases where focus is lost
-    terminalRef.current.addEventListener('mousedown', (e) => {
-      // Only focus if clicking directly on the terminal container or xterm
-      if (!term.element?.contains(e.target as Node) && e.target !== terminalRef.current) return;
+    // Also focus on click — use capture phase to intercept before any parent handler
+    terminalRef.current.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       term.focus();
-    });
+    }, true);
+
+    // Focus on any key event that reaches the terminal container
+    terminalRef.current.addEventListener('keydown', (e) => {
+      term.focus();
+    }, true);
 
     // Delay fit to ensure DOM is ready
     const fitTimer = setTimeout(() => fitAddon.fit(), 50);

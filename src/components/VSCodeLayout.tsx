@@ -846,7 +846,7 @@ export default function VSCodeLayout({
   };
 
   return (
-    <div className="nexus-vscode-root flex flex-col h-screen w-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc] select-none" style={{ gridTemplateRows: 'auto 1fr auto', display: 'grid' }}>
+    <div className="nexus-vscode-root flex flex-col h-screen w-screen overflow-hidden bg-[#1e1e1e] text-[#cccccc]" style={{ gridTemplateRows: 'auto 1fr auto', display: 'grid' }}>
       {/* ─── Menu Bar ──────────────────────────────────────────── */}
       <VSCodeMenuBar onQuickOpen={isCommandPaletteOpen ? undefined : () => onSetIsCommandPaletteOpen(true)} />
 
