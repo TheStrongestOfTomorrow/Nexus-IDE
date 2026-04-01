@@ -609,7 +609,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         method: 'POST',
         headers: { 'Authorization': `Bearer ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `🤖 Nexus AI: ${changeSummary}\n\nApplied via Nexus IDE AI Assistant (v5.5.0)`,
+          message: `🤖 Nexus AI: ${changeSummary}\n\nApplied via Nexus IDE AI Assistant (v5.5.5)`,
           tree: treeData.sha,
           parents: [latestCommitSha]
         })

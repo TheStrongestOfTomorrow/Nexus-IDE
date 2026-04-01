@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Nexus IDE",
-    "version": "5.5.0"
+    "version": "5.5.5"
   },
   "tauri": {
     "capabilities": {
@@ -81,7 +81,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.nexus-ide.app",
-      "longDescription": "Nexus IDE v5.5.0 — The Freedom Update. AI streaming, 36 AI tools, secure collaboration, mobile UI, terminal freedom, and redesigned settings.",
+      "longDescription": "Nexus IDE v5.5.5 — The Freedom Update. AI streaming, 36 AI tools, secure collaboration, mobile UI, terminal freedom, and redesigned settings.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",

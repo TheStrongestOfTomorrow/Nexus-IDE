@@ -1,5 +1,5 @@
 /**
- * WebContainer Service for Nexus IDE v5.5.0
+ * WebContainer Service for Nexus IDE v5.5.5
  * Provides a browser-based Node.js runtime using StackBlitz WebContainer API.
  * Modernized with output buffer cap, stdin support, process kill, status tracking,
  * command execution, and improved error handling.

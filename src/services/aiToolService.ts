@@ -1,5 +1,5 @@
 /**
- * AI Tool Use System for Nexus IDE v5.5.0
+ * AI Tool Use System for Nexus IDE v5.5.5
  *
  * Defines all available tools that the AI assistant can invoke during
  * a conversation. Each tool has a name, description, and parameter schema.
@@ -313,7 +313,7 @@ const UI_TOOLS: AIToolDefinition[] = [
   },
 ];
 
-// ─── New Tool Categories (v5.5.0) ───────────────────────────────────────────
+// ─── New Tool Categories (v5.5.5) ───────────────────────────────────────────
 
 const WEB_TOOLS: AIToolDefinition[] = [
   {

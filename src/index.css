@@ -81,7 +81,7 @@
   display: none;
 }
 
-/* ─── VS Code Layout v5.5.0 ────────────────────────────── */
+/* ─── VS Code Layout v5.5.5 ────────────────────────────── */
 .nexus-vscode-root {
   display: grid;
   grid-template-rows: 32px 1fr 22px;
@@ -120,7 +120,7 @@
   background-color: rgba(0, 122, 204, 0.5);
 }
 
-/* ─── Mobile UI v5.5.0 ───────────────────────────────────── */
+/* ─── Mobile UI v5.5.5 ───────────────────────────────────── */
 
 /* Mobile portrait: bottom tabs layout */
 .nexus-mobile-portrait {

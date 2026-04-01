@@ -181,7 +181,7 @@ function VSCodeMenuBar({ onQuickOpen }: { onQuickOpen?: () => void }) {
           <Sparkles size={11} className="text-white" />
         </div>
         <span className="text-[12px] font-semibold text-white tracking-tight">
-          Nexus IDE 5.5.0
+          Nexus IDE 5.5.5
         </span>
       </div>
 
@@ -661,7 +661,7 @@ function VSCodeWelcomeTab() {
         <div className="w-20 h-20 mx-auto rounded-2xl bg-[#007acc]/20 flex items-center justify-center">
           <Sparkles size={36} className="text-[#007acc]" />
         </div>
-        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.5.0</h1>
+        <h1 className="text-3xl font-light tracking-tight text-white">Nexus IDE 5.5.5</h1>
         <p className="text-sm text-[#858585] leading-relaxed">
           AI-powered code editor with real Alpine Linux, split view, and enhanced editor features.
         </p>
