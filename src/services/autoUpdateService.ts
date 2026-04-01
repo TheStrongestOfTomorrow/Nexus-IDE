@@ -29,7 +29,7 @@ export interface UpdateCheckResult {
 type UpdateListener = (result: UpdateCheckResult) => void;
 
 class AutoUpdateService {
-  private static CURRENT_VERSION = '5.4.0';
+  private static CURRENT_VERSION = '5.5.5';
   private static REPO = 'TheStrongestOfTomorrow/Nexus-IDE';
   private listeners: Set<UpdateListener> = new Set();
   private lastCheckResult: UpdateCheckResult | null = null;
@@ -130,7 +130,7 @@ class AutoUpdateService {
 
   async checkForUpdates(): Promise<UpdateCheckResult> {
     try {
-      const response = await fetch(`/api/github-proxy/latest-release`, {
+      const response = await fetch(`https://api.github.com/repos/${AutoUpdateService.REPO}/releases/latest`, {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
         }

@@ -372,7 +372,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         case 'github_create_issue': {
           if (!githubToken || !githubRepo) return { toolCallId: id, name, result: 'Error: No GitHub token or repo configured.', isError: true };
           const [owner, repo] = githubRepo.split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/issues`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `token ${githubToken}` },
             body: JSON.stringify({ title: args.title, body: args.body || '' }),
@@ -385,7 +385,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
           if (!githubToken || !githubRepo) return { toolCallId: id, name, result: 'Error: No GitHub token or repo configured.', isError: true };
           const [owner, repo] = githubRepo.split('/');
           const state = args.state || 'open';
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/issues?state=${state}`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=${state}`, {
             headers: { Authorization: `token ${githubToken}` },
           });
           if (!res.ok) return { toolCallId: id, name, result: `Error: ${res.status}`, isError: true };
@@ -396,7 +396,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         case 'github_create_pr': {
           if (!githubToken || !githubRepo) return { toolCallId: id, name, result: 'Error: No GitHub token or repo configured.', isError: true };
           const [owner, repo] = githubRepo.split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/pulls`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `token ${githubToken}` },
             body: JSON.stringify({ title: args.title, body: args.body || '', head: args.head, base: args.base }),
@@ -408,7 +408,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         case 'github_list_prs': {
           if (!githubToken || !githubRepo) return { toolCallId: id, name, result: 'Error: No GitHub token or repo configured.', isError: true };
           const [owner, repo] = githubRepo.split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/pulls?state=${args.state || 'open'}`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls?state=${args.state || 'open'}`, {
             headers: { Authorization: `token ${githubToken}` },
           });
           if (!res.ok) return { toolCallId: id, name, result: `Error: ${res.status}`, isError: true };
@@ -426,7 +426,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         }
         case 'github_read_file': {
           const [owner, repo] = (args.repo || githubRepo).split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/contents/${args.path}`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${args.path}`, {
             headers: { Authorization: `token ${githubToken}` },
           });
           if (!res.ok) return { toolCallId: id, name, result: `Error: ${res.status}`, isError: true };
@@ -440,7 +440,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         case 'github_create_file': {
           if (!githubToken) return { toolCallId: id, name, result: 'Error: No GitHub token configured.', isError: true };
           const [owner, repo] = (args.repo || githubRepo).split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/contents/${args.path}`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${args.path}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: `token ${githubToken}` },
             body: JSON.stringify({ message: args.message, content: btoa(unescape(encodeURIComponent(args.content))) }),
@@ -452,7 +452,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         case 'github_list_branches': {
           if (!githubToken) return { toolCallId: id, name, result: 'Error: No GitHub token configured.', isError: true };
           const [owner, repo] = (args.repo || githubRepo).split('/');
-          const res = await fetch(`/api/github/repos/${owner}/${repo}/branches`, {
+          const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches`, {
             headers: { Authorization: `token ${githubToken}` },
           });
           if (!res.ok) return { toolCallId: id, name, result: `Error: ${res.status}`, isError: true };

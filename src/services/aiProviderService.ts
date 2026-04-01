@@ -42,44 +42,36 @@ const OPENAI_COMPATIBLE_PROVIDERS = [
   'together', 'cerebras', 'perplexity'
 ];
 
+// Providers known to support CORS from browsers
+const CORS_FRIENDLY_PROVIDERS = ['gemini', 'anthropic'];
+
 class AIProviderService {
+  /**
+   * Get the user-configured CORS proxy URL, or the default one.
+   * Returns empty string if no proxy should be used.
+   */
+  private getCorsProxy(): string {
+    try {
+      return localStorage.getItem('nexus_cors_proxy') || 'https://corsproxy.io/?';
+    } catch {
+      return 'https://corsproxy.io/?';
+    }
+  }
+
+  /**
+   * Wrap a URL with the CORS proxy if needed.
+   * Only proxies non-CORS-friendly providers.
+   */
+  private proxiedUrl(provider: string, url: string): string {
+    if (CORS_FRIENDLY_PROVIDERS.includes(provider)) return url;
+    const proxy = this.getCorsProxy();
+    if (!proxy) return url;
+    return `${proxy}${encodeURIComponent(url)}`;
+  }
+
   private async callProxy(provider: string, config: AIProviderConfig, body: any): Promise<any> {
-    const isStatic = window.location.host.includes('github.io') || 
-                    window.location.host.includes('vercel.app') || 
-                    window.location.host.includes('netlify.app');
-
-    // If static mode, try direct API calls
-    if (isStatic) {
-      return this.callDirect(provider, config, body);
-    }
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${config.apiKey}`
-    };
-
-    if (provider === 'ollama' && config.baseURL) {
-      headers['x-ollama-url'] = config.baseURL;
-    }
-
-    const response = await fetch(`/api/ai/${provider}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      let errorMsg = `${provider} API error: ${response.statusText}`;
-      try {
-        const error = await response.json();
-        errorMsg = error.error?.message || error.error || errorMsg;
-      } catch {
-        // Response body is not JSON, use status text
-      }
-      throw new Error(errorMsg);
-    }
-
-    return response.json();
+    // Always use direct calls — works with CORS proxy for static hosting
+    return this.callDirect(provider, config, body);
   }
 
   private async callDirect(provider: string, config: AIProviderConfig, body: any): Promise<any> {
@@ -142,7 +134,10 @@ class AIProviderService {
         throw new Error(`Direct calls not supported for ${provider}`);
     }
 
-    const response = await fetch(url, {
+    // Apply CORS proxy for non-CORS-friendly providers
+    const fetchUrl = this.proxiedUrl(provider, url);
+
+    const response = await fetch(fetchUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(body)
@@ -160,6 +155,24 @@ class AIProviderService {
     }
 
     return response.json();
+  }
+
+  /** Get the current CORS proxy URL setting */
+  getCorsProxySetting(): string {
+    try {
+      return localStorage.getItem('nexus_cors_proxy') || 'https://corsproxy.io/?';
+    } catch {
+      return 'https://corsproxy.io/?';
+    }
+  }
+
+  /** Set a custom CORS proxy URL (empty string = no proxy) */
+  setCorsProxySetting(proxy: string): void {
+    try {
+      localStorage.setItem('nexus_cors_proxy', proxy);
+    } catch {
+      // Ignore
+    }
   }
 
   async callProvider(provider: string, config: AIProviderConfig, prompt: string): Promise<AIResponse> {
