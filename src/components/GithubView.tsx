@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Github, Plus, Download, GitCommit, ExternalLink, Loader2, RefreshCw, Send, Trash2,
   GitBranch, GitPullRequest, CircleDot, ChevronDown, ChevronRight, Check, X,
-  FileText, Clock, User, MessageSquare
+  FileText, Clock, User, MessageSquare, Key
 } from 'lucide-react';
 import { githubService } from '../services/githubService';
 import { gitService, Commit, Branch, StagedFileEntry, PullRequest, Issue } from '../services/gitService';
@@ -248,7 +248,28 @@ export default function GithubView({
       const url = await githubService.getAuthUrl();
       window.open(url, 'github_oauth', 'width=600,height=700');
     } catch {
-      setError('Failed to get auth URL');
+      setError('OAuth not available. Use a Personal Access Token (PAT) below.');
+    }
+  };
+
+  const [patInput, setPatInput] = useState('');
+  const [patError, setPatError] = useState('');
+
+  const handleConnectPAT = async () => {
+    if (!patInput.trim()) return;
+    setPatError('');
+    try {
+      // Validate the token by fetching user info
+      const userData = await githubService.getUser(patInput.trim());
+      localStorage.setItem('nexus_github_token', patInput.trim());
+      setToken(patInput.trim());
+      setUser(userData);
+      onUserUpdate(userData);
+      const reposData = await githubService.getRepos(patInput.trim());
+      setRepos(reposData);
+      setPatInput('');
+    } catch {
+      setPatError('Invalid token. Check your PAT and try again.');
     }
   };
 
@@ -621,16 +642,50 @@ export default function GithubView({
           <Github size={32} className="text-[#cccccc]" />
         </div>
         <h2 className="text-lg font-bold text-white uppercase tracking-wider">Source Control</h2>
-        <p className="text-xs text-[#858585] leading-relaxed max-w-[200px]">
+        <p className="text-xs text-[#858585] leading-relaxed max-w-[280px]">
           Connect your GitHub account to clone repositories, commit changes, manage branches, and more.
         </p>
+
+        {/* PAT Input — works everywhere including GitHub Pages */}
+        <div className="w-full max-w-[280px] space-y-2">
+          <div className="relative">
+            <Key size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#858585]" />
+            <input
+              type="password"
+              placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+              value={patInput}
+              onChange={(e) => setPatInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleConnectPAT()}
+              className="w-full bg-[#3c3c3c] border border-[#474747] rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-[#666] outline-none focus:border-[#007acc] font-mono"
+            />
+          </div>
+          <button
+            onClick={handleConnectPAT}
+            disabled={!patInput.trim()}
+            className="w-full bg-[#007acc] hover:bg-[#006abc] disabled:opacity-40 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2"
+          >
+            <Key size={14} />
+            Connect with PAT
+          </button>
+          {patError && <p className="text-[10px] text-red-400">{patError}</p>}
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-2 w-full max-w-[280px]">
+          <div className="flex-1 h-px bg-[#474747]" />
+          <span className="text-[10px] text-[#666]">or</span>
+          <div className="flex-1 h-px bg-[#474747]" />
+        </div>
+
+        {/* OAuth — only works with backend server */}
         <button
           onClick={handleConnect}
-          className="bg-[#2ea44f] hover:bg-[#2c974b] text-white px-6 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg"
+          className="bg-[#2ea44f] hover:bg-[#2c974b] text-white px-6 py-2.5 rounded-lg font-bold transition-all flex items-center gap-2 shadow-lg text-sm"
         >
           <Github size={18} />
-          Connect GitHub
+          Connect via OAuth
         </button>
+        <p className="text-[9px] text-[#555] italic">OAuth requires a backend server. Use PAT on GitHub Pages.</p>
       </div>
     );
   }

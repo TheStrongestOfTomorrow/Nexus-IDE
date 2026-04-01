@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = '/api/github';
+// Use GitHub API directly — works everywhere (GitHub Pages, localhost, desktop, etc.)
+const API_BASE = 'https://api.github.com';
 
 function headers(token: string) {
   return { Authorization: `token ${token}` };
@@ -602,7 +603,7 @@ export const gitService = {
   // =====================
 
   async getRepoInfo(token: string, owner: string, repo: string): Promise<RepoInfo> {
-    const res = await axios.get(`${API_BASE}/repos/${owner}/${repo}/info`, {
+    const res = await axios.get(`${API_BASE}/repos/${owner}/${repo}`, {
       headers: headers(token),
     });
     return res.data;
