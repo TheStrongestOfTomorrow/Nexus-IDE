@@ -200,6 +200,45 @@ export const githubService = {
     return response.data.url;
   },
 
+  /** OAuth Device Flow — Step 1: Request device code */
+  startDeviceFlow: async (clientId: string): Promise<{ userCode: string; verificationUri: string; deviceCode: string; interval: number }> => {
+    const response = await axios.post('https://github.com/login/device/code', {
+      client_id: clientId,
+      scope: 'repo,user,read:org',
+    }, {
+      headers: { Accept: 'application/json' },
+    });
+    return {
+      userCode: response.data.user_code,
+      verificationUri: response.data.verification_uri,
+      deviceCode: response.data.device_code,
+      interval: response.data.interval || 5,
+    };
+  },
+
+  /** OAuth Device Flow — Step 2: Poll for access token */
+  pollDeviceToken: async (clientId: string, deviceCode: string): Promise<string> => {
+    const response = await axios.post('https://github.com/login/oauth/access_token', {
+      client_id: clientId,
+      device_code: deviceCode,
+      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+    }, {
+      headers: { Accept: 'application/json' },
+    });
+
+    if (response.data.error) {
+      if (response.data.error === 'authorization_pending') {
+        throw new Error('pending');
+      }
+      if (response.data.error === 'slow_down') {
+        throw new Error('slow_down');
+      }
+      throw new Error(response.data.error_description || response.data.error);
+    }
+
+    return response.data.access_token;
+  },
+
   // --------------------------------------------------------
   // User & Repos
   // --------------------------------------------------------
@@ -214,7 +253,8 @@ export const githubService = {
 
   /** List repositories for the authenticated user */
   getRepos: async (token: string) => {
-    const response = await axios.get(`${API_BASE}/repos`, {
+    const response = await axios.get(`${API_BASE}/user/repos`, {
+      params: { sort: 'updated' },
       headers: authHeaders(token),
     });
     return response.data;
