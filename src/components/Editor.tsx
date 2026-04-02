@@ -184,6 +184,15 @@ export default function Editor({
   };
   const handleRun = () => {
     if (file) {
+      // Check if we have a real server connection for code execution
+      const isStaticHost = window.location.host.includes('github.io') || 
+                          window.location.host.includes('vercel.app') || 
+                          window.location.host.includes('netlify.app');
+      if (isStaticHost && file.language !== 'html') {
+        // On static hosting, server-side execution isn't available
+        if (onToggleTerminal) onToggleTerminal();
+        return;
+      }
       socketService.send({
         type: 'run-file',
         filename: file.name,

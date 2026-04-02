@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Use GitHub API directly — works everywhere (GitHub Pages, localhost, desktop, etc.)
 const API_BASE = 'https://api.github.com';
 
 function headers(token: string) {

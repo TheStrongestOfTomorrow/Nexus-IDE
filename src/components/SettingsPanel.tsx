@@ -325,7 +325,14 @@ export default function SettingsPanel({
 
           <div className="pt-2">
             <button
-              onClick={() => window.location.href = '/api/auth/github/url'}
+              onClick={() => {
+                const clientId = localStorage.getItem('nexus_github_client_id');
+                if (clientId) {
+                  window.open('https://github.com/login/device', '_blank');
+                } else {
+                  alert('Set a GitHub OAuth Client ID first in Settings \u2192 General.');
+                }
+              }}
               className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#24292e] hover:bg-[#2f363d] text-white rounded-xl text-xs font-bold transition-all shadow-md group"
             >
               <Github size={16} className="group-hover:scale-110 transition-transform" />

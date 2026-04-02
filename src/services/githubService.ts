@@ -4,10 +4,8 @@ import axios from 'axios';
 // Constants
 // ============================================================
 
-// Use GitHub API directly — works everywhere (GitHub Pages, localhost, desktop, etc.)
-// GitHub API supports CORS for all endpoints including authenticated ones.
 const API_BASE = 'https://api.github.com';
-const CURRENT_VERSION = '5.5.5';
+const CURRENT_VERSION = '5.2.0';
 
 // ============================================================
 // Types / Interfaces
@@ -196,54 +194,10 @@ export const githubService = {
   // Auth
   // --------------------------------------------------------
 
-  /** OAuth Device Flow — Step 1: Request device code */
-  startDeviceFlow: async (clientId: string): Promise<{ userCode: string; verificationUri: string; deviceCode: string; interval: number }> => {
-    const response = await axios.post('https://github.com/login/device/code', {
-      client_id: clientId,
-      scope: 'repo,user,read:org',
-    }, {
-      headers: { Accept: 'application/json' },
-    });
-    return {
-      userCode: response.data.user_code,
-      verificationUri: response.data.verification_uri,
-      deviceCode: response.data.device_code,
-      interval: response.data.interval || 5,
-    };
-  },
-
-  /** OAuth Device Flow — Step 2: Poll for access token */
-  pollDeviceToken: async (clientId: string, deviceCode: string): Promise<string> => {
-    const response = await axios.post('https://github.com/login/oauth/access_token', {
-      client_id: clientId,
-      device_code: deviceCode,
-      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-    }, {
-      headers: { Accept: 'application/json' },
-    });
-
-    if (response.data.error) {
-      if (response.data.error === 'authorization_pending') {
-        throw new Error('pending');
-      }
-      if (response.data.error === 'slow_down') {
-        throw new Error('slow_down');
-      }
-      throw new Error(response.data.error_description || response.data.error);
-    }
-
-    return response.data.access_token;
-  },
-
-  /** Get the GitHub OAuth authorization URL (only works with a backend server) */
+  /** Get the GitHub OAuth authorization URL */
   getAuthUrl: async (): Promise<string> => {
-    try {
-      const response = await axios.get('/api/auth/github/url');
-      return response.data.url;
-    } catch {
-      // No backend server — fall back to Device Flow
-      throw new Error('OAuth requires a backend server. Use a Personal Access Token (PAT) or Device Flow instead.');
-    }
+    const response = await axios.get('/api/auth/github/url');
+    return response.data.url;
   },
 
   // --------------------------------------------------------
@@ -260,8 +214,7 @@ export const githubService = {
 
   /** List repositories for the authenticated user */
   getRepos: async (token: string) => {
-    const response = await axios.get(`${API_BASE}/user/repos`, {
-      params: { sort: 'updated' },
+    const response = await axios.get(`${API_BASE}/repos`, {
       headers: authHeaders(token),
     });
     return response.data;
@@ -360,49 +313,30 @@ export const githubService = {
     message: string,
     files: { path: string; content: string }[],
   ) => {
-    const headers = authHeaders(token);
+    const hdrs = authHeaders(token);
 
-    // 1. Get default branch
-    const repoInfo = await axios.get(`${API_BASE}/repos/${owner}/${repo}`, { headers });
-    const branch = repoInfo.data.default_branch;
+    // Step 1: Get the current branch's latest commit SHA
+    const refRes = await axios.get(`${API_BASE}/repos/${owner}/${repo}/git/refs/heads/main`, { headers: hdrs });
+    const baseSha = refRes.data.object.sha;
 
-    // 2. Get latest commit SHA
-    const refResponse = await axios.get(`${API_BASE}/repos/${owner}/${repo}/git/refs/heads/${branch}`, { headers });
-    const latestCommitSha = refResponse.data.object.sha;
+    // Step 2: Create blobs for each file
+    const treeEntries: Array<{ path: string; mode: string; type: string; sha: string }> = [];
+    for (const file of files) {
+      const blobRes = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/blobs`, { content: file.content, encoding: 'utf-8' }, { headers: hdrs });
+      treeEntries.push({ path: file.path, mode: '100644', type: 'blob', sha: blobRes.data.sha });
+    }
 
-    // 3. Create blobs for each file
-    const tree = await Promise.all(files.map(async (file) => {
-      const blobResponse = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/blobs`, {
-        content: file.content,
-        encoding: 'utf-8',
-      }, { headers });
-      return {
-        path: file.path,
-        mode: '100644',
-        type: 'blob',
-        sha: blobResponse.data.sha,
-      };
-    }));
+    // Step 3: Create a new tree with the updated blobs
+    const treeRes = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/trees`, { base_tree: baseSha, tree: treeEntries }, { headers: hdrs });
 
-    // 4. Create tree
-    const treeResponse = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/trees`, {
-      base_tree: latestCommitSha,
-      tree,
-    }, { headers });
+    // Step 4: Create the commit
+    const commitRes = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/commits`, { message, tree: treeRes.data.sha, parents: [baseSha] }, { headers: hdrs });
+    const newCommitSha = commitRes.data.sha;
 
-    // 5. Create commit
-    const commitResponse = await axios.post(`${API_BASE}/repos/${owner}/${repo}/git/commits`, {
-      message,
-      tree: treeResponse.data.sha,
-      parents: [latestCommitSha],
-    }, { headers });
+    // Step 5: Update the branch ref
+    await axios.patch(`${API_BASE}/repos/${owner}/${repo}/git/refs/heads/main`, { sha: newCommitSha }, { headers: hdrs });
 
-    // 6. Update branch ref
-    await axios.patch(`${API_BASE}/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
-      sha: commitResponse.data.sha,
-    }, { headers });
-
-    return { success: true, sha: commitResponse.data.sha };
+    return commitRes.data;
   },
 
   /** Recursively fetch all files in a repository */
@@ -658,9 +592,9 @@ export const githubService = {
 
   /** Get the latest release of Nexus-IDE from GitHub */
   getLatestRelease: async (token?: string): Promise<Release> => {
-    const headers: Record<string, string> = { Accept: 'application/vnd.github.v3+json' };
+    const headers: Record<string, string> = {};
     if (token) Object.assign(headers, authHeaders(token));
-    const response = await axios.get(`${API_BASE}/repos/TheStrongestOfTomorrow/Nexus-IDE/releases/latest`, { headers });
+    const response = await axios.get(`${API_BASE}/repos/TheStrongestOfTomorrow/Nexus-IDE/releases/latest`, { headers: { ...headers, Accept: 'application/vnd.github.v3+json' } });
     return response.data;
   },
 
