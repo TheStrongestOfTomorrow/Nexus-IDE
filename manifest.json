@@ -1,0 +1,86 @@
+{
+  "name": "Nexus IDE",
+  "short_name": "Nexus",
+  "description": "The AI-First, Browser-Based IDE with WebContainer power.",
+  "start_url": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay"],
+  "background_color": "#0a0a0a",
+  "theme_color": "#007acc",
+  "orientation": "any",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New File",
+      "short_name": "New File",
+      "description": "Create a new file in Nexus IDE",
+      "url": "./?action=new-file",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Quick-connect to Minecraft",
+      "short_name": "Connect MC",
+      "description": "Instantly connect to your Minecraft session",
+      "url": "./?action=connect-mc",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Open Last Project",
+      "short_name": "Last Project",
+      "description": "Open your most recent project",
+      "url": "./?action=open-last",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "AI Assistant",
+      "short_name": "AI Chat",
+      "description": "Open the AI coding assistant",
+      "url": "./?action=open-ai",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Saved Workspaces",
+      "short_name": "Workspaces",
+      "description": "View and manage your saved workspaces",
+      "url": "./?action=open-workspaces",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "text/typescript": [".ts", ".tsx"],
+        "text/javascript": [".js", ".jsx"],
+        "application/json": [".json"],
+        "text/html": [".html", ".htm"],
+        "text/css": [".css"],
+        "text/plain": [".txt", ".md"]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+nexus",
+      "url": "./?url=%s"
+    }
+  ],
+  "categories": ["developer tools", "productivity", "utilities"]
+}

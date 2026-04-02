@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#007acc" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Nexus IDE</title>
+    <script>
+      // Targeted cache migration (preserves user data)
+      (function() {
+        const VERSION = '5.5.5';
+        const CACHE_KEYS_TO_CLEAR = ['nexus_version_hard'];
+        const stored = localStorage.getItem('nexus_version_hard');
+
+        if (stored !== VERSION) {
+          // Only clear known IDE cache keys, NOT user settings/keys/data
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+              CACHE_KEYS_TO_CLEAR.includes(key) ||
+              key.startsWith('nexus_cached_') ||
+              key.startsWith('nexus_tmp_')
+            )) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.setItem('nexus_version_hard', VERSION);
+
+          // Clear old service workers and caches safely
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for (let registration of registrations) { registration.unregister(); }
+            });
+          }
+          caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
+          });
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('Nexus SW registered');
+          }).catch(err => {
+            console.log('Nexus SW registration failed', err);
+          });
+        });
+      }
+    </script>
+    <script type="module" crossorigin src="/Nexus-IDE/assets/index-DSrJY0y--v437.js"></script>
+    <link rel="stylesheet" crossorigin href="/Nexus-IDE/assets/index-CnoJJtYx-v437.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+
