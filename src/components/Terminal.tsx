@@ -48,7 +48,7 @@ function getBaseName(path: string): string {
 }
 
 const WELCOME_MESSAGE = [
-  '\x1b[1;32mWelcome to Nexus Terminal 5.1\x1b[0m',
+  '\x1b[1;32mWelcome to Nexus Terminal 5.5.5\x1b[0m',
   '\x1b[90mPowered by StackBlitz WebContainer\x1b[0m',
   '',
   'The terminal runs commands in a browser-based Node.js environment.',

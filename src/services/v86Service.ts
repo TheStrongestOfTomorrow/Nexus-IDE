@@ -3,7 +3,7 @@
  * inside the browser. The default Buildroot Linux image is bundled in the
  * project (public/v86/buildroot-bzimage.bin, ~5MB). Custom images (ISO, IMG,
  * floppy) can be uploaded by the user for Windows or other Linux distros.
- * 
+ *
  * v5.5.6 — Major optimizations: Improved memory management, faster boot times,
  * better error recovery, enhanced Alpine Linux support, optimized serial I/O,
  * and reduced bundle size.

@@ -73,7 +73,7 @@ export default function WelcomeTab({
           <h1 className="text-2xl font-semibold text-nexus-text tracking-tight">
             Nexus IDE
           </h1>
-          <p className="text-xs text-nexus-text-muted mt-1 font-mono">v5.4.0</p>
+          <p className="text-xs text-nexus-text-muted mt-1 font-mono">v5.5.5</p>
         </div>
 
         {/* Start Section */}

@@ -71,7 +71,7 @@ export function useIDEState(files: any[]) {
     return saved ? JSON.parse(saved) : {
       gemini: 'gemini-2.5-pro-preview-06-05',
       openai: 'gpt-4o',
-      anthropic: 'claude-sonnet-4-20250514',
+      anthropic: 'claude-3-5-sonnet-20241022',
       xai: 'grok-3',
       mistral: 'mistral-large-latest',
       deepseek: 'deepseek-chat',

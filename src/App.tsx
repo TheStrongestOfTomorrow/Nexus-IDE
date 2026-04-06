@@ -160,7 +160,7 @@ export default function App() {
     const zip = new JSZip();
     files.forEach(file => zip.file(file.name, file.content));
     const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, 'nexus-project-5.4.zip');
+    saveAs(content, 'nexus-project-5.5.5.zip');
   };
 
   const handleClearWorkspace = () => {
@@ -247,7 +247,7 @@ export default function App() {
           selectedAIProvider: ide.selectedAIProvider,
           selectedModels: ide.selectedModels,
           timestamp: Date.now(),
-          version: '5.4.0',
+          version: '5.5.5',
           sessionId: ide.sessionId,
         }).then(() => {
           const savedAt = sessionPersistenceService.formatTimestamp(Date.now());

@@ -36,7 +36,7 @@ interface SettingsPanelProps {
   onToggleFullLock?: () => void;
   lastOnlineCheck?: string;
   sessionSavedAt?: string;
-  // Editor settings (v5.2.0)
+  // Editor settings (v5.5.5)
   editorSettings?: {
     showMinimap: boolean;
     wordWrap: boolean;

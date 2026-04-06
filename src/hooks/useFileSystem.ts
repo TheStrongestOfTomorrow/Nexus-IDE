@@ -15,25 +15,151 @@ const DEFAULT_FILES: FileNode[] = [
   {
     id: '1',
     name: 'index.html',
-    content: '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Nexus 4.0 Project</title>\n  <script src="https://cdn.tailwindcss.com"></script>\n  <link rel="stylesheet" href="style.css">\n</head>\n<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-8">\n  <div id="app" class="max-w-2xl w-full bg-slate-800/50 backdrop-blur-xl p-12 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in fade-in zoom-in duration-700">\n    <div class="w-24 h-24 bg-indigo-500 rounded-3xl mx-auto flex items-center justify-center shadow-lg shadow-indigo-500/20 rotate-12 hover:rotate-0 transition-transform duration-500">\n      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>\n    </div>\n    <h1 class="text-5xl font-black tracking-tighter bg-gradient-to-br from-white to-white/50 bg-clip-text text-transparent">NEXUS 4.0</h1>\n    <p class="text-slate-400 text-lg font-medium leading-relaxed">Welcome to your new high-performance workspace. Edit files to see changes instantly with real-time preview.</p>\n    <div class="pt-6 flex gap-4 justify-center">\n      <button class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-indigo-600/20 uppercase tracking-widest text-xs">Get Started</button>\n      <button class="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-2xl font-bold transition-all border border-white/10 uppercase tracking-widest text-xs">Documentation</button>\n    </div>\n  </div>\n  <script src="script.js"></script>\n</body>\n</html>',
+    content: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus v5.5.5 | The AI-First IDE</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --nexus-accent: #6366f1;
+      --nexus-bg: #0f172a;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    .animate-pulse-slow { animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+  </style>
+</head>
+<body class="bg-[#020617] text-white min-h-screen flex flex-col items-center justify-center p-6 font-sans">
+  <!-- Decorative background -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-[25%] -left-[10%] w-[50%] h-[50%] bg-indigo-500/20 rounded-full blur-[120px]"></div>
+    <div class="absolute -bottom-[20%] -right-[10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div id="app" class="max-w-3xl w-full glass p-8 md:p-12 rounded-[2.5rem] shadow-2xl text-center space-y-8 relative z-10 animate-in fade-in zoom-in duration-1000">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest animate-pulse-slow">
+      <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+      Version 5.5.5 Freedom Update
+    </div>
+
+    <div class="relative">
+      <div class="w-24 h-24 bg-indigo-600 rounded-3xl mx-auto flex items-center justify-center shadow-2xl shadow-indigo-600/40 rotate-12 hover:rotate-0 transition-all duration-500 group">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white group-hover:scale-110 transition-transform"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      <h1 class="text-5xl md:text-6xl font-black tracking-tighter text-white">
+        NEXUS <span class="text-indigo-500">IDE</span>
+      </h1>
+      <p class="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-xl mx-auto">
+        Your new high-performance, AI-first workspace.
+        Experience real Linux, AI streaming, and secure collaboration.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+      <div class="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+        <div class="text-indigo-400 font-bold text-xs uppercase tracking-tight">AI Streaming</div>
+        <p class="text-[11px] text-slate-400">Token-by-token responses from 12+ providers including Gemini 2.0 & GPT-4o.</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+        <div class="text-emerald-400 font-bold text-xs uppercase tracking-tight">v86 Linux</div>
+        <p class="text-[11px] text-slate-400">A real Alpine Linux environment running entirely in your browser with no server.</p>
+      </div>
+      <div class="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+        <div class="text-purple-400 font-bold text-xs uppercase tracking-tight">AI Tools</div>
+        <p class="text-[11px] text-slate-400">51 powerful tools allowing AI to read/write files, manage git, and run terminal commands.</p>
+      </div>
+    </div>
+
+    <div class="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
+      <button class="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 uppercase tracking-widest text-xs active:scale-95">Get Started</button>
+      <button class="px-10 py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold transition-all border border-white/10 uppercase tracking-widest text-xs active:scale-95">Documentation</button>
+    </div>
+
+    <div class="pt-4 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 font-mono">
+      <span>WORKSPACE_ID: NEXUS-AUTO-GEN</span>
+      <span class="flex items-center gap-1">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        SYSTEM_READY
+      </span>
+    </div>
+  </div>
+
+  <footer class="mt-12 text-slate-600 text-[10px] uppercase tracking-[0.2em] font-bold">
+    Built for the future of development
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>`,
     language: 'html',
   },
   {
     id: '2',
     name: 'style.css',
-    content: '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap");\n\n:root {\n  --nexus-accent: #6366f1;\n}\n\nbody {\n  font-family: "Inter", system-ui, sans-serif;\n  margin: 0;\n  overflow-x: hidden;\n}\n\n#app {\n  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n}\n\n#app:hover {\n  transform: translateY(-4px);\n}',
+    content: `@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap");
+
+:root {
+  --nexus-accent: #6366f1;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+#app {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.glass:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.1);
+}`,
     language: 'css',
   },
   {
     id: '3',
     name: 'script.js',
-    content: '// Nexus 4.0 Runtime\nconsole.log("%c NEXUS 4.0 %c Ready ", "background: #6366f1; color: white; font-weight: bold; border-radius: 4px 0 0 4px; padding: 2px 6px;", "background: #1e293b; color: #94a3b8; border-radius: 0 4px 4px 0; padding: 2px 6px;");\n\n// Interactive elements\ndocument.querySelectorAll("button").forEach(btn => {\n  btn.addEventListener("click", () => {\n    console.log(`%c Action %c ${btn.innerText} clicked`, "color: #6366f1; font-weight: bold;", "color: inherit;");\n    btn.style.transform = "scale(0.95)";\n    setTimeout(() => btn.style.transform = "", 100);\n  });\n});',
+    content: `// Nexus v5.5.5 Freedom Runtime
+console.log("%c NEXUS IDE %c v5.5.5 ", "background: #6366f1; color: white; font-weight: bold; border-radius: 4px 0 0 4px; padding: 2px 6px;", "background: #1e293b; color: #94a3b8; border-radius: 0 4px 4px 0; padding: 2px 6px;");
+
+// Interactive element animations
+document.querySelectorAll("button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    console.log(\`%c Action %c \${btn.innerText} clicked\`, "color: #6366f1; font-weight: bold;", "color: inherit;");
+
+    // Feedback animation
+    btn.style.transform = "scale(0.95)";
+    setTimeout(() => {
+      btn.style.transform = "";
+    }, 100);
+  });
+});
+
+// Auto-init telemetry
+window.addEventListener('load', () => {
+  const app = document.getElementById('app');
+  if (app) {
+    app.classList.remove('opacity-0');
+    console.log("Nexus Environment: ONLINE");
+  }
+});`,
     language: 'javascript',
   },
   {
     id: '4',
     name: 'nexus.config.json',
-    content: '{\n  "version": "4.0.0",\n  "theme": "dark",\n  "features": {\n    "ai_assistant": true,\n    "pwa_sync": true,\n    "collaboration": true\n  }\n}',
+    content: '{\n  "version": "5.5.5",\n  "theme": "dark",\n  "features": {\n    "ai_streaming": true,\n    "v86_linux": true,\n    "ai_tools": 51,\n    "secure_collab": true\n  }\n}',
     language: 'json',
   }
 ];

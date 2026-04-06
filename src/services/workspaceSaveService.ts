@@ -271,7 +271,7 @@ class WorkspaceSaveService {
   }> = {}): NexusWorkspace {
     const now = Date.now();
     return {
-      version: '5.1.0',
+      version: '5.5.5',
       timestamp: now,
       name: metadata.projectName || 'Untitled Project',
       files,

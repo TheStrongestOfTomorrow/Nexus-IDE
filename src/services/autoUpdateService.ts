@@ -1,5 +1,5 @@
 /**
- * Auto-Update Service for Nexus IDE v5.4.0
+ * Auto-Update Service for Nexus IDE v5.5.5
  * Checks GitHub releases API for newer versions
  * Provides update notification with changelog
  */

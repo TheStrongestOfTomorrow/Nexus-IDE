@@ -3,7 +3,7 @@
  * Detects online/offline status, manages airplane mode state
  * Internet-reliant features are locked when offline
  *
- * v5.4.1 — Fixed false-positive offline detection:
+ * v5.5.5 — Fixed false-positive offline detection:
  *   - Removed unreliable cross-origin ping (ad blockers, COEP, rate limits caused false positives)
  *   - Replaced with navigator.onLine (browser-native, reliable) + passive connectivity probe
  *   - Added debounce: requires 2 consecutive failures before declaring offline

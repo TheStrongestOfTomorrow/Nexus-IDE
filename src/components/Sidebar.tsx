@@ -137,7 +137,7 @@ export default function Sidebar({
     }
   };
 
-  // File type badge — returns a colored text span based on extension (v5.2.0)
+  // File type badge — returns a colored text span based on extension (v5.5.5)
   const getFileBadge = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
     switch (ext) {

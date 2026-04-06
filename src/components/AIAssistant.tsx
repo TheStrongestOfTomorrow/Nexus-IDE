@@ -1440,7 +1440,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
       <div className="flex items-center justify-between px-4 py-2 border-b border-nexus-border bg-nexus-sidebar flex-shrink-0">
         <div className="flex items-center gap-2 overflow-hidden">
           <Sparkles size={14} className="text-nexus-accent flex-shrink-0" />
-          <span className="text-xs font-bold text-white uppercase tracking-wider truncate">Nexus AI 5.5</span>
+          <span className="text-xs font-bold text-white uppercase tracking-wider truncate">Nexus AI 5.5.5</span>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setIsStreamEnabled(!isStreamEnabled)} className={cn("p-1 rounded transition-colors", isStreamEnabled ? "bg-emerald-500 text-white" : "text-nexus-text-muted hover:bg-nexus-bg")} title={isStreamEnabled ? "Streaming ON — responses stream in real-time" : "Streaming OFF — wait for full response"}><Radio size={14} /></button>
@@ -1510,7 +1510,7 @@ const AIAssistant = forwardRef<any, AIAssistantProps>(({
         {messages.length === 0 && (
           <div className="text-center text-nexus-text-muted text-sm mt-10">
             <Bot size={32} className="mx-auto mb-2 opacity-50" />
-            <p className="font-bold text-white mb-1">Nexus AI 5.5</p>
+            <p className="font-bold text-white mb-1">Nexus AI 5.5.5</p>
             <p className="text-xs opacity-75">Ready to assist.</p>
             <p className="text-[10px] opacity-50 mt-2">📎 Attach files or images below</p>
             {isStreamEnabled && (
