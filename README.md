@@ -6,16 +6,31 @@
 
 ### *The AI-First, Browser-Based IDE with WebContainer Power*
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Cloudflare_Pages-F38020?style=for-the-badge&labelColor=1e293b&logo=cloudflare&logoColor=white)](https://nexus-ide.pages.dev)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-222222?style=for-the-badge&labelColor=1e293b&logo=github)](https://thestrongestoftomorrow.github.io/Nexus-IDE/)
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
 [![Version](https://img.shields.io/badge/Version-5.5.5-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![Linux](https://img.shields.io/badge/Linux-Alpine_Linux_in_Browser-emerald?style=for-the-badge&labelColor=1e293b)](https://github.com/nickvdp/nickvdp)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-6366f1?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![P2P](https://img.shields.io/badge/P2P-Gun.js_%2B_PeerJS-00d4aa?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/tree/cloudflare-pages-p2p)
 
 *A modern, high-performance IDE with AI integration, VS Code-like experience, real Alpine Linux in your browser, and the power to run Node.js entirely in the browser.*
 
 </div>
+
+---
+
+## 🌐 Live Demos
+
+Try Nexus IDE right now — no installation needed!
+
+| Platform | Link | Features |
+|----------|------|----------|
+| ☁️ **Cloudflare Pages** | [**nexus-ide.pages.dev**](https://nexus-ide.pages.dev) | P2P collaboration via Gun.js + PeerJS, serverless GitHub OAuth, AI providers |
+| 🐙 **GitHub Pages** | [**thestrongestoftomorrow.github.io/Nexus-IDE**](https://thestrongestoftomorrow.github.io/Nexus-IDE/) | Full-featured with WebSocket backend, GitHub integration |
+
+> **Difference?** The Cloudflare Pages version uses **P2P (Gun.js + PeerJS + OpenRelay)** for collaboration instead of a WebSocket server. All AI providers, the editor, WebContainers, and Linux terminal work identically on both.
 
 ---
 
@@ -466,6 +481,20 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 
 ## 🚀 Deployment
 
+### Live Demos (No Install)
+- ☁️ **Cloudflare Pages**: [nexus-ide.pages.dev](https://nexus-ide.pages.dev) — P2P mode (Gun.js + PeerJS)
+- 🐙 **GitHub Pages**: [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) — WebSocket mode
+
+### Cloudflare Pages (P2P Edition)
+```bash
+# Deploy the P2P branch to Cloudflare Pages
+# 1. Connect your repo at dash.cloudflare.com → Pages
+# 2. Set production branch: cloudflare-pages-p2p
+# 3. Build command: npm install --legacy-peer-deps && DEPLOY_TARGET=cloudflare npm run build
+# 4. Build output: dist
+# 5. Add env var: DEPLOY_TARGET=cloudflare
+```
+
 ### GitHub Packages
 ```bash
 npm install -g @TheStrongestOfTomorrow/nexus-ide
@@ -504,6 +533,8 @@ Connect GitHub → Auto-deploy
 
 | Resource | Link |
 |----------|------|
+| ☁️ **Live Demo (CF Pages)** | [nexus-ide.pages.dev](https://nexus-ide.pages.dev) |
+| 🐙 **Live Demo (GH Pages)** | [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) |
 | 🚀 **v5.5.5** | [The Freedom Update](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.5.5) |
 | 🐧 **v5.4.0** | [Alpine Linux in Your Browser](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.4.0) |
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
