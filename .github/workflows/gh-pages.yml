@@ -34,12 +34,15 @@ jobs:
         run: npm run build
 
       - name: Build embed version
-        run: EMBED_MODE=true npm run build
-        
-      - name: Move embed build to dist
+        run: EMBED_MODE=true npm run build -- --outDir dist-embed
+
+      - name: Copy embed files to dist
         run: |
-          if [ -f dist/nexus-embed.es.js ]; then
-            echo "Embed build found"
+          if [ -f dist-embed/nexus-embed.es.js ]; then
+            cp dist-embed/nexus-embed.es.js dist/nexus-embed.es.js
+            echo "Embed build copied to dist"
+          else
+            echo "Embed build not found, skipping"
           fi
 
       - name: Copy embed example

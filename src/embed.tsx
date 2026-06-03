@@ -302,7 +302,8 @@ if (typeof window !== 'undefined') {
       const root = createRoot(el as HTMLElement);
       root.render(
         <NexusEmbed 
-          containerId={el.id || `nexus-${Date.now()}`}\n          theme={options?.theme || 'dark'}
+          containerId={el.id || `nexus-${Date.now()}`}
+          theme={options?.theme || 'dark'}
           initialProject={options?.initialProject}
         />
       );
