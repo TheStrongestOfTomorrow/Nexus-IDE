@@ -74,7 +74,7 @@ class SessionPersistenceService {
       ...state,
       id: 'current',
       timestamp: Date.now(),
-      version: '5.5.5',
+      version: '5.5.6',
     };
 
     return new Promise((resolve, reject) => {

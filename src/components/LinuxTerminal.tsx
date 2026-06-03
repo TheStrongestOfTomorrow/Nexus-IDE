@@ -321,7 +321,7 @@ export default function LinuxTerminal({
     term.writeln('\x1b[1;32m | |_| | | | | |_| | | | | | | / __/  | |   \x1b[0m');
     term.writeln('\x1b[1;32m  \\___/|_| |_|\\__,_|_| |_| |_| |_____| |_|   \x1b[0m');
     term.writeln('');
-    term.writeln('\x1b[90m Nexus Linux Terminal v5.5.5 — v86 x86 Emulator\x1b[0m');
+    term.writeln('\x1b[90m Nexus Linux Terminal v5.5.6 — v86 x86 Emulator\x1b[0m');
     term.writeln('\x1b[90m Default OS: Buildroot Linux (bundled, ~5MB, no download needed)\x1b[0m');
     term.writeln('\x1b[90m RAM: ' + VM_MEMORY_MB + ' MB | Scrollback: 10,000 lines\x1b[0m');
     term.writeln('');

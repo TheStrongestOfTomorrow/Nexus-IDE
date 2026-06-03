@@ -9,7 +9,7 @@
 [![Live Demo](https://img.shields.io/badge/Live_Demo-Cloudflare_Pages-F38020?style=for-the-badge&labelColor=1e293b&logo=cloudflare&logoColor=white)](https://nexus-ide.pages.dev)
 [![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-222222?style=for-the-badge&labelColor=1e293b&logo=github)](https://thestrongestoftomorrow.github.io/Nexus-IDE/)
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
-[![Version](https://img.shields.io/badge/Version-5.5.5-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.5.6-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![Linux](https://img.shields.io/badge/Linux-Alpine_Linux_in_Browser-emerald?style=for-the-badge&labelColor=1e293b)](https://github.com/nickvdp/nickvdp)
 [![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
@@ -34,7 +34,7 @@ Try Nexus IDE right now — no installation needed!
 
 ---
 
-## 🚀 v5.5.5 — The Freedom Update
+## 🚀 v5.5.6 — The Freedom Update
 
 The biggest feature release ever. Real AI streaming, 51-tool system, password-protected collaboration, terminal freedom, CI/CD pipelines, and a completely redesigned Settings page with mobile UI for both portrait and landscape.
 
@@ -427,7 +427,7 @@ The Beginner UI is perfect if you're new to Nexus IDE. The Legacy UI gives you t
 | Version | Branch | Install Command | Description |
 |---------|--------|-----------------|-------------|
 | **Stable** | `stable` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@stable` | ✅ Production ready (v4.4) |
-| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🚀 Latest with AI Streaming & Tools (v5.5.5) |
+| **Beta (This)** | `main` | `npx github:TheStrongestOfTomorrow/Nexus-IDE` | 🚀 Latest with AI Streaming & Tools (v5.5.6) |
 | **Professional** | `professional` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@professional` | 💼 CLI + Web dual mode |
 | **CLI/TUI** | `cli` | `npx github:TheStrongestOfTomorrow/Nexus-IDE@cli` | 🖥️ Terminal only |
 
@@ -535,7 +535,7 @@ Connect GitHub → Auto-deploy
 |----------|------|
 | ☁️ **Live Demo (CF Pages)** | [nexus-ide.pages.dev](https://nexus-ide.pages.dev) |
 | 🐙 **Live Demo (GH Pages)** | [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) |
-| 🚀 **v5.5.5** | [The Freedom Update](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.5.5) |
+| 🚀 **v5.5.6** | [The Freedom Update](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.5.6) |
 | 🐧 **v5.4.0** | [Alpine Linux in Your Browser](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.4.0) |
 | 📦 **Download Release** | [v5.1.0 Release](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.1.0) |
 | 🔀 **v5.3.0** | [Editor Polish Blitz](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases/tag/v5.3.0) |
@@ -553,7 +553,7 @@ Connect GitHub → Auto-deploy
 
 ## 📝 Changelog
 
-### v5.5.5 (Current - Beta)
+### v5.5.6 (Current - Beta)
 - 🤖 **AI Streaming** — Real-time token-by-token streaming for all 12 providers via SSE
 - 🤖 **51 AI Tools** — File ops, git, GitHub, terminal, web, editor, workspace, debug, code analysis
 - 🤖 **Streaming + Tools** — Tools execute mid-stream with follow-up response
@@ -672,6 +672,6 @@ Connect GitHub → Auto-deploy
 
 *The Future of Browser-Based Development*
 
-**v5.5.5 — The Freedom Update**
+**v5.5.6 — The Freedom Update**
 
 </div>

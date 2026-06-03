@@ -1,5 +1,5 @@
 /**
- * Auto-Update Service for Nexus IDE v5.5.5
+ * Auto-Update Service for Nexus IDE v5.5.6
  * Checks GitHub releases API for newer versions
  * Provides update notification with changelog
  */
@@ -29,7 +29,7 @@ export interface UpdateCheckResult {
 type UpdateListener = (result: UpdateCheckResult) => void;
 
 class AutoUpdateService {
-  private static CURRENT_VERSION = '5.5.5';
+  private static CURRENT_VERSION = '5.5.6';
   private static REPO = 'TheStrongestOfTomorrow/Nexus-IDE';
   private listeners: Set<UpdateListener> = new Set();
   private lastCheckResult: UpdateCheckResult | null = null;

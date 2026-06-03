@@ -50,7 +50,7 @@ export default function BeginnerUILayout({
             <div className="flex items-center gap-2">
               <Zap size={18} className="text-nexus-accent" />
               <span className="text-sm font-bold text-white">Nexus IDE</span>
-              <span className="text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold">5.5.5</span>
+              <span className="text-[9px] bg-nexus-accent/20 text-nexus-accent px-1.5 py-0.5 rounded-full font-bold">5.5.6</span>
             </div>
             {activeFileName && (
               <div className="flex items-center gap-1.5 text-nexus-text-muted">

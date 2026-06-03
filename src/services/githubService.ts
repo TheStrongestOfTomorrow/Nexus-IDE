@@ -5,7 +5,7 @@ import axios from 'axios';
 // ============================================================
 
 const API_BASE = 'https://api.github.com';
-const CURRENT_VERSION = '5.5.5';
+const CURRENT_VERSION = '5.5.6';
 
 // ============================================================
 // Types / Interfaces

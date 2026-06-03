@@ -69,10 +69,10 @@ export function useIDEState(files: any[]) {
   const [selectedModels, setSelectedModels] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('nexus_selected_models');
     return saved ? JSON.parse(saved) : {
-      gemini: 'gemini-2.0-pro-exp-02-05',
+      gemini: 'gemini-2.5-pro-preview-06-05',
       openai: 'gpt-4o',
-      anthropic: 'claude-3-7-sonnet-20250219',
-      xai: 'grok-2-1212',
+      anthropic: 'claude-sonnet-4-6',
+      xai: 'grok-3',
       mistral: 'mistral-large-latest',
       deepseek: 'deepseek-chat',
       alibaba: 'qwen-max',

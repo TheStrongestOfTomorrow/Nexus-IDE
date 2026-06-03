@@ -133,7 +133,7 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
             <span className="flex items-center gap-2"><span className="bg-nexus-sidebar border border-nexus-border px-1.5 py-0.5 rounded text-white">↑↓</span> NAVIGATE</span>
             <span className="flex items-center gap-2"><span className="bg-nexus-sidebar border border-nexus-border px-1.5 py-0.5 rounded text-white">ENTER</span> SELECT</span>
           </div>
-          <span className="text-nexus-accent">NEXUS 5.5.5 COMMANDS</span>
+          <span className="text-nexus-accent">NEXUS 5.5.6 COMMANDS</span>
         </div>
       </div>
     </div>

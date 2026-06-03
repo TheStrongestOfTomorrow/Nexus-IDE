@@ -40,9 +40,9 @@ export const AI_PROVIDERS: ProviderInfo[] = [
     website: 'makersuite.google.com',
     color: '#4285F4',
     models: [
-      { id: 'gemini-2.0-pro-exp-02-05', name: 'Gemini 2.0 Pro Experimental', description: 'Most capable Gemini model for complex tasks.', costTier: 'premium', tags: ['reasoning', 'multimodal', 'latest'], contextWindow: 2000000 },
+      { id: 'gemini-2.5-pro-preview-06-05', name: 'Gemini 2.5 Pro', description: 'Latest Gemini with advanced reasoning and coding.', costTier: 'premium', tags: ['reasoning', 'multimodal', 'latest'], contextWindow: 1000000 },
       { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Fast and versatile multimodal model.', costTier: 'standard', tags: ['fast', 'multimodal', 'reasoning'], contextWindow: 1000000 },
-      { id: 'gemini-2.0-flash-lite-preview-02-05', name: 'Gemini 2.0 Flash Lite', description: 'Lightweight and cost-effective.', costTier: 'budget', tags: ['fast', 'budget'], contextWindow: 1000000 },
+      { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite', description: 'Lightweight and cost-effective.', costTier: 'budget', tags: ['fast', 'budget'], contextWindow: 1000000 },
       { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro', description: 'Highly capable model with long context.', costTier: 'premium', tags: ['reasoning', 'long-context'], contextWindow: 2000000 },
       { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Fast with extended context.', costTier: 'standard', tags: ['fast'], contextWindow: 1000000 },
       { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B', description: 'Smallest, fastest Gemini model.', costTier: 'budget', tags: ['fast', 'budget'], contextWindow: 1000000 },
@@ -54,10 +54,10 @@ export const AI_PROVIDERS: ProviderInfo[] = [
     website: 'console.anthropic.com',
     color: '#D97706',
     models: [
-      { id: 'claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet', description: 'Latest hybrid reasoning model.', costTier: 'premium', tags: ['reasoning', 'coding', 'latest'], contextWindow: 200000 },
+      { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', description: 'Most intelligent model for complex analysis and coding.', costTier: 'premium', tags: ['reasoning', 'analysis', 'expert'], contextWindow: 200000 },
+      { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6', description: 'Ideal balance of intelligence and speed.', costTier: 'standard', tags: ['balanced', 'general'], contextWindow: 200000 },
       { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet', description: 'Previous generation balanced model.', costTier: 'standard', tags: ['balanced', 'coding'], contextWindow: 200000 },
       { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku', description: 'Fastest and most cost-efficient.', costTier: 'budget', tags: ['fast', 'budget'], contextWindow: 200000 },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', description: 'Classic high-intelligence model.', costTier: 'premium', tags: ['reasoning'], contextWindow: 200000 },
     ]
   },
   {
@@ -66,9 +66,11 @@ export const AI_PROVIDERS: ProviderInfo[] = [
     website: 'console.x.ai',
     color: '#000000',
     models: [
-      { id: 'grok-2-1212', name: 'Grok 2', description: 'Most capable Grok model.', costTier: 'premium', tags: ['reasoning', 'coding'], contextWindow: 131072 },
+      { id: 'grok-3', name: 'Grok 3', description: 'Latest xAI model with advanced reasoning.', costTier: 'premium', tags: ['reasoning', 'coding', 'latest'], contextWindow: 131072 },
+      { id: 'grok-3-fast', name: 'Grok 3 Fast', description: 'Faster variant of Grok 3.', costTier: 'standard', tags: ['fast', 'reasoning'], contextWindow: 131072 },
+      { id: 'grok-3-mini', name: 'Grok 3 Mini', description: 'Lightweight Grok for simple tasks.', costTier: 'budget', tags: ['fast', 'budget'], contextWindow: 131072 },
+      { id: 'grok-2-1212', name: 'Grok 2', description: 'Previous generation Grok.', costTier: 'standard', tags: ['reasoning', 'coding'], contextWindow: 131072 },
       { id: 'grok-2-vision-1212', name: 'Grok 2 Vision', description: 'Grok with image understanding.', costTier: 'premium', tags: ['multimodal', 'vision'], contextWindow: 32768 },
-      { id: 'grok-beta', name: 'Grok Beta', description: 'Beta access to latest features.', costTier: 'standard', tags: ['beta'], contextWindow: 131072 },
     ]
   },
   {
@@ -209,17 +211,17 @@ export const AI_PROVIDERS: ProviderInfo[] = [
 
 // Quick reference for settings panel
 export const POPULAR_MODELS = {
-  coding: ['gpt-4o', 'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022', 'codestral-latest', 'deepseek-coder'],
-  reasoning: ['o1-preview', 'claude-3-7-sonnet-20250219', 'gemini-2.0-pro-exp-02-05', 'grok-2-1212', 'deepseek-r1'],
+  coding: ['gpt-4o', 'claude-sonnet-4-6', 'codestral-latest', 'deepseek-coder', 'qwen-coder-plus'],
+  reasoning: ['o1-preview', 'claude-opus-4-8', 'gemini-2.5-pro-preview-06-05', 'grok-3', 'deepseek-r1'],
   fast: ['gpt-4o-mini', 'gemini-2.0-flash', 'llama-3.3-70b-versatile', 'claude-3-5-haiku-20241022', 'qwen-turbo'],
   budget: ['gpt-3.5-turbo', 'llama-3.1-8b-instant', 'gemma2-9b-it', 'deepseek-chat', 'mistral-small-latest'],
 };
 
 export const MODEL_PRESETS = [
-  { name: 'Best Quality', models: { openai: 'gpt-4o', gemini: 'gemini-2.0-pro-exp-02-05', anthropic: 'claude-3-7-sonnet-20250219', xai: 'grok-2-1212' } },
-  { name: 'Balanced', models: { openai: 'gpt-4o-mini', gemini: 'gemini-2.0-flash', anthropic: 'claude-3-5-sonnet-20241022', xai: 'grok-2-1212' } },
-  { name: 'Fastest', models: { groq: 'llama-3.1-8b-instant', gemini: 'gemini-2.0-flash-lite-preview-02-05', openai: 'gpt-4o-mini', xai: 'grok-beta' } },
+  { name: 'Best Quality', models: { openai: 'gpt-4o', gemini: 'gemini-2.5-pro-preview-06-05', anthropic: 'claude-opus-4-8', xai: 'grok-3' } },
+  { name: 'Balanced', models: { openai: 'gpt-4o-mini', gemini: 'gemini-2.0-flash', anthropic: 'claude-sonnet-4-6', xai: 'grok-3-fast' } },
+  { name: 'Fastest', models: { groq: 'llama-3.1-8b-instant', gemini: 'gemini-2.0-flash-lite', openai: 'gpt-4o-mini', xai: 'grok-3-mini' } },
   { name: 'Budget', models: { groq: 'gemma2-9b-it', deepseek: 'deepseek-chat', together: 'mistralai/Mistral-Small-24B-Instruct-2501', alibaba: 'qwen-turbo' } },
-  { name: 'Coding', models: { openai: 'gpt-4o', anthropic: 'claude-3-7-sonnet-20250219', mistral: 'codestral-latest', deepseek: 'deepseek-coder' } },
-  { name: 'Reasoning', models: { openai: 'o1-preview', deepseek: 'deepseek-r1', anthropic: 'claude-3-7-sonnet-20250219', xai: 'grok-2-1212' } },
+  { name: 'Coding', models: { openai: 'gpt-4o', anthropic: 'claude-sonnet-4-6', mistral: 'codestral-latest', deepseek: 'deepseek-coder' } },
+  { name: 'Reasoning', models: { openai: 'o1-preview', deepseek: 'deepseek-r1', anthropic: 'claude-opus-4-8', xai: 'grok-3' } },
 ];

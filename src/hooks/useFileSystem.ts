@@ -20,7 +20,7 @@ const DEFAULT_FILES: FileNode[] = [
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus v5.5.5 | The AI-First IDE</title>
+  <title>Nexus v5.5.6 | The AI-First IDE</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -45,7 +45,7 @@ const DEFAULT_FILES: FileNode[] = [
   <div id="app" class="max-w-3xl w-full glass p-8 md:p-12 rounded-[2.5rem] shadow-2xl text-center space-y-8 relative z-10 animate-in fade-in zoom-in duration-1000">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-widest animate-pulse-slow">
       <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-      Version 5.5.5 Freedom Update
+      Version 5.5.6 Freedom Update
     </div>
 
     <div class="relative">
@@ -130,8 +130,8 @@ body {
   {
     id: '3',
     name: 'script.js',
-    content: `// Nexus v5.5.5 Freedom Runtime
-console.log("%c NEXUS IDE %c v5.5.5 ", "background: #6366f1; color: white; font-weight: bold; border-radius: 4px 0 0 4px; padding: 2px 6px;", "background: #1e293b; color: #94a3b8; border-radius: 0 4px 4px 0; padding: 2px 6px;");
+    content: `// Nexus v5.5.6 Freedom Runtime
+console.log("%c NEXUS IDE %c v5.5.6 ", "background: #6366f1; color: white; font-weight: bold; border-radius: 4px 0 0 4px; padding: 2px 6px;", "background: #1e293b; color: #94a3b8; border-radius: 0 4px 4px 0; padding: 2px 6px;");
 
 // Interactive element animations
 document.querySelectorAll("button").forEach(btn => {
@@ -159,7 +159,7 @@ window.addEventListener('load', () => {
   {
     id: '4',
     name: 'nexus.config.json',
-    content: '{\n  "version": "5.5.5",\n  "theme": "dark",\n  "features": {\n    "ai_streaming": true,\n    "v86_linux": true,\n    "ai_tools": 51,\n    "secure_collab": true\n  }\n}',
+    content: '{\n  "version": "5.5.6",\n  "theme": "dark",\n  "features": {\n    "ai_streaming": true,\n    "v86_linux": true,\n    "ai_tools": 51,\n    "secure_collab": true\n  }\n}',
     language: 'json',
   }
 ];
