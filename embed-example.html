@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus IDE - Embed Example</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .instructions code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    .embed-container {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    /* Fixed height container for the IDE */
+    #nexus-ide-container {
+      width: 100%;
+      height: 700px;
+    }
+    .other-content {
+      margin-top: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #005a9e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Nexus IDE Embed Example</h1>
+    
+    <div class="instructions">
+      <h2>How to Embed Nexus IDE in Your HTML</h2>
+      <p>Copy and paste this code into your HTML page:</p>
+      <pre><code>&lt;!-- Container for Nexus IDE --&gt;
+&lt;div id="my-nexus-ide" style="width: 100%; height: 700px;"&gt;&lt;/div&gt;
+
+&lt;!-- Load Nexus IDE embed script --&gt;
+&lt;script type="module"&gt;
+  import NexusEmbed from 'https://thestrongestoftomorrow.github.io/Nexus-IDE/nexus-embed.es.js';
+  
+  // Initialize after DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('my-nexus-ide');
+    const root = ReactDOM.createRoot(container);
+    root.render(React.createElement(NexusEmbed, {
+      containerId: 'my-nexus-ide',
+      onReady: () => console.log('Nexus IDE loaded!'),
+      onError: (err) => console.error('Error:', err)
+    }));
+  });
+&lt;/script&gt;</code></pre>
+      
+      <h3>Alternative: Auto-initialize with data attribute</h3>
+      <pre><code>&lt;div 
+  id="my-ide" 
+  data-nexus-embed-auto 
+  style="width: 100%; height: 700px;"
+&gt;&lt;/div&gt;
+
+&lt;script type="module" src="https://thestrongestoftomorrow.github.io/Nexus-IDE/nexus-embed.es.js"&gt;&lt;/script&gt;</code></pre>
+    </div>
+
+    <!-- Nexus IDE will be embedded here -->
+    <div class="embed-container">
+      <div id="nexus-ide-container"></div>
+    </div>
+
+    <!-- Other page content to demonstrate isolation -->
+    <div class="other-content">
+      <h2>Other Page Content</h2>
+      <p>This content exists outside the embedded Nexus IDE. Try typing in both areas - events should not interfere with each other!</p>
+      <button onclick="alert('Button works!')">Test Button</button>
+      <input type="text" placeholder="Type here to test keyboard isolation" style="margin-top: 10px; padding: 8px; width: 300px;" />
+    </div>
+  </div>
+
+  <!-- React and ReactDOM for the example -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <script type="module">
+    // This would normally import from the built file
+    // For this example, we're showing the structure
+    console.log('Example page loaded. Replace the import URL with your actual build output.');
+    
+    // In production, you would do:
+    // import NexusEmbed from './nexus-embed.es.js';
+    // const root = ReactDOM.createRoot(document.getElementById('nexus-ide-container'));
+    // root.render(React.createElement(NexusEmbed));
+  </script>
+</body>
+</html>

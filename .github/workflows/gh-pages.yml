@@ -3,10 +3,15 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-deploy:
@@ -26,8 +31,20 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build
+      - name: Build standard version
         run: npm run build
+
+      - name: Build embed version
+        run: EMBED_MODE=true npm run build
+        
+      - name: Move embed build to dist
+        run: |
+          if [ -f dist/nexus-embed.es.js ]; then
+            echo "Embed build found"
+          fi
+
+      - name: Copy embed example
+        run: cp embed-example.html dist/embed-example.html
 
       - name: Add .nojekyll
         run: touch dist/.nojekyll
@@ -39,3 +56,4 @@ jobs:
           publish_dir: ./dist
           publish_branch: gh-pages
           force_orphan: true
+          keep_files: false

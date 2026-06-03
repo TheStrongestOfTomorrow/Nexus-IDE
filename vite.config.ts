@@ -5,6 +5,8 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const isEmbedMode = process.env.EMBED_MODE === 'true';
+  
   return {
     base: mode === 'production' ? '/Nexus-IDE/' : '/',
     plugins: [react(), tailwindcss()],
@@ -15,7 +17,14 @@ export default defineConfig(({mode}) => {
           chunkFileNames: `assets/[name]-[hash]-v437.js`,
           assetFileNames: `assets/[name]-[hash]-v437.[ext]`
         }
-      }
+      },
+      // Generate web component build for embed mode
+      lib: isEmbedMode ? {
+        entry: path.resolve(__dirname, 'src/embed.tsx'),
+        name: 'NexusIDE',
+        fileName: (format) => `nexus-embed.${format}.js`,
+        formats: ['es']
+      } : undefined,
     },
     resolve: {
       alias: {
