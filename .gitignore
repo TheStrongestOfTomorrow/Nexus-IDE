@@ -2,23 +2,25 @@
 # Dependencies
 node_modules/
 
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-.env.*
-
-# Editors
-.vscode/
-.idea/
-
-# Build artifacts
+# Build outputs
 dist/
 build/
 target/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+*.env.*
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
 # Python
 __pycache__/
@@ -29,7 +31,6 @@ __pycache__/
 env/
 venv/
 .venv/
-.venv.bak/
 pip-log.txt
 pip-delete-this-directory.txt
 .tox/
@@ -40,46 +41,24 @@ nosetests.xml
 coverage.xml
 *.cover
 *.log
-.git/
-!.gitignore
-.DS_Store
-Thumbs.db
-
-# Node.js
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-jspm_packages/
-*.tsbuildinfo
-.next/
-.nuxt/
-.vuepress/dist
-.coverage
-.nyc_output
-coverage/
-lib-cov
-*.lcov
-*.log
-*.tmp
-*.temp
+.git/refs/replace/
 .DS_Store
 Thumbs.db
 
 # Compiled and binary files
-*.exe
-*.dll
+*.class
+*.o
 *.so
 *.a
-*.o
 *.obj
 *.out
-*.class
+*.exe
+*.dll
 *.jar
 *.war
 *.zip
-*.gz
 *.tar
+*.gz
 *.tgz
 *.bz2
 *.xz
@@ -100,18 +79,16 @@ Thumbs.db
 *.tar.xz
 *.tar.zst
 
-# IDE specific
-.vs/
-*.swp
-*.swo
-*~
-.project
-.classpath
-.settings/
-*.sublime-project
-*.sublime-workspace
-nbproject/
-nbbuild/
-nbdist/
-.nb-gradle/
+# Testing
+coverage/
+htmlcov/
+.nyc_output
+istanbul/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# System
+.DS_Store
+Thumbs.db
 ```
