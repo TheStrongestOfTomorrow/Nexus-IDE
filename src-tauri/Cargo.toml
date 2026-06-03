@@ -1,6 +1,6 @@
 [package]
 name = "nexus-ide"
-version = "5.5.5"
+version = "5.5.6"
 description = "Nexus IDE - The AI-First, Browser-Based IDE"
 authors = ["TheStrongestOfTomorrow"]
 license = "MIT"

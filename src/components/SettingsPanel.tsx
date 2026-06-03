@@ -630,7 +630,7 @@ export default function SettingsPanel({
         <div className="flex items-center gap-2 mb-1">
           <Monitor size={14} className="text-emerald-400" />
           <span className="text-xs font-bold text-white">v86 Virtual Machine</span>
-          <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">New in v5.5.5</span>
+          <span className="ml-auto text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold uppercase">New in v5.5.6</span>
         </div>
 
         <div className="flex items-start gap-3">
@@ -850,7 +850,7 @@ export default function SettingsPanel({
       <div className="flex items-center gap-2 text-nexus-accent border-b border-nexus-accent/20 pb-2">
         <Users size={18} />
         <h3 className="text-xs font-bold uppercase tracking-wider">Collaboration</h3>
-        <span className="ml-auto text-[9px] bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full font-bold uppercase">New in v5.5.5</span>
+        <span className="ml-auto text-[9px] bg-violet-500/20 text-violet-400 px-2 py-0.5 rounded-full font-bold uppercase">New in v5.5.6</span>
       </div>
 
       <div className="p-4 bg-nexus-bg rounded-xl border border-nexus-border space-y-4">
@@ -1051,7 +1051,7 @@ export default function SettingsPanel({
         <div className="flex items-center justify-between px-6 py-4 border-b border-nexus-border bg-nexus-sidebar">
           <div className="flex items-center gap-3">
             <Settings size={20} className="text-nexus-accent" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.5.5 Settings</h2>
+            <h2 className="text-sm font-bold text-white uppercase tracking-widest">Nexus 5.5.6 Settings</h2>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-nexus-bg rounded-xl text-nexus-text-muted hover:text-white transition-all">
             <X size={20} />
@@ -1091,7 +1091,7 @@ export default function SettingsPanel({
         <div className="p-6 bg-nexus-bg border-t border-nexus-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-nexus-accent animate-pulse" />
-            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.5.5</span>
+            <span className="text-[10px] font-bold text-nexus-text-muted uppercase tracking-widest">Nexus IDE v5.5.6</span>
           </div>
           <button
             onClick={onClose}
