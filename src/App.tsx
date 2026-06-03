@@ -247,7 +247,7 @@ export default function App() {
           selectedAIProvider: ide.selectedAIProvider,
           selectedModels: ide.selectedModels,
           timestamp: Date.now(),
-          version: '5.4.0',
+          version: '5.5.6',
           sessionId: ide.sessionId,
         }).then(() => {
           const savedAt = sessionPersistenceService.formatTimestamp(Date.now());

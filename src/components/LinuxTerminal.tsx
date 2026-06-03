@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
-import { v86Service, V86Status, CustomImageConfig } from '../services/v86Service';
+import { v86Service, V86Service, V86Status, CustomImageConfig } from '../services/v86Service';
 import type { SyncStats } from '../services/fileBridgeService';
 import { fileBridgeService } from '../services/fileBridgeService';
 import {
@@ -321,7 +321,7 @@ export default function LinuxTerminal({
     term.writeln('\x1b[1;32m | |_| | | | | |_| | | | | | | / __/  | |   \x1b[0m');
     term.writeln('\x1b[1;32m  \\___/|_| |_|\\__,_|_| |_| |_| |_____| |_|   \x1b[0m');
     term.writeln('');
-    term.writeln('\x1b[90m Nexus Linux Terminal v5.4.2 — v86 x86 Emulator\x1b[0m');
+    term.writeln('\x1b[90m Nexus Linux Terminal v5.5.6 — v86 x86 Emulator\x1b[0m');
     term.writeln('\x1b[90m Default OS: Buildroot Linux (bundled, ~5MB, no download needed)\x1b[0m');
     term.writeln('\x1b[90m RAM: ' + VM_MEMORY_MB + ' MB | Scrollback: 10,000 lines\x1b[0m');
     term.writeln('');
@@ -972,6 +972,31 @@ export default function LinuxTerminal({
   // ═══════════════════════════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ── SharedArrayBuffer check — v86 requires cross-origin isolation ──────────
+  if (!V86Service.isSupported()) {
+    return (
+      <div className="flex items-center justify-center h-full bg-nexus-bg p-8">
+        <div className="text-center max-w-md">
+          <Monitor size={48} className="text-nexus-text-muted mx-auto mb-4" strokeWidth={1} />
+          <h2 className="text-lg font-bold text-white mb-2">Linux Terminal Unavailable</h2>
+          <p className="text-xs text-nexus-text-muted mb-3">
+            The v86 x86 emulator requires <code className="bg-nexus-bg px-1.5 py-0.5 rounded text-nexus-accent">SharedArrayBuffer</code>,
+            which needs cross-origin isolation headers (COEP/COOP).
+          </p>
+          <p className="text-xs text-nexus-text-muted mb-4">
+            GitHub Pages and most static hosting providers cannot serve these headers.
+            This feature works when running locally with <code className="bg-nexus-bg px-1.5 py-0.5 rounded text-nexus-accent">npm run dev</code>,
+            on Vercel/Netlify with custom headers, or in the Tauri desktop app.
+          </p>
+          <div className="flex gap-2 justify-center text-[10px] text-nexus-text-muted">
+            <span className="bg-nexus-bg px-2 py-1 rounded">window.crossOriginIsolated = {String(typeof crossOriginIsolated !== 'undefined' ? crossOriginIsolated : false)}</span>
+            <span className="bg-nexus-bg px-2 py-1 rounded">SharedArrayBuffer = {typeof SharedArrayBuffer !== 'undefined' ? 'available' : 'undefined'}</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn(

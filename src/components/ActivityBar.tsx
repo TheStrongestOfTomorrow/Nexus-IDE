@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Files, Search, GitBranch, Play, MessageSquare, Settings, User, Terminal as TerminalIcon, Puzzle, Users, MoreHorizontal, Gamepad2, Share2, ScrollText, Palette, Package, CheckSquare, Scissors, BarChart, Box, HardDrive } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { V86Service } from '../services/v86Service';
+import { webcontainerService } from '../services/webcontainerService';
 
 export type ActivityType = 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'collab' | 'ai' | 'settings' | 'minecraft' | 'themes' | 'deps' | 'todos' | 'snippets' | 'insights' | 'webcontainer' | 'workspace' | 'linux';
 
@@ -23,8 +25,11 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'ai', icon: MessageSquare, label: 'AI Assistant' },
   ];
 
+  // Filter out features that require SharedArrayBuffer when not available
+  const hasSharedArrayBuffer = V86Service.isSupported() && webcontainerService.isSupported();
+
   const secondaryActivities: { id: ActivityType; icon: React.ElementType; label: string }[] = [
-    { id: 'webcontainer', icon: Box, label: 'WebContainer' },
+    ...(hasSharedArrayBuffer ? [{ id: 'webcontainer' as ActivityType, icon: Box, label: 'WebContainer' }] : []),
     { id: 'debug', icon: Play, label: 'Run and Debug' },
     { id: 'extensions', icon: Puzzle, label: 'Extensions' },
     { id: 'collab', icon: Users, label: 'Collaboration' },
@@ -34,7 +39,7 @@ export default function ActivityBar({ activeActivity, onActivityChange, onToggle
     { id: 'insights', icon: BarChart, label: 'Project Insights' },
     { id: 'themes', icon: Palette, label: 'Theme Studio' },
     { id: 'minecraft', icon: Gamepad2, label: 'Minecraft Bridge' },
-    { id: 'linux', icon: TerminalIcon, label: 'Linux Terminal (v86)' },
+    ...(hasSharedArrayBuffer ? [{ id: 'linux' as ActivityType, icon: TerminalIcon, label: 'Linux Terminal (v86)' }] : []),
   ];
 
   return (

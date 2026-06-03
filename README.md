@@ -42,8 +42,8 @@ The GitHub Pages deployment is a **static site** — there is no Node.js backend
 | Extensions Marketplace | Works | Works |
 | Voice Control & Zen Mode | Works | Works |
 | Mobile UI | Works | Works |
-| v86 Alpine Linux | Partial (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
-| WebContainers (Node.js in browser) | Partial (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
+| v86 Alpine Linux | Hidden (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
+| WebContainers (Node.js in browser) | Hidden (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
 | Server-side Terminal (bash) | Unavailable | Works |
 | Server-side Code Execution | Unavailable | Works |
 | WebSocket Collaboration | Falls back to external relay | Works (native WS) |
@@ -51,7 +51,7 @@ The GitHub Pages deployment is a **static site** — there is no Node.js backend
 | GitHub OAuth (callback) | Device Flow instead | Works |
 | AI API Proxy | Direct browser calls instead | Works |
 
-> **Why?** GitHub Pages serves static files only — no custom response headers, no WebSocket server, no server-side processes. For the full experience, run Nexus IDE locally with `npm start`.
+> **Why?** GitHub Pages serves static files only — no custom response headers, no WebSocket server, no server-side processes. Features requiring `SharedArrayBuffer` (v86 Linux, WebContainer) are automatically hidden from the UI on static hosts. For the full experience, run Nexus IDE locally with `npm start`.
 
 ---
 

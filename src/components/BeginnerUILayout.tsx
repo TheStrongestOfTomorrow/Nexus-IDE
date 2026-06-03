@@ -6,6 +6,8 @@ import {
   BookOpen, FileCode, Monitor
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { V86Service } from '../services/v86Service';
+import { webcontainerService } from '../services/webcontainerService';
 
 export type BeginnerActivity = 'files' | 'code' | 'ai' | 'run' | 'tools' | 'workspace';
 
@@ -255,6 +257,8 @@ export function BeginnerToolsPanel({
   onToolChange: (tool: string) => void;
   children: React.ReactNode;
 }) {
+  const hasSAB = V86Service.isSupported() && webcontainerService.isSupported();
+
   const tools: { id: string; label: string; icon: React.ElementType }[] = [
     { id: 'search', label: 'Search', icon: Search },
     { id: 'git', label: 'Git / GitHub', icon: GitBranch },
@@ -262,7 +266,7 @@ export function BeginnerToolsPanel({
     { id: 'collab', label: 'Collaboration', icon: Users },
     { id: 'themes', label: 'Themes', icon: Palette },
     { id: 'minecraft', label: 'Minecraft', icon: Gamepad2 },
-    { id: 'webcontainer', label: 'WebContainer', icon: Box },
+    ...(hasSAB ? [{ id: 'webcontainer', label: 'WebContainer', icon: Box }] : []),
     { id: 'terminal', label: 'Terminal', icon: Terminal },
   ];
 

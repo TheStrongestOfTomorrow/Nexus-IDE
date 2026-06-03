@@ -25,6 +25,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { V86Service } from '../services/v86Service';
 
 // ─── Activity Sidebar Item Types ─────────────────────────────────────────────
 export type VSCodeActivityItem =
@@ -222,7 +223,7 @@ const ACTIVITY_ITEMS: {
   { id: 'debug', icon: Play, label: 'Run and Debug' },
   { id: 'extensions', icon: Puzzle, label: 'Extensions' },
   { id: 'ai', icon: Sparkles, label: 'AI Assistant' },
-  { id: 'linux', icon: Monitor, label: 'Linux Terminal' },
+  ...(V86Service.isSupported() ? [{ id: 'linux' as VSCodeActivityItem, icon: Monitor, label: 'Linux Terminal' }] : []),
 ];
 
 function VSCodeActivityBar({

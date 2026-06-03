@@ -306,7 +306,7 @@ async function loadV86Library(): Promise<new (config: V86Config) => V86Emulator>
 
 // ─── V86Service ───────────────────────────────────────────────────────────────
 
-class V86Service {
+export class V86Service {
   private emulator: V86Emulator | null = null;
   private _status: V86Status = 'idle';
   private outputCallbacks: Array<(text: string) => void> = [];
@@ -330,6 +330,16 @@ class V86Service {
 
   get status(): V86Status {
     return this._status;
+  }
+
+  /**
+   * Check if the browser environment supports v86 emulation.
+   * v86 requires SharedArrayBuffer, which needs cross-origin isolation
+   * (COEP/COOP headers). GitHub Pages and most static hosts cannot
+   * serve these headers, making v86 unavailable.
+   */
+  static isSupported(): boolean {
+    return typeof SharedArrayBuffer !== 'undefined';
   }
 
   get isRunning(): boolean {
