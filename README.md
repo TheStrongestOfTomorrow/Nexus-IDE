@@ -2,351 +2,209 @@
 
 # Nexus IDE
 
-<img src="https://lucide.dev/api/icons/zap?size=128&color=f59e4b" alt="Nexus IDE" width="128" height="128" />
+### A full-featured IDE that runs entirely in your browser.
 
-### *The AI-First, Browser-Based IDE with WebContainer Power*
+**No downloads. No cloud dependency. Your data stays on your machine.**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-222222?style=for-the-badge&labelColor=1e293b&logo=github)](https://thestrongestoftomorrow.github.io/Nexus-IDE/)
-[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-Beta-f59e4b?style=for-the-badge&labelColor=1e293b&logo=github)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/packages)
+[![Live Demo](https://img.shields.io/badge/Try_It_Now-GitHub_Pages-222222?style=for-the-badge&labelColor=1e293b&logo=github)](https://thestrongestoftomorrow.github.io/Nexus-IDE/)
 [![Version](https://img.shields.io/badge/Version-5.5.6-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
-[![Linux](https://img.shields.io/badge/Linux-Alpine_Linux_in_Browser-emerald?style=for-the-badge&labelColor=1e293b)](https://github.com/nickvdp/nickvdp)
-[![WebContainer](https://img.shields.io/badge/WebContainer-Enabled-10b981?style=for-the-badge&labelColor=1e293b)](https://webcontainers.io)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
-
-*A modern, high-performance IDE with AI integration, VS Code-like experience, real Alpine Linux in your browser, and the power to run Node.js entirely in the browser.*
 
 </div>
 
 ---
 
-## Live Demo
+## Try It
 
-Try Nexus IDE right now — no installation needed!
+**Just open this link** — no install, no account, no signup:
 
-| Platform | Link | Notes |
-|----------|------|-------|
-| GitHub Pages | [**thestrongestoftomorrow.github.io/Nexus-IDE**](https://thestrongestoftomorrow.github.io/Nexus-IDE/) | Static hosting — some features require a backend server (see below) |
+**[thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/)**
 
-### GitHub Pages Limitations
-
-The GitHub Pages deployment is a **static site** — there is no Node.js backend. Most features work great, but some require a running server:
-
-| Feature | GitHub Pages | Locally (`npm start`) |
-|---------|:------------:|:---------------------:|
-| Code Editor & File Manager | Works | Works |
-| AI Providers (12+) | Works (direct API) | Works |
-| GitHub Integration (Device Flow + PAT) | Works | Works |
-| Workspace Save / IndexedDB | Works | Works |
-| Session Persistence | Works | Works |
-| Theme Studio & Settings | Works | Works |
-| Extensions Marketplace | Works | Works |
-| Voice Control & Zen Mode | Works | Works |
-| Mobile UI | Works | Works |
-| v86 Alpine Linux | Hidden (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
-| WebContainers (Node.js in browser) | Hidden (no SharedArrayBuffer) | Works (with COEP/COOP headers) |
-| Server-side Terminal (bash) | Unavailable | Works |
-| Server-side Code Execution | Unavailable | Works |
-| WebSocket Collaboration | Falls back to external relay | Works (native WS) |
-| Minecraft Bridge | Unavailable | Works |
-| GitHub OAuth (callback) | Device Flow instead | Works |
-| AI API Proxy | Direct browser calls instead | Works |
-
-> **Why?** GitHub Pages serves static files only — no custom response headers, no WebSocket server, no server-side processes. Features requiring `SharedArrayBuffer` (v86 Linux, WebContainer) are automatically hidden from the UI on static hosts. For the full experience, run Nexus IDE locally with `npm start`.
+That's it. You're coding.
 
 ---
 
-## v5.5.6 — The Freedom Update
+## What Is This?
 
-The biggest feature release ever. Real AI streaming, 51-tool system, password-protected collaboration, terminal freedom, CI/CD pipelines, and a completely redesigned Settings page with mobile UI for both portrait and landscape.
+Nexus IDE is a browser-based code editor built for people who don't want to download a 300MB IDE. It runs entirely in your browser with zero server dependency — your files, your AI keys, your code all stay local.
 
-### AI Streaming & Tools
-| Feature | Description |
-|---------|-------------|
-| **Real-Time Streaming** | AI responses stream token-by-token via SSE for all 12 providers |
-| **Stop Button** | Abort streaming mid-response with one click |
-| **Streaming Toggle** | Enable/disable streaming per session |
-| **51 AI Tools** | AI can read/write files, run terminal commands, manage git, search web, and more |
-| **File Tools** | read_file, write_file, delete_file, list_files, search_files, and more |
-| **Git Tools** | git_status, git_diff, git_log, git_commit, git_branch, git_push, and more |
-| **GitHub Tools** | create_issue, create_pr, search_repos, read_file, and more |
-| **Terminal Tools** | run_terminal_command, get_terminal_output, clear_terminal |
-| **Code Analysis** | analyze_code, find_references, count_lines_of_code |
-| **Web Tools** | web_search, web_scrape, web_screenshot, fetch_url |
-| **Editor Tools** | get_selection, replace_selection, goto_line, find_replace |
-| **Workspace Tools** | create_snippet, list_snippets, apply_snippet, export_workspace |
-| **Debug Tools** | toggle_breakpoint, get_call_stack, inspect_variable |
-| **Streaming + Tools** | Tools execute mid-stream with follow-up streaming response |
-| **Tool Results UI** | Tool calls shown inline in chat with collapsible results |
-
-### Secure Collaboration
-| Feature | Description |
-|---------|-------------|
-| **Password Protection** | SHA-256 hashed passwords for sessions |
-| **Session Timeout** | Configurable session expiry |
-| **Max Participants** | Limit session size |
-| **Host Controls** | Kick participants, transfer host role |
-| **Mutual Backup** | Both host and visitor save workspace to IndexedDB |
-| **Conflict Resolution** | Restore from backup on reconnect |
-
-### Redesigned Settings
-| Feature | Description |
-|---------|-------------|
-| **Sidebar Navigation** | 9 organized categories instead of infinite scroll |
-| **Terminal Config** | RAM allocation, disk size, network relay, boot-on-start |
-| **Linux User Mode** | Root / User+Sudo / User-only configuration |
-| **Collab Settings** | Password, timeout, max participants |
-| **Editor Settings** | Minimap, word wrap, font size, tab size |
-| **Mobile Settings** | Touch mode, UI preferences |
-
-### Mobile UI
-| Feature | Description |
-|---------|-------------|
-| **Portrait Mode** | Bottom tab bar with Files, Search, AI, Terminal, Git |
-| **Landscape Mode** | Activity sidebar + editor split view |
-| **Swipe Gestures** | Swipe between tabs in portrait mode |
-| **Full-Screen Editor** | Tap file to open in full-screen overlay |
-| **Responsive Detection** | Auto-detect orientation and device type |
-
-### Terminal Freedom
-| Feature | Description |
-|---------|-------------|
-| **Setup Wizard** | First-boot configuration with user creation options |
-| **Skip User Setup** | Option to stay as root, no user created |
-| **User Creation** | Create user with sudo or restricted access |
-| **Custom Images** | Upload ISO/IMG files (Windows, Ubuntu, etc.) |
-| **Network Relay** | Real internet access inside the VM via network_relay_url |
-| **Smart Install Prompts** | "Install?" banner when commands aren't found |
-| **Proper Package Manager** | Uses runCommand() for reliable apk add/del |
-| **File Browser** | Navigate Alpine filesystem from within Nexus |
-
-### Theme Studio
-| Feature | Description |
-|---------|-------------|
-| **21 CSS Variables** | Full theme customization including scrollbar, selection, hover, badges |
-| **7 Preset Themes** | Midnight Blue, One Dark Pro, Dracula, Solarized Dark, GitHub Dark, VS Code Dark+, Light |
-| **Custom Themes** | Save/load named themes to localStorage |
-| **Import/Export** | Share themes as JSON files |
-| **Live Preview** | Changes apply instantly via CSS variables |
-
-### CI/CD Pipelines
-| Feature | Description |
-|---------|-------------|
-| **Tauri Desktop Builds** | macOS, Windows, Linux via GitHub Actions |
-| **Android APK Builds** | Capacitor-based debug + release APKs |
-| **GitHub Pages Deploy** | Automatic deployment on push to main |
-| **Release Artifacts** | APK, DMG, MSI, AppImage on tagged releases |
-
-### Performance
-| Feature | Description |
-|---------|-------------|
-| **Lazy Loading** | Monaco Editor, v86, xterm.js, ThemeStudio loaded on demand |
-| **Code Splitting** | Heavy components in separate chunks (62KB, 13KB, 6KB) |
-| **Faster Startup** | Initial load reduced by deferring non-essential modules |
-| **Serial I/O Buffering** | Optimized v86 serial output with buffered flushing |
-
-### Capacitor Bridge (Android)
-| Feature | Description |
-|---------|-------------|
-| **Native Shell** | Execute commands via Termux plugin bridge |
-| **Native Filesystem** | Read/write files on Android storage |
-| **Haptics & Vibration** | Haptic feedback for actions |
-| **Device Info** | Access platform, model, OS version |
-| **Share Sheet** | Share files via native Android share dialog |
+It's not a toy editor. It has a real Linux terminal, AI assistance from 12 providers, collaboration, git integration, mobile support, and an extension marketplace. All in a browser tab.
 
 ---
 
-## Real Linux in Your Browser
+## Quick Start
 
-**v86 x86 emulation** boots a **real Alpine Linux** distro entirely inside your browser — no server, no VM, no Docker, just pure WebAssembly-powered x86 emulation. Your Linux filesystem persists in IndexedDB and survives page refreshes and browser restarts.
+### Just Browse (fastest)
+Open [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) — no install needed. Some features (Linux terminal, WebContainer) require running locally.
 
-> **Note:** The v86 emulator and WebContainers require `SharedArrayBuffer`, which needs cross-origin isolation headers (`COEP`/`COOP`). These headers are set automatically when running locally with `npm start`, but are not available on GitHub Pages. For the full Linux and WebContainer experience, run locally.
-
----
-
-## Install & Run
-
-### Method 1 — Clone & Run Locally (Recommended)
-
+### Run Locally (full features)
 ```bash
-# Clone the repo
 git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
 cd Nexus-IDE
-
-# Install dependencies
 npm install
-
-# Start the dev server (includes backend for full features)
 npm start
 ```
-
-Then open **http://localhost:3000** in your browser. This gives you the full experience including server-side terminal, WebSocket collaboration, and cross-origin isolation for v86/WebContainers.
-
-### Method 2 — GitHub Packages
-
-```bash
-# Run instantly — no install needed
-npx github:TheStrongestOfTomorrow/Nexus-IDE
-
-# Or install globally
-npm install -g @TheStrongestOfTomorrow/nexus-ide
-nexus-ide
-```
-
-> **Note:** You need GitHub Packages access. If prompted, add this to your `~/.npmrc`:
-> ```
-> @TheStrongestOfTomorrow:registry=https://npm.pkg.github.com
-> //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-> ```
-
-### Method 3 — Just Browse
-
-Open [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) — no install, no account, just code. Some server-dependent features won't be available (see the compatibility table above).
+Opens at `http://localhost:3000` with COEP/COOP headers — v86 Linux and WebContainer work.
 
 ---
 
-## All Versions
+## Features
 
-| Version | Branch | Description |
-|---------|--------|-------------|
-| **Latest (This)** | `main` | v5.5.6 — AI Streaming, Tools, Linux, Mobile |
-| **CLI / TUI** | `cli` | Terminal-only edition |
+### Editor
+- Monaco Editor (the same engine as VS Code)
+- Split editor, minimap, word wrap, auto-close brackets
+- Command palette (Ctrl+Shift+P)
+- Diff editor for comparing changes
+- File search across your project
+
+### AI (12 Providers, 51 Tools)
+- OpenAI, Anthropic, Google, xAI, Mistral, DeepSeek, Groq, Cohere, Perplexity, Alibaba, Together, Ollama
+- 3 modes: Chat, Agent (executes tools), Prototyper (generates workspaces)
+- AI can read/write files, run terminal commands, manage git, search the web, and more
+- Real-time streaming responses
+- Your API keys stay in your browser — no server proxy
+
+### Linux Terminal
+- Real Alpine Linux running in your browser via v86 x86 emulation
+- Not a simulated terminal — it's an actual Linux distro
+- Package manager, file system, networking — everything works
+- Setup wizard for first-boot configuration
+- Custom ISO/IMG upload (Windows, Ubuntu, etc.)
+- File bridge between Nexus workspace and Linux filesystem
+
+### WebContainer
+- Run Node.js entirely in the browser
+- `npm install` works — no server needed
+- Requires SharedArrayBuffer (run locally for full support)
+
+### Collaboration
+- Real-time collaborative editing
+- Password-protected sessions with SHA-256 hashing
+- Host controls: kick participants, transfer host
+- Session timeout and max participant limits
+
+### Git & GitHub
+- Full source control panel: staging, commits, branches, history
+- GitHub integration via Device Flow or PAT
+- Create issues, pull requests from inside the IDE
+- AI can execute git commands through tools
+
+### Mobile
+- Portrait mode with bottom tab bar
+- Landscape mode with split view
+- Swipe gestures between tabs
+- Touch-optimized for phones and tablets
+
+### Themes
+- Theme Studio with 21 customizable CSS variables
+- 7 preset themes (One Dark Pro, Dracula, Solarized, GitHub Dark, etc.)
+- Import/export themes as JSON
+- Live preview
+
+### More
+- Workspace save/load to IndexedDB — survives page refresh
+- Session persistence (auto-saves every 30 seconds)
+- Extensions marketplace (OpenVSX)
+- PWA — install as an app
+- Zen mode and voice control
+- Embeddable in other apps via Shadow DOM
+- Android APK and Tauri desktop builds
 
 ---
 
-## AI Providers
+## GitHub Pages vs Local
 
-| Provider | Models | Type |
-|----------|--------|------|
-| OpenAI | GPT-4o, O1, O3 Mini | Cloud |
-| Anthropic | Claude Opus 4.8, Sonnet 4.6 | Cloud |
-| Google | Gemini 2.5 Pro, Flash | Cloud |
-| xAI | Grok 3, Grok 3 Fast | Cloud |
-| Mistral | Codestral, Large | Cloud |
-| DeepSeek | Coder, R1 | Cloud |
-| Groq | Llama 3.3 70B | Free Tier |
-| Cohere | Command R+ | Cloud |
-| Perplexity | Sonar Pro | Cloud |
-| Alibaba | Qwen Max, Coder | Cloud |
-| Together | Llama 3.3, Qwen 2.5 | Cloud |
-| Ollama | Llama, Mistral, DeepSeek | Local |
+The live demo works great for most things. Some features need server headers that GitHub Pages can't provide:
 
----
+| Feature | GitHub Pages | Local (`npm start`) |
+|---------|:------------:|:-------------------:|
+| Code Editor, AI, Git, Themes | Works | Works |
+| Collaboration, Extensions, Mobile | Works | Works |
+| v86 Linux Terminal | Hidden (needs SharedArrayBuffer) | Works |
+| WebContainer (Node.js) | Hidden (needs SharedArrayBuffer) | Works |
+| Server-side Terminal | Unavailable | Works |
 
-## Full Feature List
-
-| Feature | Description |
-|---------|-------------|
-| Alpine Linux | Real Linux terminal via v86 emulation |
-| Workspace Saves | Save/load projects to IndexedDB |
-| Beginner UI | Simplified interface for newcomers |
-| WebContainer | Run Node.js in browser |
-| 12+ AI Providers | OpenAI, Claude, Gemini, Grok, and more |
-| Voice Control | Control IDE with speech |
-| Zen Mode | Distraction-free coding |
-| Theme Studio | Create custom themes |
-| Dependency Graph | Visualize project deps |
-| Cloud Bridge | Real-time collaboration |
-| Mobile UI | Proper touch-optimized mobile experience |
-| Extensions | OpenVSX marketplace |
-| Search | Full project search |
-| Debug | Run and debug tools |
-| Snippets | Code snippet manager |
-| Todo Scanner | Find TODOs in code |
-| Project Insights | Code statistics |
-| Diff Editor | Compare file changes |
-| Command Palette | Ctrl+Shift+P power |
+On GitHub Pages, Linux terminal and WebContainer are automatically hidden from the UI. For the full experience, run locally.
 
 ---
 
 ## Deployment
 
-### Live Demo (No Install)
-- **GitHub Pages**: [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) — Automatically deploys from `main` branch on every push
+See [EMBED_GUIDE.md](EMBED_GUIDE.md) for embedding Nexus in your app.
 
-### GitHub Packages
-```bash
-npm install -g @TheStrongestOfTomorrow/nexus-ide
-nexus-ide
-```
+### GitHub Pages (automatic)
+The repo deploys to GitHub Pages on every push to `main`. Just push and it's live.
 
-### Clone & Host Locally
+### Docker
 ```bash
 git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
 cd Nexus-IDE
-npm install
-npm start        # Dev server on localhost:3000 (full features)
-npm run build    # Production build -> dist/
-npm run serve    # Serve production build
+docker-compose up -d
+```
+
+### Cloud Platforms (Vercel, Railway, Render, Netlify)
+Works out of the box. Add COEP/COOP headers for v86/WebContainer support:
+```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
 ```
 
 ### Android
-Download the APK from [Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) and install on your device. No Google Play needed.
+Download the APK from [Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) or build from source:
+```bash
+npm install && npm run build
+npx cap sync android
+cd android && ./gradlew assembleDebug
+```
 
 ### Tauri Desktop
 ```bash
-npm run tauri:build
+npm run tauri:dev    # Development
+npm run tauri:build  # Production (macOS, Windows, Linux)
 ```
 
 ---
 
-## Changelog
+## AI Providers
 
-### v5.5.6 (Current)
-- AI Streaming — Real-time token-by-token streaming for all 12 providers via SSE
-- 51 AI Tools — File ops, git, GitHub, terminal, web, editor, workspace, debug, code analysis
-- Streaming + Tools — Tools execute mid-stream with follow-up response
-- Password-Protected Sessions — SHA-256 hashed passwords for collaboration
-- Session Management — Timeout, max participants, kick, host transfer
-- Settings Overhaul — Sidebar navigation with 9 organized categories
-- Mobile Portrait/Landscape UI — Bottom tab bar, swipe gestures, full-screen editor
-- Setup Wizard — First-boot user configuration (Root/Sudo/Restricted/Skip)
-- Custom Image Upload — Load ISO/IMG files into v86 emulator
-- Theme Studio — 21 variables, 7 presets, custom themes, import/export, light mode
-- CI/CD Pipelines — Tauri (Win/Mac/Linux), Android APK, GitHub Pages
-- Lazy Loading — Monaco, v86, xterm.js, ThemeStudio loaded on demand
-- Capacitor Bridge — Native shell, filesystem, haptics, share sheet
-- Optimized Serial I/O — Buffered v86 output with 4KB flush for better performance
-- Updated AI Models — Claude Opus 4.8, Sonnet 4.6; Gemini 2.5 Pro; Grok 3
+| Provider | Models | Runs Locally? |
+|----------|--------|:------------:|
+| OpenAI | GPT-4o, O1, O3 Mini | No |
+| Anthropic | Claude Opus 4.8, Sonnet 4.6 | No |
+| Google | Gemini 2.5 Pro, Flash | No |
+| xAI | Grok 3, Grok 3 Fast | No |
+| Mistral | Codestral, Large | No |
+| DeepSeek | Coder, R1 | No |
+| Groq | Llama 3.3 70B | No (free tier) |
+| Cohere | Command R+ | No |
+| Perplexity | Sonar Pro | No |
+| Alibaba | Qwen Max, Coder | No |
+| Together | Llama 3.3, Qwen 2.5 | No |
+| Ollama | Llama, Mistral, DeepSeek | **Yes** |
 
-### v5.4.0
-- Alpine Linux Terminal — Real Linux via v86 x86 emulation in your browser
-- File Bridge — Push/pull files between Nexus workspace and Alpine filesystem
-- VM State Persistence — Save/restore VM state to IndexedDB
-- Serial/Screen Modes — Toggle between xterm.js terminal and v86 canvas output
-- Disk Image Caching — Alpine image downloaded once, cached in IndexedDB
+---
 
-### v5.3.0
-- Editor Improvements — Auto-close brackets, auto indent, split editor, minimap, word wrap
-- Welcome Tab — New tab page with quick actions, recent files, shortcuts
-- Notification Toasts — Bottom-right toast system
+## Branches
 
-### v5.2.0
-- Deep Git Integration — Full source control panel: staging, commits, branches, history, PRs, issues
-- Auto-Update Check — Checks GitHub for new releases every 5 minutes
+| Branch | Purpose |
+|--------|---------|
+| `main` | Active development — all PRs merge here |
+| `beta` | Experimental features for power users |
+| `cli` | Terminal-only TUI edition |
+| `gh-pages` | Auto-deployed from `main`, don't edit directly |
 
-### v5.1.5
-- Airplane Mode — Auto-detect offline, partial lock on internet features only
-- Session Persistence — Full IDE state saved to IndexedDB every 30 seconds
+---
 
-### v5.1.0
-- Workspace Save System — Save/load workspaces to IndexedDB with auto-save
-- Beginner-Friendly UI — New simplified interface with tabbed navigation
-- Tauri v5.1.0 — Updated desktop integration
-- Capacitor Improvements — Splash screen, status bar, keyboard handling
+## Contributing
 
-### v5.0.0
-- WebContainer Integration — Run Node.js in browser
-- npm install support in browser
-- Cross-Origin Isolation headers (COOP/COEP)
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, commit conventions, and how to add AI providers/tools.
 
 ---
 
 <div align="center">
 
-### Made with love by Taz
+### Made by Taz
 
-*The Future of Browser-Based Development*
-
-**v5.5.6 — The Freedom Update**
+*Zero downloads. Zero cloud dependency. Just code.*
 
 </div>
