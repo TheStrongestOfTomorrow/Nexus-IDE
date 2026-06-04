@@ -1,34 +1,50 @@
 <div align="center">
 
-# ☁️ Hosting & Deployment Guides
+# Hosting & Deployment Guides
 
 <img src="https://lucide.dev/api/icons/cloud-upload?size=96&color=3b82f6" alt="Cloud Hosting" width="96" height="96" />
 
 ### *Deploy Nexus IDE Anywhere in Minutes*
 
+[![Node.js 20+](https://img.shields.io/badge/Node.js-20+-339933?style=for-the-badge&labelColor=1e293b&logo=node.js)](https://nodejs.org/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ed?style=for-the-badge&labelColor=1e293b&logo=docker)](https://www.docker.com/)
-[![Node.js 18+](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&labelColor=1e293b&logo=node.js)](https://nodejs.org/)
-[![NPM](https://img.shields.io/badge/NPM-Available-cb3837?style=for-the-badge&labelColor=1e293b&logo=npm)](https://www.npmjs.com/package/nexus-ide)
 
 </div>
 
 ---
 
-## ⚡ One-Command Deploy
+## One-Command Run
 
 ```bash
-npx nexus-ide@beta
+# Clone & run locally (full features including v86 + WebContainer)
+git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
+cd Nexus-IDE
+npm install --legacy-peer-deps
+npm run dev
 ```
 
-That's it! Opens at `http://localhost:3000`
+Opens at `http://localhost:3000` with COEP/COOP headers enabled.
 
 ---
 
-## 🐳 Docker
+## GitHub Pages (Zero Config)
+
+The repo includes a GitHub Actions workflow (`.github/workflows/gh-pages.yml`) that automatically deploys to GitHub Pages on every push to `main`.
+
+1. Go to repo **Settings → Pages**
+2. Set **Source** to `gh-pages` branch
+3. Push to `main` — deployment happens automatically
+
+Your site will be live at `https://<username>.github.io/Nexus-IDE/`
+
+**Limitations:** GitHub Pages is static hosting — no custom headers. Features requiring `SharedArrayBuffer` (v86 Linux Terminal, WebContainer) are automatically hidden on GH Pages.
+
+---
+
+## Docker
 
 ### Quick Start
 ```bash
-# Clone & Run
 git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
 cd Nexus-IDE
 docker-compose up -d
@@ -39,7 +55,7 @@ docker-compose up -d
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 EXPOSE 3000
@@ -48,46 +64,58 @@ CMD ["npm", "start"]
 
 ---
 
-## ☁️ Cloud Platforms
+## Cloud Platforms
 
-### Vercel (Recommended)
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+### Vercel
 
 ```bash
-# CLI
 npm i -g vercel
 vercel
 ```
 
+**Important:** Add these headers in `vercel.json` for v86/WebContainer support:
+```json
+{
+  "headers": [
+    { "source": "/(.*)", "headers": [
+      { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" },
+      { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" }
+    ]}
+  ]
+}
+```
+
 ### Railway
-[![Deploy on Railway](https://railway.app/button)](https://railway.app/new/template/nexus-ide)
 
 1. Connect GitHub repo
-2. Auto-deploys on push
+2. Set build command: `npm install --legacy-peer-deps && npm run build`
+3. Set start command: `npm start`
+4. Auto-deploys on push
 
 ### Render
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 1. New Web Service
 2. Connect GitHub
-3. Build: `npm install && npm run build`
+3. Build: `npm install --legacy-peer-deps && npm run build`
 4. Start: `npm start`
 
 ### Fly.io
+
 ```bash
 fly launch
 fly deploy
 ```
 
-### Heroku
-```bash
-heroku create
-git push heroku main
-```
+### Netlify
+
+1. Connect GitHub repo
+2. Build command: `npm run build`
+3. Publish directory: `dist`
+4. Add COEP/COOP headers in `netlify.toml` for v86/WebContainer support
 
 ---
 
-## 🖥️ Self-Hosted
+## Self-Hosted
 
 ### PM2 (Production)
 ```bash
@@ -132,60 +160,56 @@ server {
 
 ---
 
-## 📱 Mobile & Desktop
+## Mobile & Desktop
 
-### Android (Termux)
+### Android
+
+Download the APK from [Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) or build from source:
+
 ```bash
-pkg install nodejs
-npx nexus-ide@beta
+npm install --legacy-peer-deps
+npm run build
+npx cap sync android
+cd android && ./gradlew assembleDebug
 ```
 
 ### Tauri Desktop App
+
 ```bash
 npm run tauri:dev    # Development
-npm run tauri:build  # Production
+npm run tauri:build  # Production (macOS, Windows, Linux)
 ```
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Server port | `3000` |
-| `GITHUB_CLIENT_ID` | GitHub OAuth ID | - |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth Secret | - |
-| `OPENAI_API_KEY` | OpenAI key | - |
-| `ANTHROPIC_API_KEY` | Claude key | - |
-| `GOOGLE_API_KEY` | Gemini key | - |
+| `GITHUB_CLIENT_ID` | GitHub OAuth client ID | - |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret | - |
+
+> **Note:** AI API keys are entered by users in the IDE settings UI, not via environment variables. The browser makes direct API calls to AI providers — no server-side proxy needed.
 
 ---
 
-## 🔒 Production Checklist
+## Production Checklist
 
-- [ ] ✅ HTTPS enabled
-- [ ] ✅ Rate limiting
-- [ ] ✅ Environment variables set
-- [ ] ✅ Error monitoring
-- [ ] ✅ Auto-restart (PM2)
-- [ ] ✅ Backups configured
+- [ ] HTTPS enabled (required for Service Worker and PWA)
+- [ ] COEP/COOP headers set (required for v86 and WebContainer)
+- [ ] Environment variables configured
+- [ ] Auto-restart configured (PM2 or systemd)
+- [ ] Rate limiting (if exposing to public)
 
 ---
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
 | Port in use | Change `PORT` env var |
-| Build fails | Clear cache: `rm -rf node_modules && npm install` |
+| Build fails | Clear cache: `rm -rf node_modules && npm install --legacy-peer-deps` |
 | Memory error | Increase Node memory: `NODE_OPTIONS=--max-old-space-size=4096` |
-
----
-
-<div align="center">
-
-### Happy Deploying! 🚀
-
-*Need help? [Open an issue](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/issues)*
-
-</div>
+| v86/WebContainer not working | Check COEP/COOP headers are set |
+| GitHub Pages shows old version | Hard refresh (Ctrl+Shift+R) or clear browser cache |

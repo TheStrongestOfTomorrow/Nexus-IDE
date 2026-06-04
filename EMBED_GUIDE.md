@@ -1,22 +1,20 @@
-# Nexus IDE - Embeddable Browser OS Integration Guide
+# Nexus IDE - Embed Guide
 
-## Overview
-
-Nexus IDE is now production-ready for embedding into any web application, including Browser OS environments. The embeddable version provides complete isolation through Shadow DOM and includes a full API for programmatic control.
+Embed Nexus IDE into any web application. The embeddable version provides complete CSS isolation through Shadow DOM and includes a full API for programmatic control.
 
 ## Features
 
-✅ **Complete CSS Isolation** - Shadow DOM prevents style conflicts  
-✅ **Event Containment** - Keyboard shortcuts and mouse events stay within the IDE  
-✅ **Lifecycle Management** - `destroy()` method for clean unmounting and memory cleanup  
-✅ **PostMessage API** - Cross-origin communication support  
-✅ **Theme Support** - Dynamic dark/light theme switching  
-✅ **Command System** - Send commands to the IDE from parent app  
-✅ **Event Listening** - Receive events from the IDE  
+- **Complete CSS Isolation** - Shadow DOM prevents style conflicts
+- **Event Containment** - Keyboard shortcuts and mouse events stay within the IDE
+- **Lifecycle Management** - `destroy()` method for clean unmounting and memory cleanup
+- **PostMessage API** - Cross-origin communication support
+- **Theme Support** - Dynamic dark/light theme switching
+- **Command System** - Send commands to the IDE from parent app
+- **Event Listening** - Receive events from the IDE
 
 ## Installation
 
-### Option 1: CDN (Quick Start)
+### Option 1: CDN
 
 ```html
 <script type="module">
@@ -29,19 +27,25 @@ Nexus IDE is now production-ready for embedding into any web application, includ
 </script>
 ```
 
-### Option 2: NPM Package (After Publishing)
+### Option 2: npm
 
 ```bash
-npm install nexus-ide
+npm install @TheStrongestOfTomorrow/nexus-ide
 ```
 
 ```javascript
-import { NexusEmbed } from 'nexus-ide';
+import { NexusEmbed } from '@TheStrongestOfTomorrow/nexus-ide';
 ```
 
-## Usage Examples
+> **Note:** Requires GitHub Packages access. Add to your `~/.npmrc`:
+> ```
+> @TheStrongestOfTomorrow:registry=https://npm.pkg.github.com
+> //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+> ```
 
-### React Integration
+## Usage
+
+### React
 
 ```jsx
 import { useRef } from 'react';
@@ -81,7 +85,6 @@ function MyBrowserOS() {
 <script type="module">
   import { NexusIDE } from './nexus-embed.es.js';
   
-  // Create instance
   const app = NexusIDE.create('ide-container', {
     theme: 'dark'
   });
@@ -123,7 +126,7 @@ function MyBrowserOS() {
 
 | Method | Description | Parameters | Returns |
 |--------|-------------|------------|---------|
-| `destroy()` | Completely unmounts the IDE and cleans up resources | None | void |
+| `destroy()` | Unmounts the IDE and cleans up resources | None | void |
 | `sendMessage(command, payload)` | Send a command to the IDE | `command: string`, `payload?: any` | void |
 | `onMessage(callback)` | Subscribe to IDE events | `callback: (data: any) => void` | Unsubscribe function |
 | `isReady()` | Check if IDE is fully loaded | None | boolean |
@@ -182,68 +185,16 @@ window.addEventListener('message', (event) => {
 - `ai-response` - AI assistant response
 - `error` - Error occurred
 
-## Browser OS Integration Example
+## Building the Embed Version
 
-```javascript
-class BrowserOS {
-  constructor() {
-    this.apps = new Map();
-  }
-  
-  openNexusIDE(windowId, config = {}) {
-    const windowEl = this.createWindow(windowId, {
-      title: 'Nexus IDE',
-      icon: 'code',
-      width: 1200,
-      height: 800
-    });
-    
-    const container = windowEl.querySelector('.content');
-    
-    // Create IDE instance
-    const app = NexusIDE.create(container, {
-      theme: config.theme || 'dark',
-      initialProject: config.project
-    });
-    
-    // Store reference
-    this.apps.set(windowId, {
-      type: 'nexus-ide',
-      instance: app,
-      window: windowEl
-    });
-    
-    // Handle window close
-    windowEl.onClose = () => {
-      app.destroy();
-      this.apps.delete(windowId);
-    };
-    
-    return app;
-  }
-  
-  sendMessageToApp(windowId, command, payload) {
-    const app = this.apps.get(windowId);
-    if (app && app.instance) {
-      app.instance.sendMessage(command, payload);
-    }
-  }
-}
+The embed build is generated alongside the standard build during deployment:
 
-// Usage
-const os = new BrowserOS();
-const ide = os.openNexusIDE('ide-1', { project: 'my-app' });
-os.sendMessageToApp('ide-1', 'open-file', { path: 'README.md' });
-```
+```bash
+# Standard build
+npm run build
 
-## Deployment
-
-The embed build is automatically generated when deploying to GitHub Pages:
-
-```yaml
-# Build both standard and embed versions
-npm run build                    # Standard build
-EMBED_MODE=true npm run build   # Embed build
+# Embed build (run separately)
+EMBED_MODE=true npm run build -- --outDir dist-embed
 ```
 
 Files produced:
@@ -251,12 +202,16 @@ Files produced:
 - `dist/nexus-embed.es.js` - ES module for embedding
 - `dist/embed-example.html` - Interactive demo
 
-## Performance Considerations
+## Known Limitations
+
+- **SharedArrayBuffer features** (v86 Linux Terminal, WebContainer) require COEP/COOP headers, which the embed host must provide. On pages without these headers, these features are automatically hidden.
+- **GitHub Pages deploys** the embed build alongside the standard version automatically via the `gh-pages.yml` workflow.
+
+## Performance
 
 1. **Memory Management**: Always call `destroy()` when closing the IDE window
 2. **Lazy Loading**: Load the embed script only when the app is opened
-3. **Shared Workers**: WebContainer and v86 share workers across instances
-4. **Asset Caching**: Monaco editor and xterm assets are cached after first load
+3. **Asset Caching**: Monaco editor and xterm assets are cached after first load
 
 ## Troubleshooting
 
@@ -282,7 +237,3 @@ Always call `destroy()` before removing the container:
 app.destroy();
 container.remove();
 ```
-
-## License
-
-MIT License - See LICENSE file for details
