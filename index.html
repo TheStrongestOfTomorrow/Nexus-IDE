@@ -47,8 +47,40 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js').then(reg => {
             console.log('Nexus SW registered');
+            
+            // Reload ONLY if we are not cross-origin isolated AND the service worker is not yet controlling the page
+            if (window.crossOriginIsolated === false && window.isSecureContext && !navigator.serviceWorker.controller) {
+              // If there is an active worker already, we can reload to let it take control
+              if (reg.active) {
+                console.log('Active SW found. Reloading to let it take control...');
+                window.location.reload();
+              } else {
+                // Otherwise, wait for it to install and activate
+                reg.addEventListener('updatefound', () => {
+                  const newWorker = reg.installing;
+                  if (newWorker) {
+                    newWorker.addEventListener('statechange', () => {
+                      if (newWorker.state === 'activated' && !navigator.serviceWorker.controller) {
+                        console.log('SW activated. Reloading to let it take control...');
+                        window.location.reload();
+                      }
+                    });
+                  }
+                });
+              }
+            }
           }).catch(err => {
             console.log('Nexus SW registration failed', err);
+          });
+          
+          // Listen for when the controller changes, and reload only if it changes from null to something
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing && window.crossOriginIsolated === false && window.isSecureContext) {
+              refreshing = true;
+              console.log('SW controller changed. Reloading for cross-origin isolation...');
+              window.location.reload();
+            }
           });
         });
       }

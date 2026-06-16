@@ -60,7 +60,7 @@ const NexusEmbed = forwardRef<NexusEmbedAPI, {
           rootElement.removeEventListener('keydown', preventLeakRef.current, true);
           rootElement.removeEventListener('keyup', preventLeakRef.current, true);
           rootElement.removeEventListener('click', preventLeakRef.current, true);
-          rootElement.removeEventListener('wheel', preventLeakRef.current as any, { passive: false, capture: true });
+          rootElement.removeEventListener('wheel', preventLeakRef.current as any, { capture: true });
         }
         
         // Clear shadow DOM if exists
@@ -194,11 +194,13 @@ const NexusEmbed = forwardRef<NexusEmbedAPI, {
           });
           rootElement.dispatchEvent(internalEvent);
           
-          event.source?.postMessage({
-            type: 'nexus-ide-event',
-            eventId: event.data.eventId,
-            payload: { success: true, command }
-          }, event.origin);
+          if (event.source && 'postMessage' in event.source) {
+            (event.source as any).postMessage({
+              type: 'nexus-ide-event',
+              eventId: event.data.eventId,
+              payload: { success: true, command }
+            }, event.origin);
+          }
         }
       };
 
@@ -241,7 +243,7 @@ const NexusEmbed = forwardRef<NexusEmbedAPI, {
         rootElement.removeEventListener('keydown', preventLeak, true);
         rootElement.removeEventListener('keyup', preventLeak, true);
         rootElement.removeEventListener('click', preventLeak, true);
-        rootElement.removeEventListener('wheel', preventLeak, { passive: false, capture: true });
+        rootElement.removeEventListener('wheel', preventLeak, { capture: true });
       };
     } catch (error) {
       console.error('Nexus IDE embed error:', error);
