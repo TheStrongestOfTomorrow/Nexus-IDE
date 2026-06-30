@@ -15,7 +15,15 @@ export default defineConfig(({mode}) => {
         output: {
           entryFileNames: `assets/[name]-[hash]-v437.js`,
           chunkFileNames: `assets/[name]-[hash]-v437.js`,
-          assetFileNames: `assets/[name]-[hash]-v437.[ext]`
+          assetFileNames: `assets/[name]-[hash]-v437.[ext]`,
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('monaco-editor')) return 'monaco';
+              if (id.includes('three') || id.includes('pixi') || id.includes('mermaid')) return 'graphics';
+              if (id.includes('xterm')) return 'terminal';
+              return 'vendor';
+            }
+          }
         }
       },
       // Generate web component build for embed mode

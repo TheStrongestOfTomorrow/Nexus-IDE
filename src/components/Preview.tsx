@@ -186,7 +186,7 @@ export default function Preview({ files, activeFileId, activeFolder }: PreviewPr
         <!DOCTYPE html>
         <html>
         <head>
-          <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+          <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js" crossorigin></script>
           <style>
             body { background: #1e1e1e; color: #d4d4d4; font-family: monospace; padding: 1rem; margin: 0; }
             pre { margin: 0; white-space: pre-wrap; }
@@ -198,20 +198,20 @@ export default function Preview({ files, activeFileId, activeFolder }: PreviewPr
           <div class="system">Loading Python environment...</div>
           <pre id="output"></pre>
           <script type="text/python" id="python-code">
-${activeFile.content.replace(/</g, '\\u003c')}
+    ${activeFile.content.replace(/</g, '\\u003c')}
           </script>
           <script>
             async function main() {
               try {
                 let pyodide = await loadPyodide();
                 document.querySelector('.system').style.display = 'none';
-                
+
                 // Redirect stdout
                 pyodide.setStdout({ batched: (str) => {
                   const out = document.getElementById('output');
                   out.textContent += str + '\\n';
                 }});
-                
+
                 // Redirect stderr
                 pyodide.setStderr({ batched: (str) => {
                   const out = document.getElementById('output');
@@ -241,8 +241,8 @@ ${activeFile.content.replace(/</g, '\\u003c')}
         <!DOCTYPE html>
         <html>
         <head>
-          <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
+          <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin></script>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css" crossorigin="anonymous">
           <style>
             body { padding: 2rem; background: #fff; }
             .markdown-body { min-width: 200px; max-width: 980px; margin: 0 auto; }
