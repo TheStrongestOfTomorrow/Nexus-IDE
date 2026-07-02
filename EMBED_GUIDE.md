@@ -14,11 +14,22 @@ Embed Nexus IDE into any web application. The embeddable version provides comple
 
 ## Installation
 
-### Option 1: CDN
+### Option 1: iframe (Simple)
+
+```html
+<iframe
+  src="https://nexus-ide.vercel.app/?repo=github.com/TheStrongestOfTomorrow/Nexus-IDE&file=src/embed.tsx&theme=dark&terminal=true"
+  style="width: 100%; height: 650px; border: 1px solid #30363d; border-radius: 8px; overflow: hidden;"
+  allow="cross-origin-isolated; filesystem; clipboard-read; clipboard-write; sync-xhr"
+  sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation"
+></iframe>
+```
+
+### Option 2: CDN (Programmatic)
 
 ```html
 <script type="module">
-  import { NexusIDE } from 'https://thestrongestoftomorrow.github.io/Nexus-IDE/nexus-embed.es.js';
+  import { NexusIDE } from 'https://nexus-ide.vercel.app/nexus-embed.es.js';
   
   const app = NexusIDE.create('my-container', {
     theme: 'dark',
@@ -49,7 +60,7 @@ import { NexusEmbed } from '@TheStrongestOfTomorrow/nexus-ide';
 
 ```jsx
 import { useRef } from 'react';
-import { NexusEmbed, NexusEmbedAPI } from './nexus-embed.es.js';
+import { NexusEmbed, NexusEmbedAPI } from 'https://nexus-ide.vercel.app/nexus-embed.es.js';
 
 function MyBrowserOS() {
   const ideRef = useRef<NexusEmbedAPI>(null);
@@ -83,7 +94,7 @@ function MyBrowserOS() {
 <div id="ide-container" style="width: 100%; height: 600px;"></div>
 
 <script type="module">
-  import { NexusIDE } from './nexus-embed.es.js';
+  import { NexusIDE } from 'https://nexus-ide.vercel.app/nexus-embed.es.js';
   
   const app = NexusIDE.create('ide-container', {
     theme: 'dark'
@@ -202,12 +213,28 @@ Files produced:
 - `dist/nexus-embed.es.js` - ES module for embedding
 - `dist/embed-example.html` - Interactive demo
 
-## Known Limitations
+## Known Limitations & Feature Detection
 
-- **SharedArrayBuffer features** (v86 Linux Terminal, WebContainer) require COEP/COOP headers, which the embed host must provide. On pages without these headers, these features are automatically hidden.
+1. **SharedArrayBuffer features** (v86 Linux Terminal, WebContainer) require COEP/COOP headers, which the embed host must provide. 
+2. **Graceful Degradation**: On pages without these headers, terminal features are automatically hidden.
+3. **Feature Detection**: You can detect if Nexus is running in an isolated context by checking `window.crossOriginIsolated` in your parent app.
+
+### Server Configuration for Isolation
+
+To enable the full Linux Terminal and Node.js features in an embedded Nexus IDE, your web server must serve the parent page with these headers:
+
+```http
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+If you cannot set these headers, Nexus will still function as a high-performance code editor and AI assistant, but the terminal panels will be disabled.
+
+## Deployment Details
+
 - **GitHub Pages deploys** the embed build alongside the standard version automatically via the `gh-pages.yml` workflow.
 
-## Performance
+## Performance & Cleanup
 
 1. **Memory Management**: Always call `destroy()` when closing the IDE window
 2. **Lazy Loading**: Load the embed script only when the app is opened

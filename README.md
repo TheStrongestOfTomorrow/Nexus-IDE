@@ -1,210 +1,192 @@
 <div align="center">
 
-# Nexus IDE
+# 🚀 Nexus IDE v2 (MIT)
 
-### A full-featured IDE that runs entirely in your browser.
+### A state-of-the-art, high-performance, browser-native IDE.
+**Zero server dependencies. Zero cloud lag. Bring-your-own-key privacy. All inside a browser tab.**
 
-**No downloads. No cloud dependency. Your data stays on your machine.**
-
-[![Live Demo](https://img.shields.io/badge/Try_It_Now-GitHub_Pages-222222?style=for-the-badge&labelColor=1e293b&logo=github)](https://thestrongestoftomorrow.github.io/Nexus-IDE/)
+[![Live Demo](https://img.shields.io/badge/Try_It_Now-Vercel-000000?style=for-the-badge&labelColor=1e293b&logo=vercel)](https://nexus-ide.vercel.app/)
 [![Version](https://img.shields.io/badge/Version-5.5.6-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Web_|_Tauri_|_Android-059669?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+
+---
+
+### **[👉 Launch Nexus IDE Instantly](https://nexus-ide.vercel.app/)**
+*No installs, no credit cards, no sign-ups. Starts nearly instantly.*
 
 </div>
 
 ---
 
-## Try It
+## 💡 Why Nexus IDE?
 
-**Just open this link** — no install, no account, no signup:
+Traditional web IDEs are caught in a frustrating trade-off. **Cloud containers** (e.g., GitHub Codespaces, Gitpod) offer full POSIX environments but suffer from high subscription fees, slow server cold starts (15-30s), and network keystroke latency. **Client-side playgrounds** (e.g., standard CodePen, JSFiddle) load instantly but run in restricted sandboxes without a real terminal, Node.js compilation, or shell binaries. 
 
-**[thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/)**
+Furthermore, modern AI assistants route your code through proprietary middle-man proxy servers, compromising privacy and introducing subscription markups.
 
-That's it. You're coding.
+**Nexus IDE is a total paradigm shift.** It delivers the speed and immediate boot times of a static webpage, combined with the execution power of a virtualized OS, advanced multi-modal AI agents, and frictionless platform portability.
+
+### 🌟 Key Performance & Privacy Advantages:
+
+*   **Zero Startup Lag (Nearly Instant):** Runs entirely inside your browser's client engine. There are no remote virtual machines to provision or warm up. Typing, search, and UI renders happen at native local-hardware speed.
+*   **Absolute Code & Key Privacy:** Direct browser-to-LLM client network connections. Your API keys are saved strictly in your local secure browser storage (IndexedDB) and your code is never routed through intermediate SaaS proxy databases.
+*   **Dual-Engine Local Execution:**
+    *   *v86 x86 VM:* Boots a real, native Alpine Linux kernel inside WebAssembly. Run raw POSIX binaries, write shell scripts, or compile code completely in-browser. Supports uploading custom ISO/IMG virtual disks (Ubuntu, Windows).
+    *   *Node.js WebContainers:* Execute full, in-browser Node.js runtime instances. Run `npm install`, compile React/Vite/Express code, and host/preview development backends directly from your browser tab.
+*   **Multi-Modal AI Agents (51 Built-in Tools):** Supports **12 top-tier AI providers** (Anthropic Claude, OpenAI, Google Gemini, xAI Grok, Mistral, DeepSeek, local Ollama, and more). Features **Chat, Agent, and Prototyper** modes. In Agent mode, the LLM can programmatically edit files, execute compile scripts in your terminal, manage git histories, and search the web.
+*   **True Local Drive Synchronization:** Mount a real directory from your physical hard drive directly into the browser tab using the browser's modern **File System Access API**. Edits inside Nexus write back to your physical disk in real-time.
+*   **Serverless P2P Collaboration:** Code together with teams in real-time using secure, password-gated peer-to-peer tunnels. Features SHA-256 hashing for session integrity and extensive host controls (kick participants, transfer host).
+*   **Universal Portability:** One codebase compiled for Web (static assets), Desktop (Tauri wrappers for macOS, Windows, Linux), and Mobile (Capacitor wrapper compiled as an Android APK with swipe layouts and landscape/split view optimization).
 
 ---
 
-## What Is This?
+## 🛠️ The Tech Stack & Architecture
 
-Nexus IDE is a browser-based code editor built for people who don't want to download a 300MB IDE. It runs entirely in your browser with zero server dependency — your files, your AI keys, your code all stay local.
+Nexus IDE is an engineering marvel that integrates cutting-edge WebAssembly, DOM isolation, and virtualization tech into a single cohesive SPA:
 
-It's not a toy editor. It has a real Linux terminal, AI assistance from 12 providers, collaboration, git integration, mobile support, and an extension marketplace. All in a browser tab.
+```
++-----------------------------------------------------------------------------+
+|                             NEXUS IDE WORKSPACE                             |
+|  +--------------------+  +-----------------------+  +--------------------+  |
+|  |     Monaco UI      |  | P2P Collaboration Hub |  |  Theme Studio (21) |  |
+|  |   (VS Code Engine) |  | (Password-Gated Hashing)   |  | (Custom CSS Presets|  |
+|  +---------+----------+  +-----------+-----------+  +---------+----------+  |
++------------|-------------------------|------------------------|-------------+
+             | Bidirectional Sync      | Host Control           | Live Preview
+             v                         v                        v
++-----------------------------------------------------------------------------+
+|                            COMPUTE & COMPILING LAYER                        |
+|  +-------------------------------------+  +------------------------------+  |
+|  |     v86 WebAssembly x86 CPU VM      |  | WebContainer Node.js Engine  |  |
+|  |  +-------------------------------+  |  |  (Fast client-side compiles) |  |
+|  |  |   Virtualized Alpine Linux    |  |  |  +------------------------+  |  |
+|  |  |   - Custom ISO/IMG Booting    |  |  |  | `npm install` & Server |  |  |
+|  |  |   - Shared 9p File Bridge     |  |  |  +------------------------+  |  |
+|  |  +-------------------------------+  |  |                              |  |
+|  +-------------------------------------+  +------------------------------+  |
++-----------------------------------------------------------------------------+
+             ^
+             | Direct Client Endpoint Queries (BYOK)
+             v
++-----------------------------------------------------------------------------+
+|                      12-PROVIDER AI AGENT SYSTEM (51 TOOLS)                 |
+|  +--------------------+  +--------------------+  +--------------------+  |
+|  |    OpenAI / xAI    |  | Anthropic / Google |  | Ollama (Local/Off) |  |
+|  +--------------------+  +--------------------+  +--------------------+  |
++-----------------------------------------------------------------------------+
+```
+
+### AI-Accelerated & Wasm-Powered Engineering
+
+Nexus IDE is an ambitious experiment in building production-grade software at the absolute boundaries of modern web APIs. Our development process utilized advanced generative AI models for structural prototyping and boilerplate acceleration, integrated under strict human engineering supervision—a workflow that allowed us to rapidly bridge decades of virtualization engineering with modern browser sandboxing. 
+
+The heart of the system relies on a **bidirectional filesystem bridge** utilizing the **9p filesystem protocol**. When you type in Monaco, an update is saved to the browser's IndexedDB and triggers a virtual "hardware interrupt" in the emulated v86 CPU. The virtualized guest Alpine kernel receives this update over the 9p mount and edits the corresponding files instantly. Compilations run inside the Alpine shell output binary products, which write back to the 9p mount and automatically update your Monaco workspace tree.
+
+### Under-the-Hood Limitations (Transparent OSS Story):
+
+*   **v86 CPU Overhead:** Because `v86` emulates a full x86 instruction set in WebAssembly without hardware acceleration, virtualized CPU speeds inside the browser are roughly 10x slower than native host execution. It is the perfect POSIX playground for runing lightweight scripts, learning terminal commands, and compiling small exercises, but not for compiling large multi-gigabyte packages.
+*   **The SharedArrayBuffer Constraint:** Running local multi-threaded WebContainers or v86 workers requires **SharedArrayBuffer** support. Due to Spectre/Meltdown browser defenses, SharedArrayBuffer is exclusively active in **Secure Contexts** (HTTPS or localhost) and requires strict **COOP/COEP isolation headers** on the host. 
+*   **GitHub Pages Isolation:** Standard GitHub Pages deployments do not support custom response headers, meaning the Alpine Terminal and WebContainers are automatically hidden on standard static page previews. However, the full editor, P2P collaboration, themes, and 12-provider AI Agent are completely functional out-of-the-box. Running the repo locally (`npm start`) or on header-supported cloud hosts (Vercel, Netlify, Render, Docker) automatically unlocks the full terminal features.
 
 ---
 
-## Quick Start
+## 📊 Feature Matrix & Platform Capabilities
 
-### Just Browse (fastest)
-Open [thestrongestoftomorrow.github.io/Nexus-IDE](https://thestrongestoftomorrow.github.io/Nexus-IDE/) — no install needed. Some features (Linux terminal, WebContainer) require running locally.
+| Feature | Standard Browser (GitHub Pages) | Local Development (`npm start`) / Isolated Hosts |
+| :--- | :---: | :---: |
+| **Monaco Code Editor** | ✅ Active | ✅ Active |
+| **BYOK 12 AI Providers** | ✅ Active | ✅ Active |
+| **AI Agent Mode (51 Tools)** | ✅ Active | ✅ Active |
+| **IndexedDB Workspaces** | ✅ Active | ✅ Active |
+| **P2P Collaboration** | ✅ Active | ✅ Active |
+| **OpenVSX Extensions** | ✅ Active | ✅ Active |
+| **Theme Studio (21 Vars)** | ✅ Active | ✅ Active |
+| **v86 Alpine VM Terminal** | ⚠️ Hidden (Requires COOP/COEP) | ✅ Active (Out of the box) |
+| **WebContainer (Node.js)** | ⚠️ Hidden (Requires COOP/COEP) | ✅ Active (Out of the box) |
+| **Server-Side Terminal** | ❌ Unavailable | ✅ Active |
 
-### Run Locally (full features)
+---
+
+## ⚡ Quick Start
+
+### 1. Web Version (Fastest Preview)
+Open **[thestrongestoftomorrow.github.io/Nexus-IDE](https://nexus-ide.vercel.app/)** on any desktop, tablet, or mobile browser to start coding immediately.
+
+### 2. Full Local Experience (Recommended for terminal features)
+Run Nexus locally on your computer with complete SharedArrayBuffer and loopback permissions:
+
 ```bash
+# Clone the repository
 git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
 cd Nexus-IDE
+
+# Install dependencies and start the Vite server
 npm install
 npm start
 ```
-Opens at `http://localhost:3000` with COEP/COOP headers — v86 Linux and WebContainer work.
+Your browser will open automatically at `http://localhost:3000` with the correct cross-origin isolation headers applied.
 
----
-
-## Features
-
-### Editor
-- Monaco Editor (the same engine as VS Code)
-- Split editor, minimap, word wrap, auto-close brackets
-- Command palette (Ctrl+Shift+P)
-- Diff editor for comparing changes
-- File search across your project
-
-### AI (12 Providers, 51 Tools)
-- OpenAI, Anthropic, Google, xAI, Mistral, DeepSeek, Groq, Cohere, Perplexity, Alibaba, Together, Ollama
-- 3 modes: Chat, Agent (executes tools), Prototyper (generates workspaces)
-- AI can read/write files, run terminal commands, manage git, search the web, and more
-- Real-time streaming responses
-- Your API keys stay in your browser — no server proxy
-
-### Linux Terminal
-- Real Alpine Linux running in your browser via v86 x86 emulation
-- Not a simulated terminal — it's an actual Linux distro
-- Package manager, file system, networking — everything works
-- Setup wizard for first-boot configuration
-- Custom ISO/IMG upload (Windows, Ubuntu, etc.)
-- File bridge between Nexus workspace and Linux filesystem
-
-### WebContainer
-- Run Node.js entirely in the browser
-- `npm install` works — no server needed
-- Requires SharedArrayBuffer (run locally for full support)
-
-### Collaboration
-- Real-time collaborative editing
-- Password-protected sessions with SHA-256 hashing
-- Host controls: kick participants, transfer host
-- Session timeout and max participant limits
-
-### Git & GitHub
-- Full source control panel: staging, commits, branches, history
-- GitHub integration via Device Flow or PAT
-- Create issues, pull requests from inside the IDE
-- AI can execute git commands through tools
-
-### Mobile
-- Portrait mode with bottom tab bar
-- Landscape mode with split view
-- Swipe gestures between tabs
-- Touch-optimized for phones and tablets
-
-### Themes
-- Theme Studio with 21 customizable CSS variables
-- 7 preset themes (One Dark Pro, Dracula, Solarized, GitHub Dark, etc.)
-- Import/export themes as JSON
-- Live preview
-
-### More
-- Workspace save/load to IndexedDB — survives page refresh
-- Session persistence (auto-saves every 30 seconds)
-- Extensions marketplace (OpenVSX)
-- PWA — install as an app
-- Zen mode and voice control
-- Embeddable in other apps via Shadow DOM
-- Android APK and Tauri desktop builds
-
----
-
-## GitHub Pages vs Local
-
-The live demo works great for most things. Some features need server headers that GitHub Pages can't provide:
-
-| Feature | GitHub Pages | Local (`npm start`) |
-|---------|:------------:|:-------------------:|
-| Code Editor, AI, Git, Themes | Works | Works |
-| Collaboration, Extensions, Mobile | Works | Works |
-| v86 Linux Terminal | Hidden (needs SharedArrayBuffer) | Works |
-| WebContainer (Node.js) | Hidden (needs SharedArrayBuffer) | Works |
-| Server-side Terminal | Unavailable | Works |
-
-On GitHub Pages, Linux terminal and WebContainer are automatically hidden from the UI. For the full experience, run locally.
-
----
-
-## Deployment
-
-See [EMBED_GUIDE.md](EMBED_GUIDE.md) for embedding Nexus in your app.
-
-### GitHub Pages (automatic)
-The repo deploys to GitHub Pages on every push to `main`. Just push and it's live.
-
-### Docker
+### 3. Docker Deployment
 ```bash
-git clone https://github.com/TheStrongestOfTomorrow/Nexus-IDE.git
-cd Nexus-IDE
 docker-compose up -d
 ```
 
-### Cloud Platforms (Vercel, Railway, Render, Netlify)
-Works out of the box. Add COEP/COOP headers for v86/WebContainer support:
-```
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
+### 4. Desktop Compile (Tauri)
+Nexus compiles to an ultra-lightweight native application (averaging under 25MB) using the Rust-based Tauri framework:
+```bash
+# Start Tauri Dev
+npm run tauri:dev
+
+# Build native binary (creates installer for your current OS)
+npm run tauri:build
 ```
 
-### Android
-Download the APK from [Releases](https://github.com/TheStrongestOfTomorrow/Nexus-IDE/releases) or build from source:
+### 5. Mobile Compile (Capacitor Android APK)
+Compile a native Android app optimized for touch input, landscape splits, and bottom-tab navigation:
 ```bash
 npm install && npm run build
 npx cap sync android
 cd android && ./gradlew assembleDebug
 ```
 
-### Tauri Desktop
-```bash
-npm run tauri:dev    # Development
-npm run tauri:build  # Production (macOS, Windows, Linux)
-```
-
 ---
 
-## AI Providers
+## 🤝 Contribution Guidelines
 
-| Provider | Models | Runs Locally? |
-|----------|--------|:------------:|
-| OpenAI | GPT-4o, O1, O3 Mini | No |
-| Anthropic | Claude Opus 4.8, Sonnet 4.6 | No |
-| Google | Gemini 2.5 Pro, Flash | No |
-| xAI | Grok 3, Grok 3 Fast | No |
-| Mistral | Codestral, Large | No |
-| DeepSeek | Coder, R1 | No |
-| Groq | Llama 3.3 70B | No (free tier) |
-| Cohere | Command R+ | No |
-| Perplexity | Sonar Pro | No |
-| Alibaba | Qwen Max, Coder | No |
-| Together | Llama 3.3, Qwen 2.5 | No |
-| Ollama | Llama, Mistral, DeepSeek | **Yes** |
+We love pull requests! As an open-source, vibe-coded tool, we welcome contributions of all shapes and sizes—from adding new AI providers to designing custom UI theme presets.
 
----
+### Local Development Workflow
 
-## Branches
+1.  **Fork the Repository:** Create your own fork of `TheStrongestOfTomorrow/Nexus-IDE`.
+2.  **Create a Feature Branch:** We suggest naming your branch based on the feature: `feature/add-provider-x` or `bugfix/editor-leak`.
+3.  **Code Quality Standards (Linting):** Ensure your changes compile and pass our TypeScript syntax validator before pushing:
+    ```bash
+    # Run compiler validation (tsc --noEmit)
+    npm run lint
+    ```
+4.  **Local Testing:** Test your changes in both light/dark theme orientations and verify no global styles leak out of component bounds.
 
-| Branch | Purpose |
-|--------|---------|
-| `main` | Active development — all PRs merge here |
-| `beta` | Experimental features for power users |
-| `cli` | Terminal-only TUI edition |
-| `gh-pages` | Auto-deployed from `main`, don't edit directly |
+### Developer Conventions & Standards
 
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, commit conventions, and how to add AI providers/tools.
+*   **Branching Structure:**
+    *   `main`: Active development—all pull requests should target this branch.
+    *   `beta`: Experimental testing branch for power users and advanced WASM integrations.
+    *   `cli`: Terminal-only, TUI-specific codebase edition.
+*   **Commit Message Format (Conventional Commits):**
+    To keep our release logs readable, we enforce Conventional Commit syntax:
+    *   `feat(ai): add Alibaba Qwen Coder model integration`
+    *   `fix(embed): resolve wheel event passive listener memory leak`
+    *   `docs(embed): clarify COOP/COEP header configuration guidelines`
+    *   `refactor(terminal): optimize v86 worker filesystem throughput`
+*   **Adding New AI Providers:**
+    Add your custom LLM connector under `src/services/ai/providers/`. Ensure you implement proper streaming response wrappers and define support for the BYOK model.
 
 ---
 
 <div align="center">
 
-### Made by Taz
-
-*Zero downloads. Zero cloud dependency. Just code.*
+### Made with ❤️ by Taz & the Open-Source Community
+*Zero downloads. Zero cloud dependencies. Just code.*
 
 </div>
