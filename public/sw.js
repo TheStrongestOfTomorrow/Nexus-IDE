@@ -1,16 +1,16 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
-importScripts('https://cdn.jsdelivr.net/npm/idb@8/build/umd.js');
+importScripts('workbox-sw.js');
+importScripts('idb.js');
 
-const CACHE_NAME = 'nexus-ide-v5.4.0';
+const CACHE_NAME = 'nexus-ide-v5.5.0';
 
 if (workbox) {
-  console.log('Nexus 5.4.0 Service Worker Active');
+  console.log('Nexus 5.5.0 Service Worker Active');
 
   // Pre-cache core assets for offline use
   workbox.precaching.precacheAndRoute([
-    {url: './', revision: '5.4.0'},
-    {url: 'index.html', revision: '5.4.0'},
-    {url: 'manifest.json', revision: '5.4.0'},
+    {url: './', revision: '5.5.0'},
+    {url: 'index.html', revision: '5.5.0'},
+    {url: 'manifest.json', revision: '5.5.0'},
   ]);
 
   // Cache-first for images and fonts
