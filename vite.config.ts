@@ -8,7 +8,7 @@ export default defineConfig(({mode}) => {
   const isEmbedMode = process.env.EMBED_MODE === 'true';
   
   return {
-    base: mode === 'production' ? '/Nexus-IDE/' : '/',
+    base: env.VITE_BASE_URL || (mode === 'production' ? '/Nexus-IDE/' : '/'),
     plugins: [react(), tailwindcss()],
     build: {
       rollupOptions: {
