@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
-const Editor = lazy(() => import('./components/Editor').then(m => ({ default: m.default })));
+import Editor from './components/Editor';
 const LinuxTerminal = lazy(() => import('./components/LinuxTerminal').then(m => ({ default: m.default })));
 const WebContainerTerminal = lazy(() => import('./components/WebContainerTerminal').then(m => ({ default: m.default })));
 const ThemeStudio = lazy(() => import('./components/ThemeStudio').then(m => ({ default: m.default })));
