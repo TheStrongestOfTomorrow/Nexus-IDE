@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#007acc" />
+    <link rel="manifest" href="manifest.json" />
+    <title>Nexus IDE</title>
+    <script>
+      // Targeted cache migration (preserves user data)
+      (function() {
+        const VERSION = '5.5.6';
+        const CACHE_KEYS_TO_CLEAR = ['nexus_version_hard'];
+        const stored = localStorage.getItem('nexus_version_hard');
+
+        if (stored !== VERSION) {
+          // Only clear known IDE cache keys, NOT user settings/keys/data
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (
+              CACHE_KEYS_TO_CLEAR.includes(key) ||
+              key.startsWith('nexus_cached_') ||
+              key.startsWith('nexus_tmp_')
+            )) {
+              keysToRemove.push(key);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.setItem('nexus_version_hard', VERSION);
+
+          // Clear old service workers and caches safely
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              for (let registration of registrations) { registration.unregister(); }
+            });
+          }
+          caches.keys().then(names => {
+            for (let name of names) caches.delete(name);
+          });
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js" crossorigin></script>
+    <script>
+      // Graceful feature detection for cross-origin isolation
+      // If SharedArrayBuffer is unavailable, terminal/v86 features will degrade gracefully
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js').then(reg => {
+            console.log('Nexus SW registered');
+          }).catch(err => {
+            console.log('Nexus SW registration failed', err);
+          });
+        });
+      }
+
+      // Dispatch an event so the React app can react to isolation state
+      (function detectCrossOriginIsolation() {
+        const isIsolated = window.crossOriginIsolated === true;
+        document.documentElement.setAttribute('data-cross-origin-isolated', isIsolated ? 'true' : 'false');
+        if (!isIsolated) {
+          console.info(
+            'Nexus IDE: Cross-Origin Isolation is not active. ' +
+            'Terminal and WebContainer features require SharedArrayBuffer support. ' +
+            'For the full experience, deploy via Vercel/Netlify with COOP/COEP headers ' +
+            'or run locally with `npm run dev`.'
+          );
+        }
+      })();
+    </script>
+    <style>
+      #nexus-isolation-banner {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: #1a1a2e;
+        border-bottom: 2px solid #e94560;
+        color: #eaeaea;
+        padding: 12px 16px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      }
+      #nexus-isolation-banner a {
+        color: #4fc3f7;
+        text-decoration: underline;
+      }
+      #nexus-isolation-banner a:hover {
+        color: #81d4fa;
+      }
+      #nexus-isolation-banner .dismiss {
+        display: inline-block;
+        margin-left: 12px;
+        background: #e94560;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 12px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      #nexus-isolation-banner .dismiss:hover {
+        background: #c73652;
+      }
+      html[data-cross-origin-isolated="false"] #nexus-isolation-banner {
+        display: block;
+      }
+      /* Offset main content to account for fixed banner */
+      html[data-cross-origin-isolated="false"] body {
+        padding-top: 48px;
+      }
+    </style>
+    <script type="module" crossorigin src="/Nexus-IDE/assets/index-BB1MdY6a-v437.js"></script>
+    <link rel="modulepreload" crossorigin href="/Nexus-IDE/assets/vendor-DiLOoMhi-v437.js">
+    <link rel="modulepreload" crossorigin href="/Nexus-IDE/assets/monaco-TzaaexJ7-v437.js">
+    <link rel="modulepreload" crossorigin href="/Nexus-IDE/assets/terminal-CpGbm99Z-v437.js">
+    <link rel="stylesheet" crossorigin href="/Nexus-IDE/assets/terminal-6GBZ9nXN-v437.css">
+    <link rel="stylesheet" crossorigin href="/Nexus-IDE/assets/index-BX92jDHV-v437.css">
+  </head>
+  <body>
+    <div id="nexus-isolation-banner">
+      ⚡ <strong>Limited experience</strong> — Terminal and WebContainer features require
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated" target="_blank" rel="noopener">SharedArrayBuffer</a>
+      support. Open on
+      <a href="https://nexus-ide.vercel.app" target="_blank" rel="noopener">Vercel</a>
+      or
+      <a href="https://docs.nexus-ide.dev/install" target="_blank" rel="noopener">run locally</a>
+      for the full experience.
+      <button class="dismiss" onclick="this.parentElement.style.display='none';document.body.style.paddingTop='0'">Got it</button>
+    </div>
+    <div id="root"></div>
+  </body>
+</html>

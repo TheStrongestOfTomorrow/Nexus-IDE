@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus IDE Embed Example</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      min-height: 100vh;
+    }
+    .header {
+      padding: 20px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+    }
+    .header h1 { font-size: 24px; margin-bottom: 8px; }
+    .header p { color: #8b949e; }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .embed-wrapper {
+      height: 70vh;
+      border: 2px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d1117;
+    }
+    .controls {
+      margin-top: 20px;
+      padding: 15px;
+      background: #161b22;
+      border-radius: 8px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px;
+      background: #238636;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: #2ea043; }
+    button.danger { background: #da3633; }
+    button.danger:hover { background: #f85149; }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      background: #161b22;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .status.ready { color: #3fb950; }
+    .status.error { color: #f85149; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Nexus IDE - Browser OS Integration Demo</h1>
+    <p>Embeddable IDE component with full isolation and API control</p>
+  </div>
+  
+  <div class="container">
+    <div id="ide-container" class="embed-wrapper"></div>
+    
+    <div class="controls">
+      <button onclick="loadIDE()">Load IDE</button>
+      <button onclick="unloadIDE()" class="danger">Unload IDE</button>
+      <button onclick="sendCommand('new-file', {name: 'test.js'})">New File</button>
+      <button onclick="sendCommand('open-file', {path: 'src/main.ts'})">Open File</button>
+      <button onclick="toggleTheme()">Toggle Theme</button>
+      <div id="status" class="status">Status: Waiting...</div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the embed module (adjust path for production)
+    import NexusEmbed from './nexus-embed.es.js';
+    
+    let ideInstance = null;
+    let currentTheme = 'dark';
+    
+    window.loadIDE = function() {
+      const container = document.getElementById('ide-container');
+      if (!container) return;
+      
+      // Clear previous instance
+      container.innerHTML = '';
+      
+      // Create new instance using React
+      const root = ReactDOM.createRoot(container);
+      root.render(
+        React.createElement(NexusEmbed, {
+          containerId: 'nexus-ide-app',
+          theme: currentTheme,
+          onReady: () => {
+            updateStatus('IDE Ready!', 'ready');
+            console.log('[Demo] IDE is ready!');
+          },
+          onError: (error) => {
+            updateStatus('Error: ' + error.message, 'error');
+            console.error('[Demo] IDE Error:', error);
+          }
+        })
+      );
+      
+      ideInstance = { root, container };
+      updateStatus('Loading IDE...', '');
+    };
+    
+    window.unloadIDE = function() {
+      if (ideInstance) {
+        ideInstance.root.unmount();
+        ideInstance = null;
+        updateStatus('IDE Unloaded', '');
+        console.log('[Demo] IDE unloaded successfully');
+      }
+    };
+    
+    window.sendCommand = function(command, payload) {
+      if (!ideInstance) {
+        alert('Please load the IDE first!');
+        return;
+      }
+      
+      // Send command via custom event
+      const event = new CustomEvent('nexus-command', {
+        detail: { command, payload },
+        bubbles: true
+      });
+      
+      const container = document.getElementById('nexus-ide-app');
+      if (container) {
+        container.dispatchEvent(event);
+        updateStatus(`Sent: ${command}`, 'ready');
+      }
+    };
+    
+    window.toggleTheme = function() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      unloadIDE();
+      setTimeout(() => loadIDE(), 100);
+      updateStatus(`Switching to ${currentTheme} theme...`, '');
+    };
+    
+    function updateStatus(message, type) {
+      const statusEl = document.getElementById('status');
+      if (statusEl) {
+        statusEl.textContent = 'Status: ' + message;
+        statusEl.className = 'status ' + type;
+      }
+    }
+    
+    // Listen for events from IDE
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'nexus-ide-ready') {
+        updateStatus('IDE Ready (via postMessage)!', 'ready');
+      } else if (event.data?.type === 'nexus-ide-event') {
+        console.log('[Demo] Event from IDE:', event.data.payload);
+      }
+    });
+    
+    // Auto-load on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadIDE();
+    });
+  </script>
+  
+  <!-- React CDN for demo -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</body>
+</html>
