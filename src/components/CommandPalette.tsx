@@ -22,10 +22,29 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filteredCommands = commands.filter(cmd => 
-    cmd.label.toLowerCase().includes(search.toLowerCase()) ||
-    cmd.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const query = search.trim().toLowerCase();
+  const filteredCommands = commands
+    .map((cmd, originalIndex) => {
+      const haystack = `${cmd.label} ${cmd.category}`.toLowerCase();
+      if (!query) return { cmd, originalIndex, score: originalIndex };
+      if (haystack.includes(query)) return { cmd, originalIndex, score: 0 };
+
+      // Small fuzzy matcher: "op fl" can still find "Open Local Folder".
+      let cursor = 0;
+      for (const character of query) {
+        cursor = haystack.indexOf(character, cursor);
+        if (cursor === -1) return null;
+        cursor += 1;
+      }
+      return { cmd, originalIndex, score: 1 };
+    })
+    .filter((entry): entry is { cmd: CommandItem; originalIndex: number; score: number } => entry !== null)
+    .sort((a, b) => a.score - b.score || a.originalIndex - b.originalIndex)
+    .map(entry => entry.cmd);
+
+  useEffect(() => {
+    setSelectedIndex(index => Math.min(index, Math.max(filteredCommands.length - 1, 0)));
+  }, [filteredCommands.length]);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,10 +60,16 @@ export default function CommandPalette({ isOpen, onClose, commands }: CommandPal
 
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
+        if (filteredCommands.length) setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+        if (filteredCommands.length) setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        setSelectedIndex(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        setSelectedIndex(Math.max(filteredCommands.length - 1, 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (filteredCommands[selectedIndex]) {

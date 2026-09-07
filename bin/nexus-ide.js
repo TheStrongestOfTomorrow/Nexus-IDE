@@ -17,6 +17,7 @@ import { existsSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -86,6 +87,10 @@ ${colors.bright}EXAMPLES${colors.reset}
   ${colors.cyan}# Open browser automatically${colors.reset}
   npx nexus-ide --open
 
+${colors.bright}AUTOMATIC UPDATES${colors.reset}
+  The installed CLI checks for releases at startup and every 30 minutes while running.
+  Set NEXUS_IDE_AUTO_UPDATE=false to disable automatic updates.
+
 ${colors.bright}ENVIRONMENT VARIABLES${colors.reset}
   PORT           Server port (default: 3000)
   GITHUB_CLIENT_ID       GitHub OAuth Client ID
@@ -98,10 +103,70 @@ ${colors.bright}LINKS${colors.reset}
 `);
 }
 
+function getPackage() {
+  return JSON.parse(readFileSync(join(rootDir, 'package.json'), 'utf-8'));
+}
+
 function showVersion() {
-  const pkgPath = join(rootDir, 'package.json');
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-  console.log(`Nexus IDE v${pkg.version}`);
+  console.log(`Nexus IDE v${getPackage().version}`);
+}
+
+function fetchLatestRelease() {
+  return new Promise((resolve, reject) => {
+    const request = https.get('https://api.github.com/repos/TheStrongestOfTomorrow/Nexus-IDE/releases/latest', {
+      headers: { 'User-Agent': 'Nexus-IDE-Updater', Accept: 'application/vnd.github+json' },
+    }, response => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => { body += chunk; });
+      response.on('end', () => {
+        if (response.statusCode !== 200) return reject(new Error(`GitHub returned ${response.statusCode}`));
+        try {
+          const release = JSON.parse(body);
+          resolve(String(release.tag_name || '').replace(/^v/, ''));
+        } catch { reject(new Error('Invalid release response')); }
+      });
+    });
+    request.setTimeout(5000, () => request.destroy(new Error('Update check timed out')));
+    request.on('error', reject);
+  });
+}
+
+function isNewerVersion(candidate, current) {
+  const parse = value => value.split(/[.+-]/)[0].split('.').map(part => Number(part) || 0);
+  const next = parse(candidate);
+  const installed = parse(current);
+  for (let i = 0; i < Math.max(next.length, installed.length); i += 1) {
+    if ((next[i] || 0) !== (installed[i] || 0)) return (next[i] || 0) > (installed[i] || 0);
+  }
+  return false;
+}
+
+async function checkForUpdates({ silent = true } = {}) {
+  if (process.env.NEXUS_IDE_AUTO_UPDATE === 'false') return;
+  try {
+    const pkg = getPackage();
+    const latest = await fetchLatestRelease();
+    if (!latest || !isNewerVersion(latest, pkg.version)) return;
+    log(`Update available: v${pkg.version} → v${latest}. Installing in the background...`, 'yellow');
+    try {
+      await runCommand('npm', ['install', '--global', `${pkg.name}@${latest}`], { stdio: silent ? 'ignore' : 'inherit' });
+    } catch {
+      // GitHub Packages may not be configured on every machine. Fall back to
+      // the public release tag used by the one-line installer.
+      await runCommand('npm', ['install', '--global', `github:TheStrongestOfTomorrow/Nexus-IDE#v${latest}`], { stdio: silent ? 'ignore' : 'inherit' });
+    }
+    log(`✅ Nexus IDE updated to v${latest}. Restart it to use the new version.`, 'green');
+  } catch (error) {
+    // Updating must never prevent the IDE from starting, especially offline.
+    if (!silent) log(`Update check skipped: ${error.message}`, 'yellow');
+  }
+}
+
+function startUpdateMonitor() {
+  void checkForUpdates();
+  const timer = setInterval(() => void checkForUpdates(), 30 * 60 * 1000);
+  timer.unref?.();
 }
 
 function runCommand(command, args = [], options = {}) {
@@ -226,6 +291,9 @@ for (let i = 0; i < args.length; i++) {
     command = arg;
   }
 }
+
+// Keep installed CLI versions fresh without blocking startup or breaking offline use.
+if (['dev', 'start', 'serve', 'preview'].includes(command)) startUpdateMonitor();
 
 // Run command
 switch (command) {

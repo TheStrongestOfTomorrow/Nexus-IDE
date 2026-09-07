@@ -8,6 +8,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { createServer } from "http";
 import { spawn } from "child_process";
 import os from "os";
+import { existsSync } from "fs";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -26,8 +27,17 @@ async function startServer() {
     next();
   });
 
-  app.use(express.json());
+  app.use(express.json({ limit: "10mb" }));
   app.use(cookieParser());
+
+  app.get("/api/health", (_req, res) => {
+    res.json({
+      ok: true,
+      service: "nexus-ide",
+      environment: process.env.NODE_ENV || "development",
+      uptime: Math.round(process.uptime()),
+    });
+  });
 
   // GitHub OAuth Routes
   app.get("/api/auth/github/url", (req, res) => {
@@ -557,20 +567,6 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(path.join(__dirname, "dist")));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
-    });
-  }
-
   const httpServer = createServer(app);
   const wss = new WebSocketServer({ server: httpServer });
 
@@ -617,6 +613,21 @@ async function startServer() {
     res.send(file.content);
   });
 
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    app.use(express.static(path.join(__dirname, "dist")));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(__dirname, "dist", "index.html"));
+    });
+  }
+
+
   // Cleanup inactive sessions
   setInterval(() => {
     const now = Date.now();
@@ -657,9 +668,9 @@ async function startServer() {
     let shell: any = null;
     let currentSessionId: string | null = null;
 
-    ws.on("message", (message: any) => {
+    ws.on("message", (message: any, isBinary: boolean) => {
       try {
-        if (message instanceof Buffer) {
+        if (isBinary) {
           // Handle binary message
           const type = message.readUInt8(0);
           if (type === 0x01) { // Minecraft Command
@@ -753,14 +764,10 @@ async function startServer() {
           } else {
             // Check for common shells in order of preference
             const shells = ["/data/data/com.termux/files/usr/bin/bash", "/data/data/com.termux/files/usr/bin/sh", "bash", "sh"];
-            for (const s of shells) {
-              try {
-                if (os.platform() !== "win32") {
-                  shellCmd = s;
-                  break; 
-                }
-              } catch (e) {}
-            }
+            const availableShell = shells.find(candidate =>
+              candidate.includes("/") ? existsSync(candidate) : Boolean(process.env.PATH)
+            );
+            if (availableShell) shellCmd = availableShell;
           }
 
           shell = spawn(shellCmd, [], {
@@ -808,10 +815,18 @@ async function startServer() {
           }
         } else if (data.type === "workspace:host") {
           const { sessionId, files } = data;
-          hostedWorkspaces.set(sessionId, { files, lastUpdate: Date.now() });
-          ws.send(JSON.stringify({ 
-            type: 'workspace:hosted', 
-            url: `${process.env.APP_URL || ''}/hosted/${sessionId}/index.html` 
+          if (typeof sessionId !== "string" || !sessionId || !Array.isArray(files)) {
+            ws.send(JSON.stringify({ type: "workspace:error", message: "A session ID and file list are required." }));
+            return;
+          }
+
+          const safeFiles = files
+            .filter((file: any) => file && typeof file.name === "string" && typeof file.content === "string")
+            .map((file: any) => ({ name: file.name.replace(/^\/+/, ""), content: file.content }));
+          hostedWorkspaces.set(sessionId, { files: safeFiles, lastUpdate: Date.now() });
+          ws.send(JSON.stringify({
+            type: 'workspace:hosted',
+            url: `${process.env.APP_URL || ''}/hosted/${encodeURIComponent(sessionId)}/index.html`
           }));
         } else if (data.type === "minecraft:command") {
           const { sessionId, command } = data;

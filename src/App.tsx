@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import Sidebar from './components/Sidebar';
-const Editor = lazy(() => import('./components/Editor').then(m => ({ default: m.default })));
+import Editor from './components/Editor';
 const LinuxTerminal = lazy(() => import('./components/LinuxTerminal').then(m => ({ default: m.default })));
 const WebContainerTerminal = lazy(() => import('./components/WebContainerTerminal').then(m => ({ default: m.default })));
 const ThemeStudio = lazy(() => import('./components/ThemeStudio').then(m => ({ default: m.default })));
@@ -55,7 +55,7 @@ import ErrorHandlingService from './services/errorHandlingService';
 import VoiceCommand from './components/VoiceCommand';
 import { MobilePortraitLayout, MobileLandscapeLayout } from './components/MobileLayout';
 import { cn } from './lib/utils';
-import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight, Terminal as TerminalIcon } from 'lucide-react';
+import { Zap, FilePlus, FolderOpen, MessageSquare, Play, Settings, Trash2, Download, LayoutGrid as Layout, Brain, CircleAlert as AlertCircle, X, Save, HardDrive, Columns2, ChevronRight, Terminal as TerminalIcon, FileText } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -410,10 +410,29 @@ export default function App() {
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const modifier = e.ctrlKey || e.metaKey;
+      const target = e.target as HTMLElement;
+      const isTyping = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
+
+      // Ctrl/Cmd+P — quick-open commands and files instead of printing the page.
+      if (modifier && e.key.toLowerCase() === 'p' && !isTyping) {
+        e.preventDefault();
+        ide.setIsCommandPaletteOpen(true);
+        return;
+      }
       // Ctrl+K S — Keyboard shortcuts panel
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && e.shiftKey) {
+      if (modifier && e.key.toLowerCase() === 'k' && e.shiftKey) {
         e.preventDefault();
         setShowKeyboardShortcuts(prev => !prev);
+        return;
+      }
+      // Familiar IDE toggles, available without leaving the editor.
+      if (modifier && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        ide.setShowSidebar(prev => !prev);
+      } else if (modifier && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        ide.setShowTerminal(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -489,6 +508,13 @@ export default function App() {
     { id: 'export-zip', label: 'Export as ZIP', icon: Download, category: 'File', action: exportAsZip },
     { id: 'analyze-arch', label: 'Analyze Architecture', icon: Layout, category: 'AI', action: handleAnalyzeArchitecture },
     { id: 'keyboard-shortcuts', label: 'Keyboard Shortcuts', icon: Settings, category: 'App', action: () => setShowKeyboardShortcuts(true) },
+    ...files.map(file => ({
+      id: `open-file-${file.id}`,
+      label: `Open ${file.name}`,
+      icon: FileText,
+      category: 'Files',
+      action: () => ide.handleSelectFile(file.id),
+    })),
   ];
 
   const activeFile = files.find(f => f.id === ide.activeFileId) || null;

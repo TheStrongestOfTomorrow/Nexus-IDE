@@ -6,7 +6,7 @@
 **Zero server dependencies. Zero cloud lag. Bring-your-own-key privacy. All inside a browser tab.**
 
 [![Live Demo](https://img.shields.io/badge/Try_It_Now-Vercel-000000?style=for-the-badge&labelColor=1e293b&logo=vercel)](https://nexus-ide.vercel.app/)
-[![Version](https://img.shields.io/badge/Version-5.5.6-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
+[![Version](https://img.shields.io/badge/Version-5.5.7-3b82f6?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 [![License](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=1e293b)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Web_|_Tauri_|_Android-059669?style=for-the-badge&labelColor=1e293b)](https://github.com/TheStrongestOfTomorrow/Nexus-IDE)
 
@@ -113,7 +113,22 @@ The heart of the system relies on a **bidirectional filesystem bridge** utilizin
 ### 1. Web Version (Fastest Preview)
 Open **[thestrongestoftomorrow.github.io/Nexus-IDE](https://nexus-ide.vercel.app/)** on any desktop, tablet, or mobile browser to start coding immediately.
 
-### 2. Full Local Experience (Recommended for terminal features)
+### 2. One-Line Install (Recommended)
+Install the Nexus IDE CLI and all dependencies with one command. It requires Node.js 18+ and npm:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/TheStrongestOfTomorrow/Nexus-IDE/main/install.sh | bash
+```
+
+Then start the IDE from any directory:
+
+```bash
+nexus-ide --open
+```
+
+The installed CLI checks GitHub for a newer release when it starts and every 30 minutes while it is running. Updates are installed in the background and never block offline startup. To disable automatic updates for one run, use `NEXUS_IDE_AUTO_UPDATE=false nexus-ide`.
+
+### 3. Full Local Experience (Manual Source Install)
 Run Nexus locally on your computer with complete SharedArrayBuffer and loopback permissions:
 
 ```bash
@@ -127,12 +142,12 @@ npm start
 ```
 Your browser will open automatically at `http://localhost:3000` with the correct cross-origin isolation headers applied.
 
-### 3. Docker Deployment
+### 4. Docker Deployment
 ```bash
 docker-compose up -d
 ```
 
-### 4. Desktop Compile (Tauri)
+### 5. Desktop Compile (Tauri)
 Nexus compiles to an ultra-lightweight native application (averaging under 25MB) using the Rust-based Tauri framework:
 ```bash
 # Start Tauri Dev
@@ -142,7 +157,7 @@ npm run tauri:dev
 npm run tauri:build
 ```
 
-### 5. Mobile Compile (Capacitor Android APK)
+### 6. Mobile Compile (Capacitor Android APK)
 Compile a native Android app optimized for touch input, landscape splits, and bottom-tab navigation:
 ```bash
 npm install && npm run build
@@ -151,6 +166,21 @@ cd android && ./gradlew assembleDebug
 ```
 
 ---
+
+## 📝 Update Log
+
+### v5.5.7 — Automatic CLI Updates and Reliable Workspace Hosting
+
+- Added a one-line installer at `install.sh` for Node.js 18+ environments.
+- Added non-blocking update checks when `nexus-ide` starts and every 30 minutes during a running session.
+- Added `NEXUS_IDE_AUTO_UPDATE=false` for users who want to opt out.
+- Fixed WebSocket text messages being misclassified as binary messages.
+- Added workspace hosting validation and the `/api/health` service endpoint.
+- Added fuzzy Quick Open search, file search, and IDE keyboard shortcuts.
+
+### Update behavior
+
+The updater only runs from the installed CLI (`nexus-ide`), uses the public GitHub Releases API, and fails silently when offline. It never interrupts the IDE boot sequence. If a release is found, it installs the matching package in the background; restart Nexus IDE to use the new version.
 
 ## 🤝 Contribution Guidelines
 
